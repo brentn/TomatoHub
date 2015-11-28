@@ -1,0 +1,95 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.brentandjody.tomatohub.OverviewFragment"
+    android:background="#5744a2">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/router"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:contentDescription="router"
+        android:layout_below="@+id/internet"
+        android:layout_margin="10dp"
+        android:layout_toRightOf="@+id/internet"
+        android:src="@drawable/router" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/internet"
+        android:layout_alignParentTop="false"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentEnd="false"
+        android:focusable="false"
+        android:layout_alignParentStart="false"
+        android:src="@drawable/internet"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/message_area"
+        android:layout_alignParentLeft="false"
+        android:adjustViewBounds="false"
+        android:cropToPadding="false" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/message_area"
+        android:background="@color/colorPrimary"
+        android:paddingTop="30dp"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="&apos;tranquility&apos; IS ON"
+            android:id="@+id/small_text"
+            android:background="@color/colorPrimary"
+            android:textColor="@color/primary_material_light" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Everything looks good."
+            android:id="@+id/first_line"
+            android:textColor="@color/primary_material_light"
+            android:paddingTop="8dp" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="9 devices"
+                android:id="@+id/devices"
+                android:paddingTop="8dp"
+                android:textColor="#4dd0e1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="are connected."
+                android:id="@+id/status"
+                android:paddingTop="8dp"
+                android:textColor="@color/primary_material_light"
+                android:paddingLeft="8dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
