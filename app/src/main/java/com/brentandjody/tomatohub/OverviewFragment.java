@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 
 /**
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 public class OverviewFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
+    private TextView mLan1;
 
     public OverviewFragment() {
         // Required empty public constructor
@@ -41,7 +43,9 @@ public class OverviewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_overview, container, false);
+        View view = inflater.inflate(R.layout.fragment_overview, container, false);
+        mLan1 = (TextView)view.findViewById(R.id.lan_1);
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -81,5 +85,9 @@ public class OverviewFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    public void setLan1(String total) {
+        mLan1.setText(total);
     }
 }

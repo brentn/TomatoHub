@@ -16,6 +16,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,10 +27,19 @@ import android.widget.TextView;
 
 import com.jcraft.jsch.*;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+
+import javax.xml.transform.stream.StreamResult;
 
 public class MainActivity extends AppCompatActivity
         implements OverviewFragment.OnFragmentInteractionListener {
@@ -73,7 +83,7 @@ public class MainActivity extends AppCompatActivity
         mUser = mPrefs.getString(routerUserPref, "root");
         mPassword = mPrefs.getString(routerPasswordPref, "");
 
-        new verifySshConnection().execute();
+        new updateBySsh().execute();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -102,8 +112,9 @@ public class MainActivity extends AppCompatActivity
         //TODO:
     }
 
-    private class verifySshConnection extends AsyncTask<Void,Void,Void>
+    private class updateBySsh extends AsyncTask<Void,Void,Void>
     {
+        String mConnections;
         @Override
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
@@ -113,13 +124,32 @@ public class MainActivity extends AppCompatActivity
                 Session session = ssh.getSession(mUser, mIpAddress, mPort);
                 session.setConfig(config);
                 session.setPassword(mPassword);
-                session.connect(2000);
-                session.openChannel("exec");
+                session.connect(5000);
+                mConnections = runCommand("arp|wc -l", session);
                 session.disconnect();
             } catch(Exception ex) {
                 startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
             }
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            ((TextView)mViewPager.findViewById(R.id.lan_1)).setText(mConnections);
+        }
+
+        public String runCommand(String command, Session session) throws Exception {
+            Channel channel=session.openChannel("exec");
+            ((ChannelExec)channel).setCommand(command);
+            ByteArrayOutputStream sb=new ByteArrayOutputStream();
+            channel.setOutputStream(sb);
+            channel.connect();
+            while (!channel.isClosed()) {
+                Thread.sleep(10);
+            }
+            channel.disconnect();
+            return sb.toString().replace("\n","");
         }
     }
 
