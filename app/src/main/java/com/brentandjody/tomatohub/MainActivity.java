@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -16,30 +15,18 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 
 import android.widget.TextView;
 
 import com.jcraft.jsch.*;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-
-import javax.xml.transform.stream.StreamResult;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements OverviewFragment.OnFragmentInteractionListener {
@@ -49,7 +36,6 @@ public class MainActivity extends AppCompatActivity
     public static final String routerPasswordPref = "prefRouterPass";
 
     private SharedPreferences mPrefs;
-    private OverviewFragment mOverview;
     private String mIpAddress;
     private int mPort;
     private String mUser;
@@ -76,14 +62,12 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         mPrefs = getSharedPreferences("Application", Context.MODE_PRIVATE);
-        mOverview = new OverviewFragment();
 
         mIpAddress = mPrefs.getString(routerIPPref, "0.0.0.0");
         mPort = mPrefs.getInt(routerPort, 22);
         mUser = mPrefs.getString(routerUserPref, "root");
         mPassword = mPrefs.getString(routerPasswordPref, "");
 
-        new updateBySsh().execute();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -108,13 +92,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        new updateStats().execute();
+    }
+
+    @Override
     public void onFragmentInteraction(Uri uri) {
         //TODO:
     }
 
-    private class updateBySsh extends AsyncTask<Void,Void,Void>
+    private class updateStats extends AsyncTask<Void,Void,Void>
     {
-        String mConnections;
+        String mWanInterface;
+        String[] mLanInterfaces;
+        String[] mLanClients;
         @Override
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
@@ -125,7 +117,12 @@ public class MainActivity extends AppCompatActivity
                 session.setConfig(config);
                 session.setPassword(mPassword);
                 session.connect(5000);
-                mConnections = runCommand("arp|wc -l", session);
+                mWanInterface = runBySSH("nvram show|grep wan_iface|cut -d= -f2", session)[0];
+                mLanInterfaces = runBySSH("arp|cut -d' ' -f8|sort -u|grep -v "+mWanInterface, session);
+                mLanClients = new String[mLanInterfaces.length];
+                for (int i=0;i<mLanInterfaces.length; i++ ) {
+                    mLanClients[i] = runBySSH("arp|grep "+mLanInterfaces[i]+"|wc -l", session)[0];
+                }
                 session.disconnect();
             } catch(Exception ex) {
                 startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
@@ -136,21 +133,44 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            ((TextView)mViewPager.findViewById(R.id.lan_1)).setText(mConnections);
+            int total=0;
+            for (int i=0;i<5;i++){
+                int id=-1;
+                switch (i){
+                    case 0:id=R.id.lan_0;break;
+                    case 1:id=R.id.lan_1;break;
+                    case 2:id=R.id.lan_2;break;
+                    case 3:id=R.id.lan_3;break;
+                    case 4:id=R.id.lan_4;break;
+                }
+                TextView view = (TextView)mViewPager.findViewById(id);
+                if (i<mLanClients.length) {
+                    try {total += Integer.parseInt(mLanClients[i]);}
+                    catch(Exception ex) {}
+                    view.setVisibility(View.VISIBLE);
+                    view.setText(mLanClients[i]);
+                } else {
+                    view.setVisibility(View.GONE);
+                }
+            }
+            ((TextView)mViewPager.findViewById(R.id.devices)).setText(String.valueOf(total)+" devices");
         }
 
-        public String runCommand(String command, Session session) throws Exception {
-            Channel channel=session.openChannel("exec");
-            ((ChannelExec)channel).setCommand(command);
-            ByteArrayOutputStream sb=new ByteArrayOutputStream();
-            channel.setOutputStream(sb);
-            channel.connect();
-            while (!channel.isClosed()) {
-                Thread.sleep(10);
-            }
-            channel.disconnect();
-            return sb.toString().replace("\n","");
+    }
+
+    private String[] runBySSH(String command, Session session) throws Exception {
+        Channel channel=session.openChannel("exec");
+        ((ChannelExec)channel).setCommand(command);
+        ByteArrayOutputStream sb=new ByteArrayOutputStream();
+        channel.setOutputStream(sb);
+        channel.connect();
+        while (!channel.isClosed()) {
+            Thread.sleep(10);
         }
+        channel.disconnect();
+        List<String> lines = Arrays.asList(sb.toString().split("\n"));
+        lines.removeAll(Arrays.asList("", null));
+        return lines.toArray(new String[lines.size()]);
     }
 
 
