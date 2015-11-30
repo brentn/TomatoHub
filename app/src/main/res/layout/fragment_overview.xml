@@ -23,8 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="&apos;tranquility&apos; IS ON"
-            android:id="@+id/small_text"
+            android:id="@+id/wifi_message"
             android:background="@color/colorPrimary"
             android:textColor="@color/primary_material_light" />
 

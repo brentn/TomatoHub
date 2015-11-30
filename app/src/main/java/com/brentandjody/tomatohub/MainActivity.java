@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -140,6 +141,12 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    private void setWifiMessage(String message) {
+        TextView view = (TextView)mViewPager.findViewById(R.id.wifi_message);
+        view.setText(message);
+        view.setVisibility(message.isEmpty()?View.GONE:View.VISIBLE);
+    }
+
     private void setStatusMessage(String message) {
         TextView view = (TextView)mViewPager.findViewById(R.id.status_message);
         view.setText(message);
@@ -223,24 +230,31 @@ public class MainActivity extends AppCompatActivity
                 setStatusMessage("Everything looks good.");
                 new ValueInitializer().execute();
             } else {
+                mViewPager.findViewById(R.id.router).setVisibility(View.INVISIBLE);
                 setStatusMessage("Could not connect to router.");
             }
         }
     }
 
     private class ValueInitializer extends AsyncTask<Void, Void, Void> {
-        String mWanInterface;
-        String[] mLanInterfaces;
-        String[] mLanClients;
+        String mWAN;
+        String[] mNetworks;
+        String[] mWifi;
+        String[][] mDevices;
         boolean success=false;
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                mWanInterface = sshCommand("nvram show|grep wan_iface|cut -d= -f2")[0];
-                mLanInterfaces = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v " + mWanInterface);
-                mLanClients = new String[mLanInterfaces.length];
-                for (int i = 0; i < mLanInterfaces.length; i++) {
-                    mLanClients[i] = sshCommand("arp|grep " + mLanInterfaces[i] + "|wc -l")[0];
+                // identify the WAN interface
+                mWAN = sshCommand("nvram show|grep wan_iface|cut -d= -f2")[0];
+                // identify various networks
+                mNetworks = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v " + mWAN);
+                // identify various wifi networks
+                mWifi = sshCommand("nvram show|grep _ssid");
+                // enumerate devices on each network
+                mDevices = new String[mNetworks.length][];
+                for (int i = 0; i < mNetworks.length; i++) {
+                    mDevices[i] = sshCommand("arp|grep " + mNetworks[i] );
                 }
                 success=true;
             } catch(Exception ex) {
@@ -264,18 +278,16 @@ public class MainActivity extends AppCompatActivity
                     case 4:id=R.id.lan_4;break;
                 }
                 TextView view = (TextView)mViewPager.findViewById(id);
-                if (i<mLanClients.length) {
-                    try {total += Integer.parseInt(mLanClients[i]);}
-                    catch(Exception ex) {
-                        Log.e(TAG, "Error parsing mLanClients:"+mLanClients[i]);
-                    }
+                if (i< mNetworks.length) {
+                    total += mDevices[i].length;
                     view.setVisibility(View.VISIBLE);
-                    view.setText(mLanClients[i]);
+                    view.setText(mDevices[i].length);
                 } else {
                     view.setVisibility(View.GONE);
                 }
             }
             setDevicesMessage(String.valueOf(total)+ " devices", " are connected.");
+            setWifiMessage("'"+TextUtils.join("' is ON,  '", mWifi)+"' is ON");
         }
     }
 
