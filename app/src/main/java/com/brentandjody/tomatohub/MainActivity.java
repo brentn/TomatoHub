@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity
     public static final  String routerPort = "prefRouterPort";
     public static final  String routerUserPref = "prefRouterUser";
     public static final String routerPasswordPref = "prefRouterPass";
+    private static final String TAG = MainActivity.class.getName();
 
     private SharedPreferences mPrefs;
     private Session mSession;
@@ -147,11 +148,11 @@ public class MainActivity extends AppCompatActivity
 
     private void setDevicesMessage(String numDevices, String deviceStatus) {
         TextView devices = (TextView)mViewPager.findViewById(R.id.devices);
-        TextView areconnected = (TextView)mViewPager.findViewById(R.id.are_connected);
+        TextView are_connected = (TextView)mViewPager.findViewById(R.id.are_connected);
         devices.setText(numDevices);
         devices.setVisibility(numDevices.isEmpty()?View.GONE:View.VISIBLE);
-        areconnected.setText(deviceStatus);
-        areconnected.setVisibility(deviceStatus.isEmpty()?View.GONE:View.VISIBLE);
+        are_connected.setText(deviceStatus);
+        are_connected.setVisibility(deviceStatus.isEmpty()?View.GONE:View.VISIBLE);
     }
 
     /**
@@ -194,6 +195,7 @@ public class MainActivity extends AppCompatActivity
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
             try {
+                if (mSession!=null) mSession.disconnect();
                 java.util.Properties config = new java.util.Properties();
                 config.put("StrictHostKeyChecking", "no");
                 mSession = ssh.getSession(mUser, mIpAddress, mPort);
@@ -202,13 +204,13 @@ public class MainActivity extends AppCompatActivity
                 mSession.connect(5000);
                 success = true;
             } catch (Exception ex) {
-                if (mSession!=null) {
+                if (mSession!=null)
                     mSession.disconnect();
-                    mSession = null;
-                }
                 if (!mStartActivityHasBeenRun) {
                     mStartActivityHasBeenRun = true;
                     startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
+                } else {
+                    Log.e(TAG, ex.getMessage());
                 }
             }
             return null;
@@ -230,6 +232,7 @@ public class MainActivity extends AppCompatActivity
         String mWanInterface;
         String[] mLanInterfaces;
         String[] mLanClients;
+        boolean success=false;
         @Override
         protected Void doInBackground(Void... voids) {
             try {
@@ -239,8 +242,10 @@ public class MainActivity extends AppCompatActivity
                 for (int i = 0; i < mLanInterfaces.length; i++) {
                     mLanClients[i] = sshCommand("arp|grep " + mLanInterfaces[i] + "|wc -l")[0];
                 }
+                success=true;
             } catch(Exception ex) {
-
+                setStatusMessage("Could not scan the network.");
+                Log.e(TAG, ex.getMessage());
             }
             return null;
         }
@@ -261,7 +266,9 @@ public class MainActivity extends AppCompatActivity
                 TextView view = (TextView)mViewPager.findViewById(id);
                 if (i<mLanClients.length) {
                     try {total += Integer.parseInt(mLanClients[i]);}
-                    catch(Exception ex) {}
+                    catch(Exception ex) {
+                        Log.e(TAG, "Error parsing mLanClients:"+mLanClients[i]);
+                    }
                     view.setVisibility(View.VISIBLE);
                     view.setText(mLanClients[i]);
                 } else {
@@ -288,7 +295,7 @@ public class MainActivity extends AppCompatActivity
                 lines.removeAll(Arrays.asList("", null));
                 return lines.toArray(new String[lines.size()]);
             } catch (Exception ex) {
-                Log.e("TomatoHub", ex.getMessage()+ex.getStackTrace());
+                Log.e(TAG, ex.getMessage());
             }
         }
         return new String[0];

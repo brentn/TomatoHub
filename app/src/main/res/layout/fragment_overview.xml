@@ -32,10 +32,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Everything looks good."
-            android:id="@+id/first_line"
+            android:id="@+id/status_message"
             android:textColor="@color/primary_material_light"
-            android:paddingTop="8dp" />
+            android:paddingTop="8dp"
+            android:visibility="gone" />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -46,20 +46,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="9 devices"
                 android:id="@+id/devices"
                 android:paddingTop="8dp"
-                android:textColor="#4dd0e1" />
+                android:textColor="#4dd0e1"
+                android:visibility="gone" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="are connected."
-                android:id="@+id/status"
+                android:id="@+id/are_connected"
                 android:paddingTop="8dp"
                 android:textColor="@color/primary_material_light"
-                android:paddingLeft="8dp" />
+                android:paddingLeft="8dp"
+                android:visibility="gone" />
 
         </LinearLayout>
 
