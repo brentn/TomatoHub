@@ -226,16 +226,17 @@ public class MainActivity extends AppCompatActivity
             try {
                 ImageView view = (ImageView) mViewPager.findViewById(R.id.router);
                 if (view != null) view.setVisibility(success ? View.VISIBLE : View.INVISIBLE);
-                if (mSession==null) {
+                if (success) {
+                    setStatusMessage("Everything looks good.");
+                    new ValueInitializer().execute();
+                } else {
                     if (!mStartActivityHasBeenRun) {
                         mStartActivityHasBeenRun = true;
+                        Log.i(TAG, "Redirecting to Welcome screen");
                         startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
                     } else {
                         setStatusMessage("Could not connect to router.");
                     }
-                } else {
-                    setStatusMessage("Everything looks good.");
-                    new ValueInitializer().execute();
                 }
             } catch (Exception ex) {
                 Log.e(TAG, "SSHLogon.postExecute:"+ex.getMessage());
