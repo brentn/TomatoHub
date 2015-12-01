@@ -123,7 +123,7 @@ public class WelcomeActivity extends AppCompatActivity {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.ok_button).setOnTouchListener(mDelayHideTouchListener);
+        //192findViewById(R.id.ok_button).setOnTouchListener(mDelayHideTouchListener);
     }
 
     @Override
