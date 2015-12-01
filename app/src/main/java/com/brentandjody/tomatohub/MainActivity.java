@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jcraft.jsch.*;
@@ -144,22 +145,22 @@ public class MainActivity extends AppCompatActivity
     private void setWifiMessage(String message) {
         TextView view = (TextView)mViewPager.findViewById(R.id.wifi_message);
         view.setText(message);
-        view.setVisibility(message.isEmpty()?View.GONE:View.VISIBLE);
+        view.setVisibility(message.isEmpty()?View.INVISIBLE:View.VISIBLE);
     }
 
     private void setStatusMessage(String message) {
         TextView view = (TextView)mViewPager.findViewById(R.id.status_message);
         view.setText(message);
-        view.setVisibility(message.isEmpty()?View.GONE:View.VISIBLE);
+        view.setVisibility(message.isEmpty()?View.INVISIBLE:View.VISIBLE);
     }
 
     private void setDevicesMessage(String numDevices, String deviceStatus) {
         TextView devices = (TextView)mViewPager.findViewById(R.id.devices);
         TextView are_connected = (TextView)mViewPager.findViewById(R.id.are_connected);
         devices.setText(numDevices);
-        devices.setVisibility(numDevices.isEmpty()?View.GONE:View.VISIBLE);
+        devices.setVisibility(numDevices.isEmpty()?View.INVISIBLE:View.VISIBLE);
         are_connected.setText(deviceStatus);
-        are_connected.setVisibility(deviceStatus.isEmpty()?View.GONE:View.VISIBLE);
+        are_connected.setVisibility(deviceStatus.isEmpty()?View.INVISIBLE:View.VISIBLE);
     }
 
     /**
@@ -226,12 +227,17 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            if (success) {
-                setStatusMessage("Everything looks good.");
-                new ValueInitializer().execute();
-            } else {
-                mViewPager.findViewById(R.id.router).setVisibility(View.INVISIBLE);
-                setStatusMessage("Could not connect to router.");
+            try {
+                ImageView view = (ImageView) mViewPager.findViewById(R.id.router);
+                if (view != null) view.setVisibility(success ? View.VISIBLE : View.INVISIBLE);
+                if (success) {
+                    setStatusMessage("Everything looks good.");
+                    new ValueInitializer().execute();
+                } else {
+                    setStatusMessage("Could not connect to router.");
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "SSHLogon.postExecute:"+ex.getMessage());
             }
         }
     }
@@ -250,7 +256,7 @@ public class MainActivity extends AppCompatActivity
                 // identify various networks
                 mNetworks = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v " + mWAN);
                 // identify various wifi networks
-                mWifi = sshCommand("nvram show|grep _ssid");
+                mWifi = sshCommand("nvram show|grep _ssid|cut -d= -f2");
                 // enumerate devices on each network
                 mDevices = new String[mNetworks.length][];
                 for (int i = 0; i < mNetworks.length; i++) {
@@ -267,27 +273,41 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            int total=0;
-            for (int i=0;i<5;i++){
-                int id=-1;
-                switch (i){
-                    case 0:id=R.id.lan_0;break;
-                    case 1:id=R.id.lan_1;break;
-                    case 2:id=R.id.lan_2;break;
-                    case 3:id=R.id.lan_3;break;
-                    case 4:id=R.id.lan_4;break;
+            try {
+                int total = 0;
+                for (int i = 0; i < 5; i++) {
+                    int id = -1;
+                    switch (i) {
+                        case 0:
+                            id = R.id.lan_0;
+                            break;
+                        case 1:
+                            id = R.id.lan_1;
+                            break;
+                        case 2:
+                            id = R.id.lan_2;
+                            break;
+                        case 3:
+                            id = R.id.lan_3;
+                            break;
+                        case 4:
+                            id = R.id.lan_4;
+                            break;
+                    }
+                    TextView view = (TextView) mViewPager.findViewById(id);
+                    if (mNetworks != null && i < mNetworks.length) {
+                        total += mDevices[i].length;
+                        view.setVisibility(View.VISIBLE);
+                        view.setText(String.valueOf(mDevices[i].length));
+                    } else {
+                        view.setVisibility(View.INVISIBLE);
+                    }
                 }
-                TextView view = (TextView)mViewPager.findViewById(id);
-                if (i< mNetworks.length) {
-                    total += mDevices[i].length;
-                    view.setVisibility(View.VISIBLE);
-                    view.setText(mDevices[i].length);
-                } else {
-                    view.setVisibility(View.GONE);
-                }
+                setDevicesMessage(String.valueOf(total) + " devices", " are connected.");
+                setWifiMessage("'" + TextUtils.join("' is ON,  '", mWifi) + "' is ON");
+            } catch (Exception ex) {
+                Log.e(TAG, "ValueInitializer.postExecute:"+ex.getMessage());
             }
-            setDevicesMessage(String.valueOf(total)+ " devices", " are connected.");
-            setWifiMessage("'"+TextUtils.join("' is ON,  '", mWifi)+"' is ON");
         }
     }
 

@@ -72,4 +72,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="no_client">0</string>
+    <string name="internet">internet</string>
+    <string name="router">router</string>
 </resources>
