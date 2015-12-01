@@ -32,13 +32,30 @@ public class TomatoRouter extends Router {
     }
 
     // COMMANDS
-    public String getWANInterface() { return sshCommand("nvram show|grep wan_iface|cut -d= -f2")[0]; }
+    @Override
+    public String getWANInterface() {
+        try { return sshCommand("nvram show|grep wan_iface|cut -d= -f2")[0]; }
+        catch (Exception ex) { Log.w(TAG, "Error getting WAN interface"); return ""; }
+    }
+    @Override
     public String[] getLANInterfaces() {
         if (mWAN.isEmpty()) mWAN = getWANInterface();
         return sshCommand("arp|cut -d' ' -f8|sort -u|grep -v "+mWAN);
     }
+    @Override
     public String[] getWIFILabels() { return sshCommand("nvram show|grep _ssid|cut -d= -f2");}
+    @Override
     public String[] getConnectedDevices(String network) {return sshCommand("arp|grep -v "+network);}
+    @Override
+    public int getTxTrafficForIP(String ip) {
+        try {return Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); return 0;}
+    }
+    @Override
+    public int getRxTrafficForIP(String ip) {
+        try {return Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); return 0;}
+    }
 
     private long currentTime() { return System.currentTimeMillis()/1000L;}
 
@@ -143,14 +160,17 @@ public class TomatoRouter extends Router {
                         String name = (fields.length > 0?fields[0]:"");
                         String ip = (fields.length > 1?fields[1]:"");
                         String mac = (fields.length > 2?fields[2]:"");
-                        String tx = "";//TODO:
                         if (mac.length() == 18) {
                             ContentValues values = new ContentValues();
                             values.put(DBContract.DeviceEntry.COLUMN_MAC, mac);
                             values.put(DBContract.DeviceEntry.COLUMN_NAME, name);
                             values.put(DBContract.DeviceEntry.COLUMN_LAST_IP, ip);
                             values.put(DBContract.DeviceEntry.COLUMN_ACTIVE, 1);
-                            values.put(DBContract.DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP, currentTime());
+                            if (! ip.isEmpty()) {
+                                values.put(DBContract.DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP, currentTime());
+                                values.put(DBContract.DeviceEntry.COLUMN_TX_BYTES, getTxTrafficForIP(ip));
+                                values.put(DBContract.DeviceEntry.COLUMN_RX_BYTES, getRxTrafficForIP(ip));
+                            }
                             db.insertWithOnConflict(DBContract.DeviceEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
                         }
                     }
