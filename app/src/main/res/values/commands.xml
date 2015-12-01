@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="GET_WAN_IFACE">nvram show|grep wan_iface|cut -d= -f2</string>
+    <string name="GET_LAN_IFACES">arp|cut -d\' \' -f8|sort -u|grep -v `nvram show|grep wan_iface|cut -d= -f2`</string>
+    <string name="GET_ACTIVE_SSIDS">nvram show|grep _ssid|cut -d= -f2</string>
+    <string name="GET_ALL_CONNECTED_DEVICES">arp</string>
+</resources>

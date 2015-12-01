@@ -75,4 +75,12 @@
     <string name="no_client">0</string>
     <string name="internet">internet</string>
     <string name="router">router</string>
+    <string name="devices">" devices"</string>
+    <string name="are_connected">" are connected."</string>
+    <string name="everything_looks_good">Everything looks good.</string>
+    <string name="scanning_network">scanning network...</string>
+    <string name="connection_failure">Could not connect to router.</string>
+    <string name="scan_failure">Could not scan the network.</string>
+    <string name="title_overview">OVERVIEW</string>
+    <string name="title_wifi_access">WI-FI ACCESS</string>
 </resources>

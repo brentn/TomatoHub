@@ -16,7 +16,7 @@ public class Database extends SQLiteOpenHelper {
             "CREATE TABLE " + DeviceEntry.TABLE_NAME + " (" +
                     DeviceEntry._ID + " INTEGER PRIMARY KEY," +
                     DeviceEntry.COLUMN_NAME + " TEXT," +
-                    DeviceEntry.COLUMN_IP + " Text," +
+                    DeviceEntry.COLUMN_LAST_IP + " Text," +
                     DeviceEntry.COLUMN_MAC + ")";
 
     private static final String DROP_DEVICES_TABLE = "" +

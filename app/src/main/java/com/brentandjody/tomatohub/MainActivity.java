@@ -188,9 +188,9 @@ public class MainActivity extends AppCompatActivity
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "OVERVIEW";
+                    return getString(R.string.title_overview);
                 case 1:
-                    return "WI-FI ACCESS";
+                    return getString(R.string.title_wifi_access);
             }
             return null;
         }
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity
                 ImageView view = (ImageView) mViewPager.findViewById(R.id.router);
                 if (view != null) view.setVisibility(success ? View.VISIBLE : View.INVISIBLE);
                 if (success) {
-                    setStatusMessage("Everything looks good.");
+                    setStatusMessage(getString(R.string.scanning_network));
                     new ValueInitializer().execute();
                 } else {
                     if (!mStartActivityHasBeenRun) {
@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity
                         Log.i(TAG, "Redirecting to Welcome screen");
                         startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
                     } else {
-                        setStatusMessage("Could not connect to router.");
+                        setStatusMessage(getString(R.string.connection_failure));
                     }
                 }
             } catch (Exception ex) {
@@ -255,15 +255,15 @@ public class MainActivity extends AppCompatActivity
         protected Void doInBackground(Void... voids) {
             try {
                 // identify the WAN interface
-                mWAN = sshCommand("nvram show|grep wan_iface|cut -d= -f2")[0];
+                mWAN = sshCommand(getString(R.string.GET_WAN_IFACE))[0];
                 // identify various networks
-                mNetworks = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v " + mWAN);
+                mNetworks = sshCommand(getString(R.string.GET_LAN_IFACES));
                 // identify various wifi networks
-                mWifi = sshCommand("nvram show|grep _ssid|cut -d= -f2");
+                mWifi = sshCommand(getString(R.string.GET_ACTIVE_SSIDS));
                 // enumerate devices on each network
                 mDevices = new String[mNetworks.length][];
                 for (int i = 0; i < mNetworks.length; i++) {
-                    mDevices[i] = sshCommand("arp|grep " + mNetworks[i] );
+                    mDevices[i] = sshCommand(getString(R.string.GET_ALL_CONNECTED_DEVICES) +"|grep " + mNetworks[i] );
                 }
                 success=true;
             } catch(Exception ex) {
@@ -280,25 +280,13 @@ public class MainActivity extends AppCompatActivity
                     int total = 0;
                     for (int i = 0; i < 5; i++) {
                         int id = -1;
-                        switch (i) {
-                            case 0:
-                                id = R.id.lan_0;
-                                break;
-                            case 1:
-                                id = R.id.lan_1;
-                                break;
-                            case 2:
-                                id = R.id.lan_2;
-                                break;
-                            case 3:
-                                id = R.id.lan_3;
-                                break;
-                            case 4:
-                                id = R.id.lan_4;
-                                break;
-                        }
+                        if (i==0) id=R.id.lan_0;
+                        if (i==1) id=R.id.lan_1;
+                        if (i==2) id=R.id.lan_2;
+                        if (i==3) id=R.id.lan_3;
+                        if (i==4) id=R.id.lan_4;
                         TextView view = (TextView) mViewPager.findViewById(id);
-                        if (mNetworks != null && i < mNetworks.length) {
+                        if (mNetworks != null && i < mNetworks.length && view !=null) {
                             total += mDevices[i].length;
                             view.setVisibility(View.VISIBLE);
                             view.setText(String.valueOf(mDevices[i].length));
@@ -306,10 +294,11 @@ public class MainActivity extends AppCompatActivity
                             view.setVisibility(View.INVISIBLE);
                         }
                     }
-                    setDevicesMessage(String.valueOf(total) + " devices", " are connected.");
+                    setStatusMessage(getString(R.string.everything_looks_good));
+                    setDevicesMessage(String.valueOf(total) + getString(R.string.devices), getString(R.string.are_connected));
                     setWifiMessage("'" + TextUtils.join("' is ON,  '", mWifi) + "' is ON");
                 } else {
-                    setStatusMessage("Could not scan the network.");
+                    setStatusMessage(getString(R.string.scan_failure));
                     Log.e(TAG, message);
                 }
             } catch (Exception ex) {
