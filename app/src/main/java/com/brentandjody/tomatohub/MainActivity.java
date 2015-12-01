@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity
     private int mPort;
     private String mUser;
     private String mPassword;
-    private boolean mStartActivityHasBeenRun=false;
+    private boolean mStartActivityHasBeenRun;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         mPrefs = getSharedPreferences("Application", Context.MODE_PRIVATE);
-
+        mStartActivityHasBeenRun=false;
         mIpAddress = mPrefs.getString(routerIPPref, "0.0.0.0");
         mPort = mPrefs.getInt(routerPort, 22);
         mUser = mPrefs.getString(routerUserPref, "root");
@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity
 
     private class SSHLogon extends AsyncTask<Void,Void,Void>
     {
-        boolean success = false;
+        boolean success;
         @Override
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
@@ -209,17 +209,13 @@ public class MainActivity extends AppCompatActivity
                 mSession = ssh.getSession(mUser, mIpAddress, mPort);
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
-                mSession.connect(5000);
+                mSession.connect(8000);
                 success = true;
             } catch (Exception ex) {
+                success = false;
                 if (mSession!=null)
                     mSession.disconnect();
-                if (!mStartActivityHasBeenRun) {
-                    mStartActivityHasBeenRun = true;
-                    startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
-                } else {
-                    Log.e(TAG, ex.getMessage());
-                }
+                Log.e(TAG, ex.getMessage());
             }
             return null;
         }
@@ -230,11 +226,16 @@ public class MainActivity extends AppCompatActivity
             try {
                 ImageView view = (ImageView) mViewPager.findViewById(R.id.router);
                 if (view != null) view.setVisibility(success ? View.VISIBLE : View.INVISIBLE);
-                if (success) {
+                if (mSession==null) {
+                    if (!mStartActivityHasBeenRun) {
+                        mStartActivityHasBeenRun = true;
+                        startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
+                    } else {
+                        setStatusMessage("Could not connect to router.");
+                    }
+                } else {
                     setStatusMessage("Everything looks good.");
                     new ValueInitializer().execute();
-                } else {
-                    setStatusMessage("Could not connect to router.");
                 }
             } catch (Exception ex) {
                 Log.e(TAG, "SSHLogon.postExecute:"+ex.getMessage());
@@ -248,6 +249,7 @@ public class MainActivity extends AppCompatActivity
         String[] mWifi;
         String[][] mDevices;
         boolean success=false;
+        String message = "";
         @Override
         protected Void doInBackground(Void... voids) {
             try {
@@ -264,7 +266,6 @@ public class MainActivity extends AppCompatActivity
                 }
                 success=true;
             } catch(Exception ex) {
-                setStatusMessage("Could not scan the network.");
                 Log.e(TAG, ex.getMessage());
             }
             return null;
@@ -274,37 +275,42 @@ public class MainActivity extends AppCompatActivity
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             try {
-                int total = 0;
-                for (int i = 0; i < 5; i++) {
-                    int id = -1;
-                    switch (i) {
-                        case 0:
-                            id = R.id.lan_0;
-                            break;
-                        case 1:
-                            id = R.id.lan_1;
-                            break;
-                        case 2:
-                            id = R.id.lan_2;
-                            break;
-                        case 3:
-                            id = R.id.lan_3;
-                            break;
-                        case 4:
-                            id = R.id.lan_4;
-                            break;
+                if (success) {
+                    int total = 0;
+                    for (int i = 0; i < 5; i++) {
+                        int id = -1;
+                        switch (i) {
+                            case 0:
+                                id = R.id.lan_0;
+                                break;
+                            case 1:
+                                id = R.id.lan_1;
+                                break;
+                            case 2:
+                                id = R.id.lan_2;
+                                break;
+                            case 3:
+                                id = R.id.lan_3;
+                                break;
+                            case 4:
+                                id = R.id.lan_4;
+                                break;
+                        }
+                        TextView view = (TextView) mViewPager.findViewById(id);
+                        if (mNetworks != null && i < mNetworks.length) {
+                            total += mDevices[i].length;
+                            view.setVisibility(View.VISIBLE);
+                            view.setText(String.valueOf(mDevices[i].length));
+                        } else {
+                            view.setVisibility(View.INVISIBLE);
+                        }
                     }
-                    TextView view = (TextView) mViewPager.findViewById(id);
-                    if (mNetworks != null && i < mNetworks.length) {
-                        total += mDevices[i].length;
-                        view.setVisibility(View.VISIBLE);
-                        view.setText(String.valueOf(mDevices[i].length));
-                    } else {
-                        view.setVisibility(View.INVISIBLE);
-                    }
+                    setDevicesMessage(String.valueOf(total) + " devices", " are connected.");
+                    setWifiMessage("'" + TextUtils.join("' is ON,  '", mWifi) + "' is ON");
+                } else {
+                    setStatusMessage("Could not scan the network.");
+                    Log.e(TAG, message);
                 }
-                setDevicesMessage(String.valueOf(total) + " devices", " are connected.");
-                setWifiMessage("'" + TextUtils.join("' is ON,  '", mWifi) + "' is ON");
             } catch (Exception ex) {
                 Log.e(TAG, "ValueInitializer.postExecute:"+ex.getMessage());
             }
