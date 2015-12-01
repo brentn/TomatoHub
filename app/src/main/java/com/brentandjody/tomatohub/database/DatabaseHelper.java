@@ -8,7 +8,7 @@ import com.brentandjody.tomatohub.database.DBContract.*;
 /**
  * Created by brent on 28/11/15.
  */
-public class Database extends SQLiteOpenHelper {
+public class DatabaseHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "tomatohub.db";
 
@@ -16,13 +16,19 @@ public class Database extends SQLiteOpenHelper {
             "CREATE TABLE " + DeviceEntry.TABLE_NAME + " (" +
                     DeviceEntry._ID + " INTEGER PRIMARY KEY," +
                     DeviceEntry.COLUMN_NAME + " TEXT," +
-                    DeviceEntry.COLUMN_LAST_IP + " Text," +
-                    DeviceEntry.COLUMN_MAC + ")";
+                    DeviceEntry.COLUMN_CUSTOM_NAME + " TEXT," +
+                    DeviceEntry.COLUMN_MAC + " TEXT," +
+                    DeviceEntry.COLUMN_LAST_IP + " TEXT," +
+                    DeviceEntry.COLUMN_ACTIVE + " INTEGER," +
+                    DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP + " INTEGER," +
+                    DeviceEntry.COLUMN_TX_BYTES + " INTEGER," +
+                    DeviceEntry.COLUMN_RX_BYTES + " INTEGER," +
+                    ")";
 
     private static final String DROP_DEVICES_TABLE = "" +
             "DROP TABLE IF EXISTS " + DeviceEntry.TABLE_NAME;
 
-    public Database(Context context) {
+    public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
     public void onCreate(SQLiteDatabase db) {

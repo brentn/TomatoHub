@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +12,8 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+
+import com.brentandjody.tomatohub.classes.Router;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -110,7 +111,7 @@ public class WelcomeActivity extends AppCompatActivity {
         DhcpInfo dhcp = wifi.getDhcpInfo();
         String gateway = intToIp(dhcp.gateway);
         mIPAddress.setText(gateway);
-        mPassword.setText(mPrefs.getString(MainActivity.routerPasswordPref, ""));
+        mPassword.setText(mPrefs.getString(Router.PASS_PREF, ""));
 
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
@@ -140,8 +141,8 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putString(MainActivity.routerIPPref, mIPAddress.getText().toString());
-        editor.putString(MainActivity.routerPasswordPref, mPassword.getText().toString());
+        editor.putString(Router.IP_PREF, mIPAddress.getText().toString());
+        editor.putString(Router.PASS_PREF, mPassword.getText().toString());
         editor.commit();
     }
 
