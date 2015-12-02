@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.brentandjody.tomatohub.OverviewFragment"
-    android:background="#5744a2">
+    android:background="#5744a2"
+    android:id="@+id/overview_layout">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -65,114 +66,192 @@
 
     </LinearLayout>
 
-    <GridLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:columnCount="3"
-        android:rowCount="3"
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:id="@+id/router_l"
+        android:src="@drawable/line_45"
+        android:layout_alignTop="@+id/router"
+        android:layout_alignLeft="@+id/router"
+        android:layout_marginTop="-40dp"
+        android:layout_marginLeft="-37dp"
+        android:visibility="visible" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="30dp"
+        android:id="@+id/lan_0_l"
+        android:src="@drawable/line_150"
+        android:layout_alignTop="@+id/lan_0"
+        android:layout_marginTop="-14dp"
+        android:layout_alignRight="@+id/lan_0"
+        android:layout_marginRight="-35dp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="20dp"
+        android:id="@+id/lan_1_l"
+        android:src="@drawable/line_45"
+        android:layout_alignTop="@+id/lan_1"
+        android:layout_marginTop="-16dp"
+        android:layout_alignLeft="@+id/lan_1"
+        android:layout_marginLeft="-18dp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="40dp"
+        android:id="@+id/lan_2_l"
+        android:src="@drawable/line_105"
+        android:layout_alignTop="@+id/lan_2"
+        android:layout_marginTop="-35dp"
+        android:layout_alignLeft="@+id/lan_2"
+        android:layout_marginLeft="20dp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="10dp"
+        android:id="@+id/lan_3_l"
+        android:src="@drawable/line_0"
+        android:layout_alignLeft="@+id/lan_3"
+        android:layout_marginLeft="-35dp"
+        android:layout_alignTop="@+id/lan_3"
+        android:layout_marginTop="25dp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/lan_4_l"
+        android:src="@drawable/line_130"
+        android:layout_alignLeft="@+id/lan_4"
+        android:layout_alignBottom="@+id/lan_4"
+        android:layout_marginLeft="-22dp"
+        android:layout_marginBottom="-25dp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/internet"
+        android:id="@+id/internet"
+        android:focusable="false"
+        android:src="@drawable/internet"
+        android:adjustViewBounds="false"
+        android:cropToPadding="false"
         android:layout_below="@+id/message_area"
-        android:layout_alignParentLeft="false"
-        android:layout_alignParentStart="false"
-        android:padding="50dp">
+        android:layout_marginTop="50dp"
+        android:layout_marginLeft="70dp" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/internet"
-            android:id="@+id/internet"
-            android:focusable="false"
-            android:src="@drawable/internet"
-            android:adjustViewBounds="false"
-            android:cropToPadding="false"
-            android:layout_column="0"
-            android:layout_row="0" />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/router"
+        android:id="@+id/router"
+        android:src="@drawable/router"
+        android:layout_toRightOf="@+id/internet"
+        android:layout_below="@+id/internet"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="15dp"
+        android:visibility="gone" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/router"
-            android:id="@+id/router"
-            android:src="@drawable/router"
-            android:layout_column="1"
-            android:layout_row="1" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_0"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_below="@+id/router"
+        android:layout_toLeftOf="@+id/router"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="-8dp"
+        android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/no_client"
-            android:id="@+id/lan_0"
-            android:layout_column="2"
-            android:layout_row="2"
-            android:background="@drawable/circle"
-            android:textColor="#ffffff"
-            android:textSize="20pt"
-            android:textIsSelectable="true"
-            android:gravity="center|center_vertical"
-            android:maxLines="1"
-            android:visibility="gone" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_1"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_below="@+id/router"
+        android:layout_toRightOf="@+id/router"
+        android:layout_marginTop="10dp"
+        android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/no_client"
-            android:id="@+id/lan_1"
-            android:layout_column="1"
-            android:layout_row="2"
-            android:background="@drawable/circle"
-            android:textColor="#ffffff"
-            android:textSize="20pt"
-            android:textIsSelectable="true"
-            android:gravity="center|center_vertical"
-            android:maxLines="1"
-            android:layout_marginTop="30dp"
-            android:visibility="gone" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_2"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_below="@+id/router"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="-18dp"
+        android:layout_alignLeft="@+id/router"
+        android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/no_client"
-            android:id="@+id/lan_2"
-            android:layout_column="2"
-            android:layout_row="1"
-            android:background="@drawable/circle"
-            android:textColor="#ffffff"
-            android:textSize="20pt"
-            android:textIsSelectable="true"
-            android:gravity="center|center_vertical"
-            android:maxLines="1"
-            android:layout_marginStart="30dp"
-            android:visibility="gone" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_3"
+        android:layout_column="0"
+        android:layout_row="2"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_alignTop="@+id/router"
+        android:layout_toRightOf="@+id/router"
+        android:layout_marginLeft="30dp"
+        android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/no_client"
-            android:id="@+id/lan_3"
-            android:layout_column="0"
-            android:layout_row="2"
-            android:background="@drawable/circle"
-            android:textColor="#ffffff"
-            android:textSize="20pt"
-            android:textIsSelectable="true"
-            android:gravity="center|center_vertical"
-            android:maxLines="1"
-            android:visibility="gone" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_4"
+        android:layout_column="2"
+        android:layout_row="0"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_alignTop="@+id/router"
+        android:layout_toRightOf="@+id/router"
+        android:layout_marginTop="-70dp"
+        android:layout_marginLeft="2dp"
+        android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/no_client"
-            android:id="@+id/lan_4"
-            android:layout_column="2"
-            android:layout_row="0"
-            android:background="@drawable/circle"
-            android:textColor="#ffffff"
-            android:textSize="20pt"
-            android:textIsSelectable="true"
-            android:gravity="center|center_vertical"
-            android:maxLines="1"
-            android:visibility="gone" />
-
-    </GridLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/internet"
+        android:id="@+id/internet_label"
+        android:layout_alignTop="@+id/internet"
+        android:layout_toRightOf="@+id/internet"
+        android:textColor="@android:color/white" />
 
 </RelativeLayout>

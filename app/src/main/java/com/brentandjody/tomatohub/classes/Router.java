@@ -77,7 +77,7 @@ public abstract class Router {
                 mSession = ssh.getSession(mUser, mIpAddress, mPort);
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
-                mSession.connect(8000);
+                mSession.connect(15000);
                 success = true;
             } catch (Exception ex) {
                 success = false;

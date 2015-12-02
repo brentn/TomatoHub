@@ -1,7 +1,9 @@
 package com.brentandjody.tomatohub;
 
+import android.app.ActionBar;
 import android.content.Intent;
 
+import android.graphics.Color;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.brentandjody.tomatohub.classes.Router;
@@ -137,6 +141,35 @@ public class MainActivity extends AppCompatActivity
         are_connected.setVisibility(deviceStatus.isEmpty()?View.INVISIBLE:View.VISIBLE);
     }
 
+    public void setNetworkText(int i, String text) {
+        switch(i) {
+            case 0: showIcon(R.id.lan_0, !text.isEmpty());
+                showIcon(R.id.lan_0_l, !text.isEmpty());
+                setIconText(R.id.lan_0, text);
+                break;
+            case 1: showIcon(R.id.lan_1, !text.isEmpty());
+                showIcon(R.id.lan_1_l, !text.isEmpty());
+                setIconText(R.id.lan_1, text);
+                break;
+            case 2: showIcon(R.id.lan_2, !text.isEmpty());
+                showIcon(R.id.lan_2_l, !text.isEmpty());
+                setIconText(R.id.lan_2, text);
+                break;
+            case 3: showIcon(R.id.lan_3, !text.isEmpty());
+                showIcon(R.id.lan_3_l, !text.isEmpty());
+                setIconText(R.id.lan_3, text);
+                break;
+            case 4: showIcon(R.id.lan_4, !text.isEmpty());
+                showIcon(R.id.lan_4_l, !text.isEmpty());
+                setIconText(R.id.lan_4, text);
+                break;
+        }
+    }
+
+    public void hideNetwork(int id) {
+        setNetworkText(id, "");
+    }
+
     public void showIcon(int id, boolean show) {
         try {
             View icon = mViewPager.findViewById(id);
@@ -149,6 +182,20 @@ public class MainActivity extends AppCompatActivity
             TextView icon = (TextView) mViewPager.findViewById(id);
             icon.setText(text);
         } catch (Exception ex) {}
+    }
+
+    public void addIconLabel(int id, String text) {
+        RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
+        TextView label = new TextView(this);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_TOP, id);
+        params.addRule(RelativeLayout.RIGHT_OF, id);
+        label.setLayoutParams(params);
+        label.setTextSize(14);
+        label.setTextColor(Color.parseColor("White"));
+        label.setText(text);
+        layout.addView(label);
     }
 
     /**

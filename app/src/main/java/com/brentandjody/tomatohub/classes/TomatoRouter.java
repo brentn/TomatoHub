@@ -39,13 +39,18 @@ public class TomatoRouter extends Router {
     // COMMANDS
     @Override
     public String getWANInterface() {
-        try { return sshCommand("nvram show|grep wan_iface|cut -d= -f2")[0]; }
-        catch (Exception ex) { Log.w(TAG, "Error getting WAN interface"); return ""; }
+        try {
+            String[] result = sshCommand("nvram show|grep wan_iface|cut -d= -f2");
+            if (result.length==0) return "";
+            return result[0];
+        }
+        catch (Exception ex) { Log.e(TAG, "Error getting WAN interface"); return ""; }
     }
     @Override
     public String[] getLANInterfaces() {
         if (mWAN.isEmpty()) mWAN = getWANInterface();
-        return sshCommand("arp|cut -d' ' -f8|sort -u|grep -v "+mWAN);
+        String[] result = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v "+mWAN);
+        return result;
     }
     @Override
     public String[] getWIFILabels() { return sshCommand("nvram show|grep _ssid|cut -d= -f2");}
@@ -72,6 +77,7 @@ public class TomatoRouter extends Router {
             super.onPostExecute(aVoid);
             try {
                 mContext.showIcon(R.id.router, success);
+                mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
                 if (success) {
                     mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
                     new ValueInitializer().execute();
@@ -93,22 +99,24 @@ public class TomatoRouter extends Router {
     private class ValueInitializer extends AsyncTask<Void, Void, Void> {
 
         boolean success=false;
-        String message = "";
         @Override
         protected Void doInBackground(Void... voids) {
             try {
                 // identify various networks
+                Log.d(TAG, "identify networks");
                 mNetworks = getLANInterfaces();
                 // identify various wifi networks
+                Log.d(TAG, "identify wifi");
                 mWifi = getWIFILabels();
                 // enumerate devices on each network
+                Log.d(TAG, "enumerate network devices");
                 mDevices = new String[mNetworks.length][];
                 for (int i = 0; i < mNetworks.length; i++) {
                     mDevices[i] = getConnectedDevices(mNetworks[i]);
                 }
                 success=true;
             } catch(Exception ex) {
-                Log.e(TAG, ex.getMessage());
+                Log.e(TAG, "valueInitializer:"+ ex.getMessage());
             }
             return null;
         }
@@ -120,18 +128,11 @@ public class TomatoRouter extends Router {
                 if (success) {
                     int total = 0;
                     for (int i = 0; i < 5; i++) {
-                        int id = -1;
-                        if (i==0) id=R.id.lan_0;
-                        if (i==1) id=R.id.lan_1;
-                        if (i==2) id=R.id.lan_2;
-                        if (i==3) id=R.id.lan_3;
-                        if (i==4) id=R.id.lan_4;
                         if (mNetworks != null && i < mNetworks.length) {
                             total += mDevices[i].length;
-                            mContext.showIcon(id, true);
-                            mContext.setIconText(id, String.valueOf(mDevices[i].length));
+                            mContext.setNetworkText(i, String.valueOf(mDevices[i].length));
                         } else {
-                            mContext.showIcon(id, false);
+                            mContext.hideNetwork(i);
                         }
                     }
                     mContext.setStatusMessage(mContext.getString(R.string.everything_looks_good));
@@ -142,7 +143,6 @@ public class TomatoRouter extends Router {
                     }
                 } else {
                     mContext.setStatusMessage(mContext.getString(R.string.scan_failure));
-                    Log.e(TAG, message);
                 }
             } catch (Exception ex) {
                 Log.e(TAG, "ValueInitializer.postExecute:"+ex.getMessage());
@@ -158,20 +158,20 @@ public class TomatoRouter extends Router {
             try {
                 // to start, mark all devices as inactive
                 db.rawQuery("UPDATE "+ DBContract.DeviceEntry.TABLE_NAME+ " SET " + DBContract.DeviceEntry.COLUMN_ACTIVE + "=0", null);
-
+                // update device data
                 for (String[] network : networkDevices) {
                     for (String device : network) {
                         String[] fields = device.split(" ");
-                        String name = (fields.length > 0?fields[0]:"");
-                        String ip = (fields.length > 1?fields[1]:"");
-                        String mac = (fields.length > 2?fields[2]:"");
+                        String name = (fields.length > 0 ? fields[0] : "");
+                        String ip = (fields.length > 1 ? fields[1] : "");
+                        String mac = (fields.length > 2 ? fields[2] : "");
                         if (mac.length() == 18) {
                             ContentValues values = new ContentValues();
                             values.put(DBContract.DeviceEntry.COLUMN_MAC, mac);
                             values.put(DBContract.DeviceEntry.COLUMN_NAME, name);
                             values.put(DBContract.DeviceEntry.COLUMN_LAST_IP, ip);
                             values.put(DBContract.DeviceEntry.COLUMN_ACTIVE, 1);
-                            if (! ip.isEmpty()) {
+                            if (!ip.isEmpty()) {
                                 values.put(DBContract.DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP, currentTime());
                                 values.put(DBContract.DeviceEntry.COLUMN_TX_BYTES, getTxTrafficForIP(ip));
                                 values.put(DBContract.DeviceEntry.COLUMN_RX_BYTES, getRxTrafficForIP(ip));
@@ -179,6 +179,10 @@ public class TomatoRouter extends Router {
                             db.insertWithOnConflict(DBContract.DeviceEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
                         }
                     }
+                }
+                // update network data
+                for (int i=0; i<mNetworks.length; i++) {
+                    String id = mNetworks[i];
                 }
             } finally {
                 db.close();
