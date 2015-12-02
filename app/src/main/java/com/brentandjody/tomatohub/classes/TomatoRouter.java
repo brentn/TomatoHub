@@ -31,6 +31,11 @@ public class TomatoRouter extends Router {
         mStartActivityHasBeenRun=false;
     }
 
+    @Override
+    public void connect() {
+        new SSHLogon().execute();
+    }
+
     // COMMANDS
     @Override
     public String getWANInterface() {
