@@ -154,10 +154,9 @@ public class TomatoRouter extends Router {
 
         @Override
         protected Void doInBackground(String[]... networkDevices) {
-            SQLiteDatabase db = new DatabaseHelper((mContext)).getWritableDatabase();
+            Devices devices = new Devices(mContext);
             try {
-                // to start, mark all devices as inactive
-                db.rawQuery("UPDATE "+ DBContract.DeviceEntry.TABLE_NAME+ " SET " + DBContract.DeviceEntry.COLUMN_ACTIVE + "=0", null);
+                devices.inactivateAll();
                 // update device data
                 for (String[] network : networkDevices) {
                     for (String device : network) {
@@ -166,17 +165,9 @@ public class TomatoRouter extends Router {
                         String ip = (fields.length > 1 ? fields[1] : "");
                         String mac = (fields.length > 2 ? fields[2] : "");
                         if (mac.length() == 18) {
-                            ContentValues values = new ContentValues();
-                            values.put(DBContract.DeviceEntry.COLUMN_MAC, mac);
-                            values.put(DBContract.DeviceEntry.COLUMN_NAME, name);
-                            values.put(DBContract.DeviceEntry.COLUMN_LAST_IP, ip);
-                            values.put(DBContract.DeviceEntry.COLUMN_ACTIVE, 1);
-                            if (!ip.isEmpty()) {
-                                values.put(DBContract.DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP, currentTime());
-                                values.put(DBContract.DeviceEntry.COLUMN_TX_BYTES, getTxTrafficForIP(ip));
-                                values.put(DBContract.DeviceEntry.COLUMN_RX_BYTES, getRxTrafficForIP(ip));
-                            }
-                            db.insertWithOnConflict(DBContract.DeviceEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                            Device d = new Device(mac, ip, name, true);
+                            if (!ip.isEmpty())
+                                d.saveTrafficStats(getTxTrafficForIP(ip), getRxTrafficForIP(ip), currentTime());
                         }
                     }
                 }
@@ -184,8 +175,8 @@ public class TomatoRouter extends Router {
                 for (int i=0; i<mNetworks.length; i++) {
                     String id = mNetworks[i];
                 }
-            } finally {
-                db.close();
+            } catch(Exception ex) {
+                Log.e(TAG, ex.getMessage());
             }
             return null;
         }
