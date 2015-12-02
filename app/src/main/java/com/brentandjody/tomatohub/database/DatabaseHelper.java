@@ -22,7 +22,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DeviceEntry.COLUMN_ACTIVE + " INTEGER," +
                     DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP + " INTEGER," +
                     DeviceEntry.COLUMN_TX_BYTES + " INTEGER," +
-                    DeviceEntry.COLUMN_RX_BYTES + " INTEGER)";
+                    DeviceEntry.COLUMN_RX_BYTES + " INTEGER," +
+                    DeviceEntry.COLUMN_LAST_SPEED + " REAL)";
 
     private static final String DROP_DEVICES_TABLE = "" +
             "DROP TABLE IF EXISTS " + DeviceEntry.TABLE_NAME;

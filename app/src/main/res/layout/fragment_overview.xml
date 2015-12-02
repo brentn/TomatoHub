@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     tools:context="com.brentandjody.tomatohub.OverviewFragment"
     android:background="#5744a2"
-    android:id="@+id/overview_layout">
+    android:id="@+id/overview_layout"
+    android:animateLayoutChanges="true">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -253,5 +254,31 @@
         android:layout_alignTop="@+id/internet"
         android:layout_toRightOf="@+id/internet"
         android:textColor="@android:color/white" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/message_area"
+        android:layout_marginTop="-24dp"
+        android:id="@+id/detail_layout"
+        android:background="#f22c2f9e"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Network Devices"
+            android:id="@+id/network_name"
+            android:padding="8dp"
+            android:textColor="#ffffff" />
+
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/network_device_list"
+            android:layout_below="@+id/message_area" />
+    </LinearLayout>
 
 </RelativeLayout>

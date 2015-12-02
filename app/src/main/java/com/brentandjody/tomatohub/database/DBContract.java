@@ -18,5 +18,6 @@ public final class DBContract {
         public static final String COLUMN_TX_BYTES = "tx_bytes";
         public static final String COLUMN_RX_BYTES = "rx_bytes";
         public static final String COLUMN_TRAFFIC_TIMESTAMP = "timestamp";
+        public static final String COLUMN_LAST_SPEED = "last_speed";
     }
 }

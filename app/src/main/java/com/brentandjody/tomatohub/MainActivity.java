@@ -16,22 +16,28 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.brentandjody.tomatohub.classes.Router;
 import com.brentandjody.tomatohub.classes.TomatoRouter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
         implements OverviewFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getName();
     private Router mRouter;
+    private List<TextView> mIconLabels;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -52,8 +58,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
+        mIconLabels = new ArrayList<TextView>();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -65,6 +70,7 @@ public class MainActivity extends AppCompatActivity
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mRouter = new TomatoRouter(this);
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -187,6 +193,7 @@ public class MainActivity extends AppCompatActivity
     public void addIconLabel(int id, String text) {
         RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
         TextView label = new TextView(this);
+        mIconLabels.add(label);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                 RelativeLayout.LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.ALIGN_TOP, id);
@@ -196,6 +203,17 @@ public class MainActivity extends AppCompatActivity
         label.setTextColor(Color.parseColor("White"));
         label.setText(text);
         layout.addView(label);
+    }
+
+    public void hideAllIcons() {
+        int[] icons = {R.id.router, R.id.lan_0, R.id.lan_1, R.id.lan_2, R.id.lan_3, R.id.lan_4, R.id.router_l, R.id.lan_0_l, R.id.lan_1_l, R.id.lan_2_l, R.id.lan_3_l, R.id.lan_4_l};
+        for (int id : icons) {
+            showIcon(id, false);
+        }
+        RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
+        for (TextView label:mIconLabels) {
+            layout.removeView(label);
+        }
     }
 
     /**

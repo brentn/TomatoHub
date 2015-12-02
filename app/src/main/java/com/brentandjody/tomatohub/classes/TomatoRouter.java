@@ -1,8 +1,6 @@
 package com.brentandjody.tomatohub.classes;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
@@ -10,8 +8,6 @@ import android.util.Log;
 import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.WelcomeActivity;
-import com.brentandjody.tomatohub.database.DBContract;
-import com.brentandjody.tomatohub.database.DatabaseHelper;
 
 /**
  * Created by brent on 28/11/15.
@@ -76,9 +72,10 @@ public class TomatoRouter extends Router {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             try {
-                mContext.showIcon(R.id.router, success);
-                mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
+                mContext.hideAllIcons();
                 if (success) {
+                    mContext.showIcon(R.id.router, success);
+                    mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
                     mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
                     new ValueInitializer().execute();
                 } else {
@@ -165,9 +162,11 @@ public class TomatoRouter extends Router {
                         String ip = (fields.length > 1 ? fields[1] : "");
                         String mac = (fields.length > 2 ? fields[2] : "");
                         if (mac.length() == 18) {
-                            Device d = new Device(mac, ip, name, true);
+                            Device d = devices.get(mac);
+                            d.setOriginalName(name);
                             if (!ip.isEmpty())
-                                d.saveTrafficStats(getTxTrafficForIP(ip), getRxTrafficForIP(ip), currentTime());
+                                d.setCurrentIP(ip);
+                                d.setTrafficStats(getTxTrafficForIP(ip), getRxTrafficForIP(ip), currentTime());
                         }
                     }
                 }
