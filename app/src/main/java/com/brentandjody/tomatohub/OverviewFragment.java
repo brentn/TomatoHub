@@ -54,12 +54,14 @@ public class OverviewFragment extends Fragment {
         i.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Animation bottomUp = AnimationUtils.loadAnimation(getActivity()
-                    , R.anim.bottom_up);
-                LinearLayout l = (LinearLayout)mView.findViewById(R.id.detail_layout);
-                l.startAnimation(bottomUp);
-                l.setVisibility(View.VISIBLE);
-                mDetailViewVisible=true;
+                if (! isDetailViewVisible()) {
+                    Animation bottomUp = AnimationUtils.loadAnimation(getActivity()
+                            , R.anim.bottom_up);
+                    LinearLayout l = (LinearLayout) mView.findViewById(R.id.detail_layout);
+                    l.startAnimation(bottomUp);
+                    l.setVisibility(View.VISIBLE);
+                    mDetailViewVisible = true;
+                }
             }
         });
         return mView;

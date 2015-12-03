@@ -9,6 +9,9 @@ import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.WelcomeActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by brent on 28/11/15.
  */
@@ -37,7 +40,7 @@ public class TomatoRouter extends Router {
     public String getWANInterface() {
         try {
             String[] result = sshCommand("nvram show|grep wan_iface|cut -d= -f2");
-            if (result.length==0) return "";
+            if (result.length==0) return "none";
             return result[0];
         }
         catch (Exception ex) { Log.e(TAG, "Error getting WAN interface"); return ""; }
@@ -49,9 +52,15 @@ public class TomatoRouter extends Router {
         return result;
     }
     @Override
-    public String[] getWIFILabels() { return sshCommand("nvram show|grep _ssid|cut -d= -f2");}
+    public String[] getWIFILabels() {
+        String[] result = sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3|tr -d '\"'; done");
+        return result;
+    }
     @Override
-    public String[] getConnectedDevices(String network) {return sshCommand("arp|grep -v "+network);}
+    public String[] getConnectedDevices(String network) {
+        String[] result = sshCommand("arp|grep "+network);
+        return result;
+    }
     @Override
     public int getTxTrafficForIP(String ip) {
         try {return Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
@@ -137,7 +146,7 @@ public class TomatoRouter extends Router {
                     }
                     mContext.setStatusMessage(mContext.getString(R.string.everything_looks_good));
                     mContext.setDevicesMessage(String.valueOf(total) + mContext.getString(R.string.devices), mContext.getString(R.string.are_connected));
-                    mContext.setWifiMessage("'" + TextUtils.join("' is ON,  '", mWifi) + "' is ON");
+                    mContext.setWifiMessage("'"+TextUtils.join("'"+mContext.getString(R.string.is_on)+",  '", mWifi) + "'" + mContext.getString(R.string.is_on));
                     if (mDevices!=null) {
                         new DeviceStatusUpdater().execute(mDevices);
                     }

@@ -91,6 +91,7 @@ public abstract class Router {
 
 
     protected String[] sshCommand(String command){
+        String[] result = new String[0];
         if (mSession!=null) {
             try {
                 Channel channel = mSession.openChannel("exec");
@@ -104,11 +105,12 @@ public abstract class Router {
                 channel.disconnect();
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
                 lines.removeAll(Arrays.asList("", null));
-                return lines.toArray(new String[lines.size()]);
+                result = lines.toArray(new String[lines.size()]);
             } catch (Exception ex) {
+                result = new String[0];
                 Log.e(TAG, ex.getMessage());
             }
         }
-        return new String[0];
+        return result;
     }
 }

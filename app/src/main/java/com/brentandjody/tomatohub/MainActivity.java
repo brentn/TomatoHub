@@ -127,9 +127,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         Fragment current_fragment = mSectionsPagerAdapter.getRegisteredFragment(mViewPager.getCurrentItem());
-        if ( current_fragment instanceof OverviewFragment) {
-            if (((OverviewFragment)current_fragment).isDetailViewVisible())
-                ((OverviewFragment)current_fragment).hideDetailView();
+        if ( current_fragment instanceof OverviewFragment && ((OverviewFragment)current_fragment).isDetailViewVisible()) {
+            ((OverviewFragment)current_fragment).hideDetailView();
         } else {
             super.onBackPressed();
         }
