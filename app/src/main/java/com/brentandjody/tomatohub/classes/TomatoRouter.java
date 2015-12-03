@@ -75,6 +75,7 @@ public class TomatoRouter extends Router {
                 mContext.hideAllIcons();
                 if (success) {
                     mContext.showIcon(R.id.router, success);
+                    mContext.showIcon(R.id.router_l, success);
                     mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
                     mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
                     new ValueInitializer().execute();
