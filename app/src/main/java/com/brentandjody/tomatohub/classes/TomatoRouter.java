@@ -83,7 +83,9 @@ public class TomatoRouter extends Router {
                     if (!mStartActivityHasBeenRun) {
                         mStartActivityHasBeenRun = true;
                         Log.i(TAG, "Redirecting to Welcome screen");
-                        mContext.startActivity(new Intent(mContext, WelcomeActivity.class));
+                        Intent intent = new Intent(mContext, WelcomeActivity.class);
+                        intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                        mContext.startActivity(intent);
                     } else {
                         mContext.setStatusMessage(mContext.getString(R.string.connection_failure));
                     }

@@ -1,6 +1,5 @@
 package com.brentandjody.tomatohub;
 
-import android.app.ActionBar;
 import android.content.Intent;
 
 import android.graphics.Color;
@@ -16,13 +15,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 
-import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -70,7 +68,6 @@ public class MainActivity extends AppCompatActivity
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mRouter = new TomatoRouter(this);
-
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -125,6 +122,17 @@ public class MainActivity extends AppCompatActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        Fragment current_fragment = mSectionsPagerAdapter.getRegisteredFragment(mViewPager.getCurrentItem());
+        if ( current_fragment instanceof OverviewFragment) {
+            if (((OverviewFragment)current_fragment).isDetailViewVisible())
+                ((OverviewFragment)current_fragment).hideDetailView();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     public void setWifiMessage(String message) {
@@ -203,7 +211,7 @@ public class MainActivity extends AppCompatActivity
         label.setTextSize(14);
         label.setTextColor(Color.parseColor("White"));
         label.setText(text);
-        layout.addView(label);
+        layout.addView(label,0); //add before detail_layout
     }
 
     public void hideAllIcons() {
@@ -222,6 +230,7 @@ public class MainActivity extends AppCompatActivity
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        SparseArray<Fragment> registeredFragments = new SparseArray<Fragment>();
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -230,6 +239,13 @@ public class MainActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             return OverviewFragment.newInstance();
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            registeredFragments.put(position, fragment);
+            return fragment;
         }
 
         @Override
@@ -247,6 +263,10 @@ public class MainActivity extends AppCompatActivity
                     return getString(R.string.title_wifi_access);
             }
             return null;
+        }
+
+        public Fragment getRegisteredFragment(int position) {
+            return registeredFragments.get(position);
         }
     }
 

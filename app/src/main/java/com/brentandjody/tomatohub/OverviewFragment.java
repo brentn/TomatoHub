@@ -8,6 +8,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 
@@ -22,7 +26,8 @@ import android.widget.TextView;
 public class OverviewFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
-    private TextView mLan1;
+    private boolean mDetailViewVisible;
+    private View mView;
 
     public OverviewFragment() {
         // Required empty public constructor
@@ -43,9 +48,21 @@ public class OverviewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_overview, container, false);
-        mLan1 = (TextView)view.findViewById(R.id.lan_1);
-        return view;
+        mDetailViewVisible=false;
+        mView= inflater.inflate(R.layout.fragment_overview, container, false);
+        ImageView i = (ImageView)mView.findViewById(R.id.internet);
+        i.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Animation bottomUp = AnimationUtils.loadAnimation(getActivity()
+                    , R.anim.bottom_up);
+                LinearLayout l = (LinearLayout)mView.findViewById(R.id.detail_layout);
+                l.startAnimation(bottomUp);
+                l.setVisibility(View.VISIBLE);
+                mDetailViewVisible=true;
+            }
+        });
+        return mView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -72,6 +89,16 @@ public class OverviewFragment extends Fragment {
         mListener = null;
     }
 
+    public boolean isDetailViewVisible() {return mDetailViewVisible;}
+
+    public void hideDetailView() {
+        Animation bottomDown = AnimationUtils.loadAnimation(getActivity()
+                , R.anim.bottom_down);
+        LinearLayout l = (LinearLayout)mView.findViewById(R.id.detail_layout);
+        l.startAnimation(bottomDown);
+        l.setVisibility(View.INVISIBLE);
+        mDetailViewVisible=false;
+    }
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -87,7 +114,5 @@ public class OverviewFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    public void setLan1(String total) {
-        mLan1.setText(total);
-    }
+
 }
