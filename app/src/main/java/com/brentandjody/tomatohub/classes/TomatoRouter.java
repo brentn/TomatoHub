@@ -216,6 +216,7 @@ public class TomatoRouter extends Router {
                             Device device = devices.get(mac);
                             device.setCurrentNetwork(nwk);
                             device.setOriginalName(name);
+                            device.setActive(true);
                             if (!ip.isEmpty())
                                 device.setCurrentIP(ip);
                                 device.setTrafficStats(lookupTxTrafficForIP(ip), lookupRxTrafficForIP(ip), currentTime());

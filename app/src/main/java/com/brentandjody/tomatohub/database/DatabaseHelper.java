@@ -19,7 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DeviceEntry.COLUMN_ROUTER_ID + " TEXT," +
                     DeviceEntry.COLUMN_NAME + " TEXT," +
                     DeviceEntry.COLUMN_CUSTOM_NAME + " TEXT," +
-                    DeviceEntry.COLUMN_MAC + " TEXT," +
+                    DeviceEntry.COLUMN_MAC + " TEXT UNIQUE," +
                     DeviceEntry.COLUMN_LAST_NETWORK + " TEXT," +
                     DeviceEntry.COLUMN_LAST_IP + " TEXT," +
                     DeviceEntry.COLUMN_ACTIVE + " INTEGER," +

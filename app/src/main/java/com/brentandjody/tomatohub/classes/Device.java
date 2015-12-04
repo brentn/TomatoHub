@@ -38,6 +38,7 @@ public class Device {
     public void setCustomName(String name) { _custom_name=name; }
     public void setCurrentIP(String ip) { _ip=ip; }
     public void setCurrentNetwork(String network_name) {_last_network=network_name;}
+    public void setActive(boolean active) {_active=active;}
     public void setDetails(String name, String custom_name, String network, String ip, boolean active, long tx, long rx, long timestamp, float last_speed) {
         _name=name;
         _custom_name=custom_name;
