@@ -58,12 +58,14 @@ public abstract class Router {
     }
     // COMMANDS
     public abstract String getRouterId();
-    public abstract String getWANInterface();
-    public abstract String[] getLANInterfaces();
-    public abstract String[] getWIFILabels();
-    public abstract String[] getConnectedDevices(String network);
-    public abstract int getTxTrafficForIP(String ip);
-    public abstract int getRxTrafficForIP(String ip);
+    public abstract String[] getNetworkIds();
+    public abstract Devices getDevicesDB();
+    public abstract String lookupWANInterface();
+    public abstract String[] lookupLANInterfaces();
+    public abstract String[] lookupWIFILabels();
+    public abstract String[] lookupConnectedDevices(String network);
+    public abstract int lookupTxTrafficForIP(String ip);
+    public abstract int lookupRxTrafficForIP(String ip);
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {

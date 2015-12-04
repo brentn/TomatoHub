@@ -1,5 +1,7 @@
 package com.brentandjody.tomatohub.classes;
 
+import android.text.TextUtils;
+
 /**
  * Created by brent on 28/11/15.
  */
@@ -59,7 +61,7 @@ public class Device {
         return _mac;
     }
     public String name() {
-        if (_custom_name.isEmpty()) return _name;
+        if (TextUtils.isEmpty(_custom_name)) return _name;
         else return _custom_name;
     }
     public String customName() {

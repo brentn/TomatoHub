@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.brentandjody.tomatohub.classes.Devices;
 import com.brentandjody.tomatohub.classes.Router;
 import com.brentandjody.tomatohub.classes.TomatoRouter;
 
@@ -78,6 +79,19 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+    }
+
+    public Devices getDevicesDB() {
+        return mRouter.getDevicesDB();
+    }
+    public String getNetworkId(int index) {
+        if (index >= mRouter.getNetworkIds().length) return "";
+        else return mRouter.getNetworkIds()[index];
+    }
+
+    public void onNetworkScanComplete() {
+        OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
+        overview.setupNetworkClickListeners();
     }
 
     @Override

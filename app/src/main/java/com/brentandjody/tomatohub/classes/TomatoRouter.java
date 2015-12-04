@@ -19,9 +19,10 @@ public class TomatoRouter extends Router {
     private boolean mStartActivityHasBeenRun;
     private String mRouterId;
     private String mWAN="";
-    private String[] mNetworks;
+    private String[] mNetworks = new String[0];
     private String[] mWifi;
     private String[][] mDevices;
+    private Devices mDevicesDB = null;
 
     public TomatoRouter(MainActivity context) {
         super(context);
@@ -32,7 +33,10 @@ public class TomatoRouter extends Router {
     public void connect() {
         new SSHLogon().execute();
     }
-
+    @Override
+    public void disconnect() {
+        super.disconnect();
+    }
     // COMMANDS
 
     @Override
@@ -40,7 +44,7 @@ public class TomatoRouter extends Router {
     public String getRouterId() {
         String result = "";
         try {
-            if (mWAN.isEmpty()) mWAN = getWANInterface();
+            if (mWAN.isEmpty()) mWAN = lookupWANInterface();
             String[] response = sshCommand("arp|grep "+mWAN+"|cut -d' ' -f4");
             if (response.length>0) result = response[0];
         } catch (Exception ex) {
@@ -49,7 +53,13 @@ public class TomatoRouter extends Router {
         return result;
     }
     @Override
-    public String getWANInterface() {
+    public Devices getDevicesDB() {return mDevicesDB;}
+    @Override
+    public String[] getNetworkIds() { return mNetworks; }
+
+    // lookup values on router
+    @Override
+    public String lookupWANInterface() {
         String result = "none";
         try {
             String[] response = sshCommand("nvram show|grep wan_iface|cut -d= -f2");
@@ -59,30 +69,30 @@ public class TomatoRouter extends Router {
         return result;
     }
     @Override
-    public String[] getLANInterfaces() {
-        if (mWAN.isEmpty()) mWAN = getWANInterface();
+    public String[] lookupLANInterfaces() {
+        if (mWAN.isEmpty()) mWAN = lookupWANInterface();
         String[] result = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v "+mWAN);
         return result;
     }
     @Override
-    public String[] getWIFILabels() {
+    public String[] lookupWIFILabels() {
         String[] result = sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3-|tr -d '\"'; done");
         return result;
     }
     @Override
-    public String[] getConnectedDevices(String network) {
+    public String[] lookupConnectedDevices(String network) {
         String[] result = sshCommand("arp|grep "+network);
         return result;
     }
     @Override
-    public int getTxTrafficForIP(String ip) {
+    public int lookupTxTrafficForIP(String ip) {
         int result;
         try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
         catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= 0;}
         return result;
     }
     @Override
-    public int getRxTrafficForIP(String ip) {
+    public int lookupRxTrafficForIP(String ip) {
         int result;
         try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
         catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= 0;}
@@ -138,15 +148,15 @@ public class TomatoRouter extends Router {
                 mRouterId = getRouterId();
                 // identify various networks
                 Log.d(TAG, "identify networks");
-                mNetworks = getLANInterfaces();
+                mNetworks = lookupLANInterfaces();
                 // identify various wifi networks
                 Log.d(TAG, "identify wifi");
-                mWifi = getWIFILabels();
+                mWifi = lookupWIFILabels();
                 // enumerate devices on each network
                 Log.d(TAG, "enumerate network devices");
                 mDevices = new String[mNetworks.length][];
                 for (int i = 0; i < mNetworks.length; i++) {
-                    mDevices[i] = getConnectedDevices(mNetworks[i]);
+                    mDevices[i] = lookupConnectedDevices(mNetworks[i]);
                 }
                 success=true;
             } catch(Exception ex) {
@@ -158,6 +168,7 @@ public class TomatoRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            mDevicesDB = new Devices(mContext, mRouterId);
             int[] icons = new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
             try {
                 if (success) {
@@ -190,8 +201,8 @@ public class TomatoRouter extends Router {
 
         @Override
         protected Void doInBackground(String[]... networkDevices) {
-            Devices devices = new Devices(mContext, mRouterId);
             try {
+                Devices devices = mDevicesDB;
                 devices.inactivateAll();
                 // update device data
                 for (String[] deviceLines : networkDevices) {
@@ -201,13 +212,13 @@ public class TomatoRouter extends Router {
                         String ip = (fields.length > 1 ? fields[1] : "");
                         String mac = (fields.length > 3 ? fields[3] : "");
                         String nwk = (fields.length > 7 ? fields[7] : "");
-                        if (mac.length() == 18) {
+                        if (mac.length() == 17) {
                             Device device = devices.get(mac);
                             device.setCurrentNetwork(nwk);
                             device.setOriginalName(name);
                             if (!ip.isEmpty())
                                 device.setCurrentIP(ip);
-                                device.setTrafficStats(getTxTrafficForIP(ip), getRxTrafficForIP(ip), currentTime());
+                                device.setTrafficStats(lookupTxTrafficForIP(ip), lookupRxTrafficForIP(ip), currentTime());
                             devices.insertOrUpdate(device);
                         }
                     }
@@ -219,6 +230,7 @@ public class TomatoRouter extends Router {
             } catch(Exception ex) {
                 Log.e(TAG, ex.getMessage());
             }
+            mContext.onNetworkScanComplete();
             return null;
         }
     }

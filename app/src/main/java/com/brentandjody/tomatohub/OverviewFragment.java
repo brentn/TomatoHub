@@ -2,6 +2,7 @@ package com.brentandjody.tomatohub;
 
 import android.app.Activity;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,7 +13,14 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import com.brentandjody.tomatohub.classes.Device;
+import com.brentandjody.tomatohub.classes.DeviceListAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -50,7 +58,6 @@ public class OverviewFragment extends Fragment {
         // Inflate the layout for this fragment
         mDetailViewVisible=false;
         mView= inflater.inflate(R.layout.fragment_overview, container, false);
-        setupClickListeners();
         return mView;
     }
 
@@ -78,12 +85,20 @@ public class OverviewFragment extends Fragment {
         mListener = null;
     }
 
-    private void setupClickListeners() {
-        for (int id : new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4}) {
-            mView.findViewById(id).setOnClickListener(new View.OnClickListener() {
+    public void setupNetworkClickListeners() {
+        int[] icons = new int[]{R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
+        for (int i=0; i< icons.length; i++) {
+            final int j = i;
+            mView.findViewById(icons[i]).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     String label = (String)view.getTag();
+                    MainActivity activity = (MainActivity)getActivity();
+                    List<Device> devices = activity.getDevicesDB()
+                            .getDevicesOnNetwork(activity.getNetworkId(j));
+                    DeviceListAdapter adapter = new DeviceListAdapter(activity, devices);
+                    ListView detailList = (ListView)mView.findViewById(R.id.network_device_list);
+                    detailList.setAdapter(adapter);
                     showDetails(label);
                 }
             });
