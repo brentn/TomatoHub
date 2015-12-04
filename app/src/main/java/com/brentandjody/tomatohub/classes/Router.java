@@ -3,6 +3,7 @@ package com.brentandjody.tomatohub.classes;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.MainActivity;
@@ -109,6 +110,7 @@ public abstract class Router {
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
                 lines.removeAll(Arrays.asList("", null));
                 result = lines.toArray(new String[lines.size()]);
+                Log.d("SSH result: ", TextUtils.join(", ", lines));
             } catch (Exception ex) {
                 result = new String[0];
                 Log.e(TAG, ex.getMessage());

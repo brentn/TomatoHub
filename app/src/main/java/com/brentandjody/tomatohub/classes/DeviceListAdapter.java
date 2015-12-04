@@ -34,14 +34,12 @@ public class DeviceListAdapter extends ArrayAdapter<Device> {
         }
         TextView tvName = (TextView)convertView.findViewById(R.id.device_name);
         TextView tvIP = (TextView)convertView.findViewById(R.id.device_ip);
-        if (TextUtils.isEmpty(device.customName()))
-            tvName.setText(device.name());
-        else
-            tvName.setText(device.customName());
+        TextView tvMac = (TextView)convertView.findViewById(R.id.device_mac);
+        tvName.setText(device.name());
         tvIP.setText(device.lastIP());
         if (device.isActive()) tvName.setTextColor(Color.WHITE);
         else tvName.setTextColor(Color.GRAY);
-
+        tvMac.setText(TextUtils.isEmpty(device.mac())?"empty":device.mac());
         return convertView;
     }
 

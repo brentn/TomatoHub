@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -36,7 +37,8 @@
             android:id="@+id/status_message"
             android:textColor="@color/primary_material_light"
             android:paddingTop="8dp"
-            android:visibility="invisible" />
+            android:visibility="visible"
+            android:text="@string/searching_for_router" />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -259,6 +261,20 @@
         android:textColor="@android:color/white"
         android:clickable="true" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@mipmap/ic_wifi"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        app:elevation="10dp"
+        android:focusable="false"
+        android:layout_marginBottom="72dp"
+        android:layout_marginRight="@dimen/fab_margin"/>
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -268,7 +284,7 @@
         android:id="@+id/detail_layout"
         android:background="#ea3b3fc5"
         android:visibility="invisible"
-        android:elevation="8dp">
+        android:elevation="16dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -281,7 +297,7 @@
             android:singleLine="true" />
 
         <ListView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/network_device_list"
             android:layout_below="@+id/message_area" />

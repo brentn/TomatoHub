@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,9 +48,7 @@ public class OverviewFragment extends Fragment {
      * this fragment.
      */
     public static OverviewFragment newInstance() {
-        OverviewFragment fragment = new OverviewFragment();
-
-        return fragment;
+        return new OverviewFragment();
     }
 
 
@@ -58,6 +58,14 @@ public class OverviewFragment extends Fragment {
         // Inflate the layout for this fragment
         mDetailViewVisible=false;
         mView= inflater.inflate(R.layout.fragment_overview, container, false);
+        FloatingActionButton fab = (FloatingActionButton) mView.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
         return mView;
     }
 

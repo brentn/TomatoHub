@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mIconLabels = new ArrayList<TextView>();
+        mIconLabels = new ArrayList<>();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,15 +70,6 @@ public class MainActivity extends AppCompatActivity
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mRouter = new TomatoRouter(this);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
     }
 
@@ -185,14 +177,18 @@ public class MainActivity extends AppCompatActivity
         try {
             View icon = mViewPager.findViewById(id);
             icon.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+            Log.w(TAG, ex.getMessage());
+        }
     }
 
     public void setIconText(int id, String text) {
         try {
             TextView icon = (TextView) mViewPager.findViewById(id);
             icon.setText(text);
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+            Log.w(TAG, ex.getMessage());
+        }
     }
 
     public void addIconLabel(int id, String text) {
@@ -227,7 +223,7 @@ public class MainActivity extends AppCompatActivity
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        SparseArray<Fragment> registeredFragments = new SparseArray<Fragment>();
+        SparseArray<Fragment> registeredFragments = new SparseArray<>();
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);

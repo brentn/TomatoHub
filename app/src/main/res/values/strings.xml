@@ -85,4 +85,5 @@
     <string name="title_wifi_access">WI-FI ACCESS</string>
     <string name="is_on">" is ON"</string>
     <string name="devices_on">"Devices on "</string>
+    <string name="searching_for_router">searching for router...</string>
 </resources>

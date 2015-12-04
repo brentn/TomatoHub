@@ -18,7 +18,6 @@ public class TomatoRouter extends Router {
 
     private boolean mStartActivityHasBeenRun;
     private String mRouterId;
-    private String mWAN="";
     private String[] mNetworks = new String[0];
     private String[] mWifi;
     private String[][] mDevices;
@@ -44,8 +43,7 @@ public class TomatoRouter extends Router {
     public String getRouterId() {
         String result = "";
         try {
-            if (mWAN.isEmpty()) mWAN = lookupWANInterface();
-            String[] response = sshCommand("arp|grep "+mWAN+"|cut -d' ' -f4");
+            String[] response = sshCommand("arp|grep `nvram show|grep wan_iface|cut -d= -f2`|cut -d' ' -f4");
             if (response.length>0) result = response[0];
         } catch (Exception ex) {
             Log.e(TAG, "Error getting router ID");
@@ -70,19 +68,15 @@ public class TomatoRouter extends Router {
     }
     @Override
     public String[] lookupLANInterfaces() {
-        if (mWAN.isEmpty()) mWAN = lookupWANInterface();
-        String[] result = sshCommand("arp|cut -d' ' -f8|sort -u|grep -v "+mWAN);
-        return result;
+        return sshCommand("arp|cut -d' ' -f8|sort -u|grep -v `nvram show|grep wan_iface|cut -d= -f2`");
     }
     @Override
     public String[] lookupWIFILabels() {
-        String[] result = sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3-|tr -d '\"'; done");
-        return result;
+        return sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3-|tr -d '\"'; done");
     }
     @Override
     public String[] lookupConnectedDevices(String network) {
-        String[] result = sshCommand("arp|grep "+network);
-        return result;
+        return sshCommand("arp|grep "+network);
     }
     @Override
     public int lookupTxTrafficForIP(String ip) {
@@ -112,8 +106,8 @@ public class TomatoRouter extends Router {
                 mContext.setDevicesMessage("", "");
                 mContext.hideAllIcons();
                 if (success) {
-                    mContext.showIcon(R.id.router, success);
-                    mContext.showIcon(R.id.router_l, success);
+                    mContext.showIcon(R.id.router, true);
+                    mContext.showIcon(R.id.router_l, true);
                     mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
                     mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
                     new ValueInitializer().execute();
@@ -146,7 +140,7 @@ public class TomatoRouter extends Router {
         protected Void doInBackground(Void... voids) {
             try {
                 mRouterId = getRouterId();
-                // identify various networks
+                // identify networks
                 Log.d(TAG, "identify networks");
                 mNetworks = lookupLANInterfaces();
                 // identify various wifi networks
