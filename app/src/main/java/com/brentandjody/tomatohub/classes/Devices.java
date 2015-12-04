@@ -14,8 +14,10 @@ import com.brentandjody.tomatohub.database.DatabaseHelper;
  */
 public class Devices {
     private DatabaseHelper mDatabaseHelper;
+    private String mRouterId;
 
-    public Devices(Context context){
+    public Devices(Context context, String routerId){
+        mRouterId = routerId;
         mDatabaseHelper = new DatabaseHelper(context);
     }
 
@@ -30,12 +32,14 @@ public class Devices {
 
     public Device get(String mac) {
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
-        Device result = new Device(mac, "unknown");
+        Device result = new Device(mRouterId, mac, "unknown");
         String[] projection = {
                 DeviceEntry._ID,
+                DeviceEntry.COLUMN_ROUTER_ID,
                 DeviceEntry.COLUMN_MAC,
                 DeviceEntry.COLUMN_NAME,
                 DeviceEntry.COLUMN_CUSTOM_NAME,
+                DeviceEntry.COLUMN_LAST_NETWORK,
                 DeviceEntry.COLUMN_LAST_IP,
                 DeviceEntry.COLUMN_ACTIVE,
                 DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP,
@@ -56,6 +60,7 @@ public class Devices {
                 result.setDetails(
                         c.getString(c.getColumnIndex(DeviceEntry.COLUMN_NAME)),
                         c.getString(c.getColumnIndex(DeviceEntry.COLUMN_CUSTOM_NAME)),
+                        c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_NETWORK)),
                         c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_IP)),
                         c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_ACTIVE))==1,
                         c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_TX_BYTES)),
@@ -75,9 +80,11 @@ public class Devices {
         long result = -1;
         try {
             ContentValues values = new ContentValues();
+            values.put(DeviceEntry.COLUMN_ROUTER_ID, device.router_id());
             values.put(DeviceEntry.COLUMN_MAC, device.mac());
             values.put(DeviceEntry.COLUMN_NAME, device.originalName());
             values.put(DeviceEntry.COLUMN_CUSTOM_NAME, device.customName());
+            values.put(DeviceEntry.COLUMN_LAST_NETWORK, device.lastNetwork());
             values.put(DeviceEntry.COLUMN_LAST_IP, device.lastIP());
             values.put(DeviceEntry.COLUMN_ACTIVE, device.isActive());
             values.put(DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP, device.timestamp());

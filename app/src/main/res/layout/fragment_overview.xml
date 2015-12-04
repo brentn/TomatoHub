@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     tools:context="com.brentandjody.tomatohub.OverviewFragment"
     android:background="#5744a2"
-    android:id="@+id/overview_layout"
-    android:animateLayoutChanges="true">
+    android:id="@+id/overview_layout">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -18,7 +17,8 @@
         android:id="@+id/message_area"
         android:background="@color/colorPrimary"
         android:paddingTop="30dp"
-        android:padding="20dp">
+        android:padding="20dp"
+        android:elevation="4dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -145,7 +145,7 @@
         android:layout_below="@+id/message_area"
         android:layout_marginTop="50dp"
         android:layout_marginLeft="70dp"
-        android:clickable="true" />
+        android:clickable="false" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -157,7 +157,8 @@
         android:layout_below="@+id/internet"
         android:layout_marginLeft="22dp"
         android:layout_marginTop="15dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:clickable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -174,7 +175,8 @@
         android:layout_toLeftOf="@+id/router"
         android:layout_marginRight="10dp"
         android:layout_marginTop="-8dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:clickable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -190,7 +192,8 @@
         android:layout_below="@+id/router"
         android:layout_toRightOf="@+id/router"
         android:layout_marginTop="10dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:clickable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -207,7 +210,8 @@
         android:layout_marginTop="30dp"
         android:layout_marginLeft="-18dp"
         android:layout_alignLeft="@+id/router"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:clickable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -224,7 +228,8 @@
         android:layout_alignTop="@+id/router"
         android:layout_toRightOf="@+id/router"
         android:layout_marginLeft="30dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:clickable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -251,7 +256,8 @@
         android:id="@+id/internet_label"
         android:layout_alignTop="@+id/internet"
         android:layout_toRightOf="@+id/internet"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:clickable="true" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -262,16 +268,17 @@
         android:id="@+id/detail_layout"
         android:background="#ea3b3fc5"
         android:visibility="invisible"
-        android:elevation="4dp">
+        android:elevation="8dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Network Devices"
             android:id="@+id/network_name"
             android:padding="8dp"
-            android:textColor="#ffffff" />
+            android:textColor="#4dd0e1"
+            android:singleLine="true" />
 
         <ListView
             android:layout_width="wrap_content"

@@ -9,9 +9,6 @@ import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.WelcomeActivity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by brent on 28/11/15.
  */
@@ -20,6 +17,7 @@ public class TomatoRouter extends Router {
     private static final String TAG = TomatoRouter.class.getName();
 
     private boolean mStartActivityHasBeenRun;
+    private String mRouterId;
     private String mWAN="";
     private String[] mNetworks;
     private String[] mWifi;
@@ -36,14 +34,29 @@ public class TomatoRouter extends Router {
     }
 
     // COMMANDS
+
+    @Override
+    //router id is WAN MAC
+    public String getRouterId() {
+        String result = "";
+        try {
+            if (mWAN.isEmpty()) mWAN = getWANInterface();
+            String[] response = sshCommand("arp|grep "+mWAN+"|cut -d' ' -f4");
+            if (response.length>0) result = response[0];
+        } catch (Exception ex) {
+            Log.e(TAG, "Error getting router ID");
+        }
+        return result;
+    }
     @Override
     public String getWANInterface() {
+        String result = "none";
         try {
-            String[] result = sshCommand("nvram show|grep wan_iface|cut -d= -f2");
-            if (result.length==0) return "none";
-            return result[0];
+            String[] response = sshCommand("nvram show|grep wan_iface|cut -d= -f2");
+            if (response.length>0) result=response[0];
         }
         catch (Exception ex) { Log.e(TAG, "Error getting WAN interface"); return ""; }
+        return result;
     }
     @Override
     public String[] getLANInterfaces() {
@@ -53,7 +66,7 @@ public class TomatoRouter extends Router {
     }
     @Override
     public String[] getWIFILabels() {
-        String[] result = sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3|tr -d '\"'; done");
+        String[] result = sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3-|tr -d '\"'; done");
         return result;
     }
     @Override
@@ -63,13 +76,17 @@ public class TomatoRouter extends Router {
     }
     @Override
     public int getTxTrafficForIP(String ip) {
-        try {return Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); return 0;}
+        int result;
+        try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= 0;}
+        return result;
     }
     @Override
     public int getRxTrafficForIP(String ip) {
-        try {return Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); return 0;}
+        int result;
+        try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= 0;}
+        return result;
     }
 
     private long currentTime() { return System.currentTimeMillis()/1000L;}
@@ -81,6 +98,8 @@ public class TomatoRouter extends Router {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             try {
+                mContext.setWifiMessage("");
+                mContext.setDevicesMessage("", "");
                 mContext.hideAllIcons();
                 if (success) {
                     mContext.showIcon(R.id.router, success);
@@ -89,19 +108,24 @@ public class TomatoRouter extends Router {
                     mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
                     new ValueInitializer().execute();
                 } else {
-                    if (!mStartActivityHasBeenRun) {
-                        mStartActivityHasBeenRun = true;
-                        Log.i(TAG, "Redirecting to Welcome screen");
-                        Intent intent = new Intent(mContext, WelcomeActivity.class);
-                        intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
-                        mContext.startActivity(intent);
-                    } else {
-                        mContext.setStatusMessage(mContext.getString(R.string.connection_failure));
-                    }
+                    launchWelcomeActivityOrFail();
                 }
             } catch (Exception ex) {
                 Log.e(TAG, "SSHLogon.postExecute:"+ex.getMessage());
+                launchWelcomeActivityOrFail();
             }
+        }
+    }
+
+    private void launchWelcomeActivityOrFail() {
+        if (!mStartActivityHasBeenRun) {
+            mStartActivityHasBeenRun = true;
+            Log.i(TAG, "Redirecting to Welcome screen");
+            Intent intent = new Intent(mContext, WelcomeActivity.class);
+            intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+            mContext.startActivity(intent);
+        } else {
+            mContext.setStatusMessage(mContext.getString(R.string.connection_failure));
         }
     }
 
@@ -111,6 +135,7 @@ public class TomatoRouter extends Router {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
+                mRouterId = getRouterId();
                 // identify various networks
                 Log.d(TAG, "identify networks");
                 mNetworks = getLANInterfaces();
@@ -133,12 +158,14 @@ public class TomatoRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            int[] icons = new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
             try {
                 if (success) {
                     int total = 0;
                     for (int i = 0; i < 5; i++) {
                         if (mNetworks != null && i < mNetworks.length) {
                             total += mDevices[i].length;
+                            mContext.addIconLabel(icons[i], mNetworks[i]);
                             mContext.setNetworkText(i, String.valueOf(mDevices[i].length));
                         } else {
                             mContext.hideNetwork(i);
@@ -163,22 +190,25 @@ public class TomatoRouter extends Router {
 
         @Override
         protected Void doInBackground(String[]... networkDevices) {
-            Devices devices = new Devices(mContext);
+            Devices devices = new Devices(mContext, mRouterId);
             try {
                 devices.inactivateAll();
                 // update device data
-                for (String[] network : networkDevices) {
-                    for (String device : network) {
-                        String[] fields = device.split(" ");
+                for (String[] deviceLines : networkDevices) {
+                    for (String line : deviceLines) {
+                        String[] fields = line.split(" ");
                         String name = (fields.length > 0 ? fields[0] : "");
                         String ip = (fields.length > 1 ? fields[1] : "");
-                        String mac = (fields.length > 2 ? fields[2] : "");
+                        String mac = (fields.length > 3 ? fields[3] : "");
+                        String nwk = (fields.length > 7 ? fields[7] : "");
                         if (mac.length() == 18) {
-                            Device d = devices.get(mac);
-                            d.setOriginalName(name);
+                            Device device = devices.get(mac);
+                            device.setCurrentNetwork(nwk);
+                            device.setOriginalName(name);
                             if (!ip.isEmpty())
-                                d.setCurrentIP(ip);
-                                d.setTrafficStats(getTxTrafficForIP(ip), getRxTrafficForIP(ip), currentTime());
+                                device.setCurrentIP(ip);
+                                device.setTrafficStats(getTxTrafficForIP(ip), getRxTrafficForIP(ip), currentTime());
+                            devices.insertOrUpdate(device);
                         }
                     }
                 }

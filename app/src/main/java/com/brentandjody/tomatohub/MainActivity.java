@@ -156,28 +156,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void setNetworkText(int i, String text) {
-        switch(i) {
-            case 0: showIcon(R.id.lan_0, !text.isEmpty());
-                showIcon(R.id.lan_0_l, !text.isEmpty());
-                setIconText(R.id.lan_0, text);
-                break;
-            case 1: showIcon(R.id.lan_1, !text.isEmpty());
-                showIcon(R.id.lan_1_l, !text.isEmpty());
-                setIconText(R.id.lan_1, text);
-                break;
-            case 2: showIcon(R.id.lan_2, !text.isEmpty());
-                showIcon(R.id.lan_2_l, !text.isEmpty());
-                setIconText(R.id.lan_2, text);
-                break;
-            case 3: showIcon(R.id.lan_3, !text.isEmpty());
-                showIcon(R.id.lan_3_l, !text.isEmpty());
-                setIconText(R.id.lan_3, text);
-                break;
-            case 4: showIcon(R.id.lan_4, !text.isEmpty());
-                showIcon(R.id.lan_4_l, !text.isEmpty());
-                setIconText(R.id.lan_4, text);
-                break;
-        }
+        int[] icons = new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
+        int[] lines = new int[] {R.id.lan_0_l,R.id.lan_1_l,R.id.lan_2_l,R.id.lan_3_l,R.id.lan_4_l};
+        showIcon(icons[i], !text.isEmpty());
+        showIcon(lines[i], !text.isEmpty());
+        setIconText(icons[i], text);
     }
 
     public void hideNetwork(int id) {
@@ -199,6 +182,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void addIconLabel(int id, String text) {
+        mViewPager.findViewById(id).setTag(text); //save the label in the tag
         RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
         TextView label = new TextView(this);
         mIconLabels.add(label);
@@ -210,7 +194,7 @@ public class MainActivity extends AppCompatActivity
         label.setTextSize(14);
         label.setTextColor(Color.parseColor("White"));
         label.setText(text);
-        layout.addView(label,0); //add before detail_layout
+        layout.addView(label, 1); //add before detail_layout
     }
 
     public void hideAllIcons() {

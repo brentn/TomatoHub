@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.brentandjody.tomatohub.classes.Device;
 import com.brentandjody.tomatohub.database.DBContract.*;
 /**
  * Created by brent on 28/11/15.
@@ -15,9 +16,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_DEVICES_TABLE =
             "CREATE TABLE " + DeviceEntry.TABLE_NAME + " (" +
                     DeviceEntry._ID + " INTEGER PRIMARY KEY," +
+                    DeviceEntry.COLUMN_ROUTER_ID + " TEXT," +
                     DeviceEntry.COLUMN_NAME + " TEXT," +
                     DeviceEntry.COLUMN_CUSTOM_NAME + " TEXT," +
                     DeviceEntry.COLUMN_MAC + " TEXT," +
+                    DeviceEntry.COLUMN_LAST_NETWORK + " TEXT," +
                     DeviceEntry.COLUMN_LAST_IP + " TEXT," +
                     DeviceEntry.COLUMN_ACTIVE + " INTEGER," +
                     DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP + " INTEGER," +

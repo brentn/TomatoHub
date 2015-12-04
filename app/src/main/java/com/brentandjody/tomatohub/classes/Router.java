@@ -57,6 +57,7 @@ public abstract class Router {
         }
     }
     // COMMANDS
+    public abstract String getRouterId();
     public abstract String getWANInterface();
     public abstract String[] getLANInterfaces();
     public abstract String[] getWIFILabels();

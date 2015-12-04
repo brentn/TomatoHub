@@ -50,20 +50,7 @@ public class OverviewFragment extends Fragment {
         // Inflate the layout for this fragment
         mDetailViewVisible=false;
         mView= inflater.inflate(R.layout.fragment_overview, container, false);
-        ImageView i = (ImageView)mView.findViewById(R.id.internet);
-        i.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (! isDetailViewVisible()) {
-                    Animation bottomUp = AnimationUtils.loadAnimation(getActivity()
-                            , R.anim.bottom_up);
-                    LinearLayout l = (LinearLayout) mView.findViewById(R.id.detail_layout);
-                    l.startAnimation(bottomUp);
-                    l.setVisibility(View.VISIBLE);
-                    mDetailViewVisible = true;
-                }
-            }
-        });
+        setupClickListeners();
         return mView;
     }
 
@@ -89,6 +76,31 @@ public class OverviewFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    private void setupClickListeners() {
+        for (int id : new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4}) {
+            mView.findViewById(id).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    String label = (String)view.getTag();
+                    showDetails(label);
+                }
+            });
+        }
+    }
+
+    private void showDetails(String network_name) {
+        if (! isDetailViewVisible()) {
+            ((TextView)mView.findViewById(R.id.network_name))
+                    .setText(getString(R.string.devices_on)+network_name);
+            Animation bottomUp = AnimationUtils.loadAnimation(getActivity()
+                    , R.anim.bottom_up);
+            LinearLayout l = (LinearLayout) mView.findViewById(R.id.detail_layout);
+            l.startAnimation(bottomUp);
+            l.setVisibility(View.VISIBLE);
+            mDetailViewVisible = true;
+        }
     }
 
     public boolean isDetailViewVisible() {return mDetailViewVisible;}
