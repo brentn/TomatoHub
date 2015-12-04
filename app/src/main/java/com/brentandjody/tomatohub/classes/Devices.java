@@ -15,6 +15,7 @@ import java.util.List;
 
 /**
  * Created by brent on 02/12/15.
+ * Class to manage all SQL operations on the devices table
  */
 public class Devices {
 
@@ -45,7 +46,9 @@ public class Devices {
     public void inactivateAll() {
         SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         try {
-            db.rawQuery("UPDATE " + DeviceEntry.TABLE_NAME + " SET " + DeviceEntry.COLUMN_ACTIVE + "=0", null);
+            ContentValues values = new ContentValues();
+            values.put(DeviceEntry.COLUMN_ACTIVE, 0);
+            db.update(DeviceEntry.TABLE_NAME, values, null, null);
         } finally {
             db.close();
         }
@@ -66,6 +69,7 @@ public class Devices {
             if (c.moveToFirst()) {
                 result = getDeviceFromCursor(c);
             }
+            c.close();
         } catch (Exception ex) {
             Log.e(TAG, ex.getMessage());
         } finally {
@@ -83,11 +87,14 @@ public class Devices {
                     PROJECTION,
                     DeviceEntry.COLUMN_LAST_NETWORK+"=?",
                     new String[] {network_id},
-                    null, null, null
+                    null,
+                    null,
+                    DeviceEntry.COLUMN_ACTIVE+" DESC"
             );
             while (c.moveToNext()) {
                 result.add(getDeviceFromCursor(c));
             }
+            c.close();
         } finally {
             db.close();
         }

@@ -11,6 +11,7 @@ import com.brentandjody.tomatohub.WelcomeActivity;
 
 /**
  * Created by brent on 28/11/15.
+ * Commands to get results from Tomato Firmware
  */
 public class TomatoRouter extends Router {
 
@@ -154,7 +155,7 @@ public class TomatoRouter extends Router {
                 }
                 success=true;
             } catch(Exception ex) {
-                Log.e(TAG, "valueInitializer:"+ ex.getMessage());
+                Log.e(TAG, "valueInitializer:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
             }
             return null;
         }
@@ -203,14 +204,16 @@ public class TomatoRouter extends Router {
                     for (String line : deviceLines) {
                         String[] fields = line.split(" ");
                         String name = (fields.length > 0 ? fields[0] : "");
-                        String ip = (fields.length > 1 ? fields[1] : "");
+                        String ip = (fields.length > 1 ? fields[1].replace("(","").replace(")","") : "");
                         String mac = (fields.length > 3 ? fields[3] : "");
                         String nwk = (fields.length > 7 ? fields[7] : "");
                         if (mac.length() == 17) {
                             Device device = devices.get(mac);
                             device.setCurrentNetwork(nwk);
                             device.setOriginalName(name);
+                            Log.d("TEST", device.isActive()?"active":"inactive");
                             device.setActive(true);
+                            Log.d("TEST", name);
                             if (!ip.isEmpty())
                                 device.setCurrentIP(ip);
                                 device.setTrafficStats(lookupTxTrafficForIP(ip), lookupRxTrafficForIP(ip), currentTime());

@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * Created by brent on 28/11/15.
+ * Abstract router base class
  */
 public abstract class Router {
 
@@ -110,10 +111,10 @@ public abstract class Router {
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
                 lines.removeAll(Arrays.asList("", null));
                 result = lines.toArray(new String[lines.size()]);
-                Log.d("SSH result: ", TextUtils.join(", ", lines));
+                Log.d("SSH result", sb.toString());
             } catch (Exception ex) {
                 result = new String[0];
-                Log.e(TAG, ex.getMessage());
+                Log.e(TAG, (ex.getMessage()==null?"SSH command failed: "+command:ex.getMessage()));
             }
         }
         return result;

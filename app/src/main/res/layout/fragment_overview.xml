@@ -273,7 +273,8 @@
         app:elevation="10dp"
         android:focusable="false"
         android:layout_marginBottom="72dp"
-        android:layout_marginRight="@dimen/fab_margin"/>
+        android:layout_marginRight="@dimen/fab_margin"
+        android:adjustViewBounds="true" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -292,15 +293,18 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Network Devices"
             android:id="@+id/network_name"
-            android:padding="8dp"
+            android:padding="16dp"
             android:textColor="#4dd0e1"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:background="#3b3fc5" />
 
         <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/network_device_list"
-            android:layout_below="@+id/message_area" />
+            android:layout_below="@+id/message_area"
+            android:paddingBottom="50dp" />
+
     </LinearLayout>
 
 </RelativeLayout>
