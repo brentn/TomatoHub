@@ -89,7 +89,7 @@ public class Devices {
                     new String[] {network_id},
                     null,
                     null,
-                    DeviceEntry.COLUMN_ACTIVE+" DESC"
+                    DeviceEntry.COLUMN_ACTIVE+" DESC, " + DeviceEntry.COLUMN_LAST_SPEED+" DESC"
             );
             while (c.moveToNext()) {
                 result.add(getDeviceFromCursor(c));

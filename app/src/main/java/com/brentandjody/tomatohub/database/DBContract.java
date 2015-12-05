@@ -8,6 +8,23 @@ import android.provider.BaseColumns;
 public final class DBContract {
     public DBContract() {}
 
+    public static abstract class RouterEntry implements BaseColumns {
+        public static final String TABLE_NAME = "routers";
+        public static final String COLUMN_ROUTER_ID = "router_id";
+        public static final String COLUMN_CUSTOM_NAME = "custom_name";
+    }
+
+    public static abstract class NetworkEntry implements BaseColumns {
+        public static final String TABLE_NAME = "networks";
+        public static final String COLUMN_ROUTER_ID = "router_id";
+        public static final String COLUMN_NETWORK_ID = "network_id";
+        public static final String COLUMN_CUSTOM_NAME = "custom_name";
+        public static final String COLUMN_TX_BYTES = "tx_bytes";
+        public static final String COLUMN_RX_BYTES = "rx_bytes";
+        public static final String COLUMN_TRAFFIC_TIMESTAMP = "timestamp";
+        public static final String COLUMN_LAST_SPEED = "last_speed";
+    }
+
     public static abstract class DeviceEntry implements BaseColumns {
         public static final String TABLE_NAME = "devices";
         public static final String COLUMN_ROUTER_ID = "router_id";
@@ -22,4 +39,5 @@ public final class DBContract {
         public static final String COLUMN_TRAFFIC_TIMESTAMP = "timestamp";
         public static final String COLUMN_LAST_SPEED = "last_speed";
     }
+
 }

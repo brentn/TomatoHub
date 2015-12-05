@@ -83,14 +83,14 @@ public class TomatoRouter extends Router {
     public int lookupTxTrafficForIP(String ip) {
         int result;
         try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= 0;}
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
         return result;
     }
     @Override
     public int lookupRxTrafficForIP(String ip) {
         int result;
         try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= 0;}
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
         return result;
     }
 
@@ -211,12 +211,12 @@ public class TomatoRouter extends Router {
                             Device device = devices.get(mac);
                             device.setCurrentNetwork(nwk);
                             device.setOriginalName(name);
-                            Log.d("TEST", device.isActive()?"active":"inactive");
                             device.setActive(true);
-                            Log.d("TEST", name);
                             if (!ip.isEmpty())
                                 device.setCurrentIP(ip);
-                                device.setTrafficStats(lookupTxTrafficForIP(ip), lookupRxTrafficForIP(ip), currentTime());
+                                long tx = lookupTxTrafficForIP(ip);
+                                long rx = lookupRxTrafficForIP(ip);
+                                device.setTrafficStats(tx, rx, currentTime());
                             devices.insertOrUpdate(device);
                         }
                     }

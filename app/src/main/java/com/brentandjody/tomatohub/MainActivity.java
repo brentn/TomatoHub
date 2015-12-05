@@ -28,12 +28,14 @@ import android.widget.TextView;
 import com.brentandjody.tomatohub.classes.Devices;
 import com.brentandjody.tomatohub.classes.Router;
 import com.brentandjody.tomatohub.classes.TomatoRouter;
+import com.brentandjody.tomatohub.dummy.DummyContent;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements OverviewFragment.OnFragmentInteractionListener {
+        implements  OverviewFragment.OnFragmentInteractionListener,
+                    WifiFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getName();
     private Router mRouter;
@@ -83,12 +85,16 @@ public class MainActivity extends AppCompatActivity
 
     public void onNetworkScanComplete() {
         OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
-        overview.setupNetworkClickListeners();
+        if (overview != null)
+            overview.setupNetworkClickListeners();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
+        if (overview != null && overview.isDetailViewVisible())
+            overview.hideDetailView();
         if (mRouter!=null)
             mRouter.disconnect();
     }
@@ -105,7 +111,10 @@ public class MainActivity extends AppCompatActivity
         //TODO:
     }
 
-
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+        //TODO:
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -231,7 +240,8 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public Fragment getItem(int position) {
-            return OverviewFragment.newInstance();
+            if (position==0) return OverviewFragment.newInstance();
+            else return WifiFragment.newInstance();
         }
 
         @Override

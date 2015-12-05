@@ -7,6 +7,8 @@ import android.text.TextUtils;
  */
 public class Device {
 
+    private static final int SPEED_THRESHOLD = 60; //seconds below which speed won't be updated
+
     private String _router_id;
     private String _name;
     private String _custom_name;
@@ -14,7 +16,7 @@ public class Device {
     private String _ip;
     private String _last_network;
     private boolean _active;
-    private long _tx_bypes=0;
+    private long _tx_bytes =0;
     private long _rx_bytes=0;
     private long _timestamp=-1; //unix time in seconds
     private float _last_speed=0;
@@ -45,15 +47,24 @@ public class Device {
         _last_network=network;
         _ip=ip;
         _active=active;
-        _tx_bypes=tx;
+        _tx_bytes =tx;
         _rx_bytes=rx;
         _timestamp=timestamp;
         _last_speed=last_speed;
     }
     public void setTrafficStats(long tx, long rx, long timestamp) {
-        _tx_bypes=tx;
-        _rx_bytes=rx;
-        _timestamp=timestamp;
+        if (tx>0 && rx>0 && timestamp>_timestamp) { //ensure valid values
+            if ((timestamp - _timestamp) > SPEED_THRESHOLD) {
+                if (tx >=_tx_bytes && rx >= _rx_bytes) {  //if traffic stats were reset, don't calculate speed
+                    long traffic = (tx - _tx_bytes) + (rx - _rx_bytes);
+                    long time = (timestamp - _timestamp);
+                    _last_speed = traffic / time;
+                }
+                _tx_bytes = tx;
+                _rx_bytes = rx;
+                _timestamp = timestamp;
+            }
+        }
     }
 
     // Getters
@@ -79,7 +90,7 @@ public class Device {
         return _active;
     }
     public long txTraffic() {
-        return _tx_bypes;
+        return _tx_bytes;
     }
     public long rxTraffic() {
         return _rx_bytes;
