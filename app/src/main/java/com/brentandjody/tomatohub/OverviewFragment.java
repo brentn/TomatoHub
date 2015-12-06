@@ -1,8 +1,6 @@
 package com.brentandjody.tomatohub;
 
 import android.app.Activity;
-import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -13,15 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.brentandjody.tomatohub.classes.Device;
+import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.classes.DeviceListAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

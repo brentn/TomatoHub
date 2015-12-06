@@ -3,10 +3,10 @@ package com.brentandjody.tomatohub.classes;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.MainActivity;
+import com.brentandjody.tomatohub.database.Devices;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -68,6 +68,8 @@ public abstract class Router {
     public abstract String[] lookupConnectedDevices(String network);
     public abstract int lookupTxTrafficForIP(String ip);
     public abstract int lookupRxTrafficForIP(String ip);
+    public abstract int lookupTxTrafficForNetwork(String ip);
+    public abstract int lookupRxTrafficForNetwork(String ip);
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {
@@ -111,7 +113,7 @@ public abstract class Router {
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
                 lines.removeAll(Arrays.asList("", null));
                 result = lines.toArray(new String[lines.size()]);
-                Log.d("SSH result", sb.toString());
+                Log.v("SSH result", sb.toString());
             } catch (Exception ex) {
                 result = new String[0];
                 Log.e(TAG, (ex.getMessage()==null?"SSH command failed: "+command:ex.getMessage()));

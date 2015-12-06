@@ -8,6 +8,8 @@ import android.util.Log;
 import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.WelcomeActivity;
+import com.brentandjody.tomatohub.database.Device;
+import com.brentandjody.tomatohub.database.Devices;
 
 /**
  * Created by brent on 28/11/15.
@@ -82,14 +84,32 @@ public class TomatoRouter extends Router {
     @Override
     public int lookupTxTrafficForIP(String ip) {
         int result;
-        try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
+        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
         catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
         return result;
     }
     @Override
     public int lookupRxTrafficForIP(String ip) {
         int result;
-        try {result = Integer.parseInt(sshCommand("grep "+ip+" /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
+        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
+        return result;
+    }
+
+    @Override
+    public int lookupRxTrafficForNetwork(String ip) {
+        int result;
+        ip=ip.substring(0,ip.lastIndexOf('.'));
+        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f6|awk '{s+=$1} END {print s}'")[0]); }
+        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
+        return result;
+    }
+
+    @Override
+    public int lookupTxTrafficForNetwork(String ip) {
+        int result;
+        ip=ip.substring(0,ip.lastIndexOf('.'));
+        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f20|awk '{s+=$1} END {print s}'")[0]); }
         catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
         return result;
     }
@@ -111,7 +131,7 @@ public class TomatoRouter extends Router {
                     mContext.showIcon(R.id.router_l, true);
                     mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
                     mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
-                    new ValueInitializer().execute();
+                    new QuickScan().execute();
                 } else {
                     launchWelcomeActivityOrFail();
                 }
@@ -134,7 +154,7 @@ public class TomatoRouter extends Router {
         }
     }
 
-    private class ValueInitializer extends AsyncTask<Void, Void, Void> {
+    private class QuickScan extends AsyncTask<Void, Void, Void> {
 
         boolean success=false;
         @Override
@@ -155,7 +175,7 @@ public class TomatoRouter extends Router {
                 }
                 success=true;
             } catch(Exception ex) {
-                Log.e(TAG, "valueInitializer:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
+                Log.e(TAG, "QuickScan:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
             }
             return null;
         }
@@ -168,6 +188,7 @@ public class TomatoRouter extends Router {
             try {
                 if (success) {
                     int total = 0;
+                    mContext.initializeNetworks();
                     for (int i = 0; i < 5; i++) {
                         if (mNetworks != null && i < mNetworks.length) {
                             total += mDevices[i].length;
@@ -181,18 +202,18 @@ public class TomatoRouter extends Router {
                     mContext.setDevicesMessage(String.valueOf(total) + mContext.getString(R.string.devices), mContext.getString(R.string.are_connected));
                     mContext.setWifiMessage("'"+TextUtils.join("'"+mContext.getString(R.string.is_on)+",  '", mWifi) + "'" + mContext.getString(R.string.is_on));
                     if (mDevices!=null) {
-                        new DeviceStatusUpdater().execute(mDevices);
+                        new DeviceScan().execute(mDevices);
                     }
                 } else {
                     mContext.setStatusMessage(mContext.getString(R.string.scan_failure));
                 }
             } catch (Exception ex) {
-                Log.e(TAG, "ValueInitializer.postExecute:"+ex.getMessage());
+                Log.e(TAG, "QuickScan.postExecute:"+ex.getMessage());
             }
         }
     }
 
-    private class DeviceStatusUpdater extends AsyncTask<String[], Void, Void> {
+    private class DeviceScan extends AsyncTask<String[], Void, Void> {
 
         @Override
         protected Void doInBackground(String[]... networkDevices) {
@@ -228,8 +249,13 @@ public class TomatoRouter extends Router {
             } catch(Exception ex) {
                 Log.e(TAG, ex.getMessage());
             }
-            mContext.onNetworkScanComplete();
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mContext.onNetworkScanComplete();
         }
     }
 

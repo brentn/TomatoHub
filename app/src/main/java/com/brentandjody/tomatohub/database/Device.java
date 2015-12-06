@@ -1,4 +1,4 @@
-package com.brentandjody.tomatohub.classes;
+package com.brentandjody.tomatohub.database;
 
 import android.text.TextUtils;
 

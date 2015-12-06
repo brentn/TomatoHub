@@ -1,4 +1,4 @@
-package com.brentandjody.tomatohub.classes;
+package com.brentandjody.tomatohub.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,7 +8,6 @@ import android.util.Log;
 
 
 import com.brentandjody.tomatohub.database.DBContract.*;
-import com.brentandjody.tomatohub.database.DatabaseHelper;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.brentandjody.tomatohub.R;
+import com.brentandjody.tomatohub.database.Device;
 
 import java.util.List;
 
@@ -40,6 +41,8 @@ public class DeviceListAdapter extends ArrayAdapter<Device> {
             tvTraffic.setText(String.format("%.2f", device.lastSpeed() / 1000) + " kb/s");
             int red = Math.min(255, Math.round(device.lastSpeed() / 50));
             listItem.setBackgroundColor(Color.argb(128, red, 0, 0));
+        } else {
+            listItem.setBackgroundColor(Color.argb(128, 0, 0, 0));
         }
         return convertView;
     }

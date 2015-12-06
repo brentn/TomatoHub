@@ -296,7 +296,10 @@
             android:padding="16dp"
             android:textColor="#4dd0e1"
             android:singleLine="true"
-            android:background="#3b3fc5" />
+            android:background="#3b3fc5"
+            android:textSize="12pt"
+            android:textIsSelectable="false"
+            android:textStyle="italic" />
 
         <ListView
             android:layout_width="match_parent"

@@ -4,8 +4,6 @@ import android.content.Intent;
 
 import android.graphics.Color;
 import android.net.Uri;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -25,7 +23,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.brentandjody.tomatohub.classes.Devices;
+import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.classes.Router;
 import com.brentandjody.tomatohub.classes.TomatoRouter;
 import com.brentandjody.tomatohub.dummy.DummyContent;
@@ -87,16 +85,19 @@ public class MainActivity extends AppCompatActivity
         OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
         if (overview != null)
             overview.setupNetworkClickListeners();
+        for (int i=0;i<5; i++) {
+            ((TextView)mViewPager.findViewById(iconId(i))).setTextColor(Color.WHITE);
+        }
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
         OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
         if (overview != null && overview.isDetailViewVisible())
             overview.hideDetailView();
         if (mRouter!=null)
             mRouter.disconnect();
+        super.onPause();
     }
 
     @Override
@@ -170,12 +171,42 @@ public class MainActivity extends AppCompatActivity
         are_connected.setVisibility(deviceStatus.isEmpty()?View.INVISIBLE:View.VISIBLE);
     }
 
-    public void setNetworkText(int i, String text) {
+    private int iconId(int index) {
         int[] icons = new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
+        return icons[index];
+    }
+
+    private int lineId(int index){
         int[] lines = new int[] {R.id.lan_0_l,R.id.lan_1_l,R.id.lan_2_l,R.id.lan_3_l,R.id.lan_4_l};
-        showIcon(icons[i], !text.isEmpty());
-        showIcon(lines[i], !text.isEmpty());
-        setIconText(icons[i], text);
+        return lines[index];
+    }
+
+    public void initializeNetworks() {
+        for (int i=0; i<5; i++) {
+            mViewPager.findViewById(iconId(i)).setVisibility(View.INVISIBLE);
+            mViewPager.findViewById(lineId(i)).setVisibility(View.INVISIBLE);
+            ((TextView)mViewPager.findViewById(iconId(i))).setTextColor(Color.argb(90, 128, 128, 128));
+            for (TextView label:mIconLabels) {
+                mViewPager.removeView(label);
+            }
+        }
+    }
+
+    public void setNetworkText(int i, String text) {
+        showIcon(iconId(i), !text.isEmpty());
+        showIcon(lineId(i), !text.isEmpty());
+        setIconText(iconId(i), text);
+    }
+
+    public void hideAllIcons() {
+        int[] icons = {R.id.router, R.id.lan_0, R.id.lan_1, R.id.lan_2, R.id.lan_3, R.id.lan_4, R.id.router_l, R.id.lan_0_l, R.id.lan_1_l, R.id.lan_2_l, R.id.lan_3_l, R.id.lan_4_l};
+        for (int id : icons) {
+            showIcon(id, false);
+        }
+        RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
+        for (TextView label:mIconLabels) {
+            layout.removeView(label);
+        }
     }
 
     public void hideNetwork(int id) {
@@ -216,21 +247,8 @@ public class MainActivity extends AppCompatActivity
         layout.addView(label, 1); //add before detail_layout
     }
 
-    public void hideAllIcons() {
-        int[] icons = {R.id.router, R.id.lan_0, R.id.lan_1, R.id.lan_2, R.id.lan_3, R.id.lan_4, R.id.router_l, R.id.lan_0_l, R.id.lan_1_l, R.id.lan_2_l, R.id.lan_3_l, R.id.lan_4_l};
-        for (int id : icons) {
-            showIcon(id, false);
-        }
-        RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
-        for (TextView label:mIconLabels) {
-            layout.removeView(label);
-        }
-    }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
+
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         SparseArray<Fragment> registeredFragments = new SparseArray<>();
 
