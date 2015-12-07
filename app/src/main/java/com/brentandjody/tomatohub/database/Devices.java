@@ -52,6 +52,7 @@ public class Devices {
     }
 
     public Device get(String router_id, String mac) {
+        // return device from DB, or if not, new device object
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
         Device result = new Device(router_id, mac, "unknown");
         try {

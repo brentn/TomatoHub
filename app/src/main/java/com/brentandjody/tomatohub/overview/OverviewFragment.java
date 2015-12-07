@@ -1,6 +1,8 @@
 package com.brentandjody.tomatohub.overview;
 
+import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,6 +21,8 @@ import android.widget.TextView;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
+import com.brentandjody.tomatohub.database.Network;
+import com.brentandjody.tomatohub.database.Networks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +30,9 @@ import java.util.List;
 public class OverviewFragment extends Fragment {
 
     private static final String TAG = OverviewFragment.class.getName();
+    private OnLoadedListener mListener;
 
-    private static final int TAG_NETWORK_ID=2;
-
+    private Networks mNetworks;
     private Devices mDevices;
     private boolean mDetailViewVisible;
     private String mRouterId;
@@ -45,10 +49,21 @@ public class OverviewFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static OverviewFragment newInstance(Devices devices) {
+    public static OverviewFragment newInstance(Networks networks, Devices devices) {
         OverviewFragment fragment = new OverviewFragment();
-        fragment.setDevices(devices);
+        fragment.setDatabases(networks, devices);
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            this.mListener = (OnLoadedListener)activity;
+        }
+        catch (final ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnLoadedListener");
+        }
     }
 
     @Override
@@ -82,6 +97,7 @@ public class OverviewFragment extends Fragment {
                 mView.findViewById(R.id.lan_3_l),
                 mView.findViewById(R.id.lan_4_l)};
         initialize();
+        mListener.onLoaded();
         return mView;
     }
 
@@ -94,7 +110,7 @@ public class OverviewFragment extends Fragment {
         hideDetailView();
     }
     public void setRouterId(String router_id) {mRouterId = router_id;}
-    public void setDevices(Devices devices) {mDevices = devices;}
+    public void setDatabases(Networks networks, Devices devices) {mDevices = devices; mNetworks = networks;}
     public void setWifiMessage(String message) { mWifiMessage.setText(message);}
     public void setStatusMessage(String message) {mStatusMessage.setText(message);}
     public void setDevicesMessage(String devices, String message) {
@@ -104,6 +120,7 @@ public class OverviewFragment extends Fragment {
     public void showRouter(boolean visible) {
         mView.findViewById(R.id.router).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
         mView.findViewById(R.id.router_l).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
+        if (visible) addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
     }
     public void hideAllNetworkIcons() {
         for (View label:mNetworkLabels) {
@@ -121,11 +138,15 @@ public class OverviewFragment extends Fragment {
             mNetworkLines[index].setVisibility(View.VISIBLE);
             mNetworkIcons[index].setVisibility(View.VISIBLE);
             mNetworkIcons[index].setText(String.valueOf(total));
-            mNetworkIcons[index].setTag(TAG_NETWORK_ID, network_id);
+            mNetworkIcons[index].setTag(network_id);
             addNetworkLabel(mNetworkIcons[index], network_id);
         } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
+            Log.e(TAG, "showNetwork: "+ex.getMessage());
         }
+    }
+    public void setNetworkTrafficColor(int index, float percent) {
+        int RR = Math.round(128*percent);
+        mNetworkIcons[index].setBackgroundColor(Color.argb(200, RR, 64, 64));
     }
 
     private void addNetworkLabel(View icon, String label) {
@@ -142,21 +163,20 @@ public class OverviewFragment extends Fragment {
         ((ViewGroup)mView).addView(tvLabel, 1); //add before detail_layout
     }
 
-    public void setupNetworkClickListeners() {
-        for (View icon : mNetworkIcons) {
-            final View mIcon = icon;
-            icon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String network_id = (String)view.getTag(TAG_NETWORK_ID);
-                    List<Device> devices = mDevices.getDevicesOnNetwork(mRouterId, network_id);
-                    DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), devices);
-                    ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
-                    detailList.setAdapter(adapter);
-                    showDetailView(network_id);
-                }
-            });
-        }
+    public void setupClickListener(int index) {
+        final View icon = mNetworkIcons[index];
+        final String network_id = (String)icon.getTag();
+        icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<Device> devices = mDevices.getDevicesOnNetwork(mRouterId, network_id);
+                Network network = mNetworks.get(mRouterId, network_id);
+                DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), devices);
+                ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
+                detailList.setAdapter(adapter);
+                showDetailView(network.name());
+            }
+        });
     }
 
     public boolean isDetailViewVisible() {return mDetailViewVisible;}
@@ -171,10 +191,15 @@ public class OverviewFragment extends Fragment {
         }
     }
     public void hideDetailView() {
-        Animation bottomDown = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_down);
-        mDetailView.startAnimation(bottomDown);
-        mDetailView.setVisibility(View.INVISIBLE);
-        mDetailViewVisible=false;
+        if (mDetailViewVisible) {
+            Animation bottomDown = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_down);
+            mDetailView.startAnimation(bottomDown);
+            mDetailView.setVisibility(View.INVISIBLE);
+            mDetailViewVisible = false;
+        }
     }
 
+    public static interface OnLoadedListener {
+        public abstract void onLoaded();
+    }
 }

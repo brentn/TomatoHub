@@ -28,7 +28,7 @@
             android:id="@+id/wifi_message"
             android:background="@color/colorPrimary"
             android:textColor="@color/primary_material_light"
-            android:visibility="invisible" />
+            android:visibility="visible" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -52,7 +52,7 @@
                 android:id="@+id/devices"
                 android:paddingTop="8dp"
                 android:textColor="#4dd0e1"
-                android:visibility="invisible" />
+                android:visibility="visible" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -63,7 +63,7 @@
                 android:textColor="@color/primary_material_light"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
-                android:visibility="invisible" />
+                android:visibility="visible" />
 
         </LinearLayout>
 
@@ -284,7 +284,7 @@
         android:layout_marginTop="-32dp"
         android:id="@+id/detail_layout"
         android:background="#ea3b3fc5"
-        android:visibility="invisible"
+        android:visibility="gone"
         android:elevation="16dp">
 
         <TextView

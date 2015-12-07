@@ -54,18 +54,18 @@ public class Networks {
         return result;
     }
 
-    public long insertOrUpdate(Device device) {
+    public long insertOrUpdate(Network network) {
         SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         long result = -1;
         try {
             ContentValues values = new ContentValues();
-            values.put(DBContract.NetworkEntry.COLUMN_ROUTER_ID, device.router_id());
-            values.put(DBContract.NetworkEntry.COLUMN_NETWORK_ID, device.mac());
-            values.put(DBContract.NetworkEntry.COLUMN_CUSTOM_NAME, device.customName());
-            values.put(DBContract.NetworkEntry.COLUMN_TRAFFIC_TIMESTAMP, device.timestamp());
-            values.put(DBContract.NetworkEntry.COLUMN_TX_BYTES, device.txTraffic());
-            values.put(DBContract.NetworkEntry.COLUMN_RX_BYTES, device.rxTraffic());
-            values.put(DBContract.NetworkEntry.COLUMN_LAST_SPEED, device.lastSpeed());
+            values.put(DBContract.NetworkEntry.COLUMN_ROUTER_ID, network.routerId());
+            values.put(DBContract.NetworkEntry.COLUMN_NETWORK_ID, network.networkId());
+            values.put(DBContract.NetworkEntry.COLUMN_CUSTOM_NAME, network.customName());
+            values.put(DBContract.NetworkEntry.COLUMN_TRAFFIC_TIMESTAMP, network.timestamp());
+            values.put(DBContract.NetworkEntry.COLUMN_TX_BYTES, network.txBytes());
+            values.put(DBContract.NetworkEntry.COLUMN_RX_BYTES, network.rxBytes());
+            values.put(DBContract.NetworkEntry.COLUMN_LAST_SPEED, network.speed());
 
             result = db.insertWithOnConflict(DBContract.NetworkEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         } finally {

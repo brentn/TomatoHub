@@ -2,8 +2,6 @@ package com.brentandjody.tomatohub;
 
 import android.content.Intent;
 
-import android.graphics.Color;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -17,12 +15,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-
+import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
+import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
@@ -30,8 +26,11 @@ import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.dummy.DummyContent;
 import com.brentandjody.tomatohub.wifi.WifiFragment;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
         implements Router.OnRouterActivityCompleteListener,
+                    OverviewFragment.OnLoadedListener,
                     WifiFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getName();
@@ -61,10 +60,12 @@ public class MainActivity extends AppCompatActivity
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mRouter = new TomatoRouter(this, mDevices);
-        if (mOverviewFragment!=null)
-            mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
-        mRouter.connect();
+        mRouter = new TomatoRouter(this, mDevices, mNetworks);
+    }
+
+    @Override
+    public void onLoaded() {
+        mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
     }
 
     @Override
@@ -78,18 +79,57 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     mOverviewFragment.showRouter(false);
                     mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
-                    //TODO: launch welcome activity??
+                    Log.i(TAG, "Redirecting to Welcome screen");
+                    Intent intent = new Intent(this, WelcomeActivity.class);
+                    intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    this.startActivity(intent);
                 }
                 break;
             }
             case Router.ACTIVITY_INTIALIZE: {
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
+                    mOverviewFragment.setRouterId(mRouter.getRouterId());
                     mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
                     String wifiMessage =
                             "'" + TextUtils.join("'"+getString(R.string.is_on)+",  '", mRouter.getWIFILabels())
                             + "'" + getString(R.string.is_on);
                     mOverviewFragment.setWifiMessage(wifiMessage);
-                    mOverviewFragment.setDevicesMessage();
+                    mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices()+" "+getString(R.string.devices), getString(R.string.are_connected));
+                    mRouter.updateDevices();
+                    mRouter.updateTrafficStats();
+                } else {
+                    mOverviewFragment.setStatusMessage(getString(R.string.scan_failure));
+                }
+                break;
+            }
+            case Router.ACTIVITY_DEVICES_UPDATED: {
+                String router_id = mRouter.getRouterId();
+                String[] networks = mRouter.getNetworkIds();
+                for (int i=0; i<networks.length; i++) {
+                    Network network = mNetworks.get(router_id, networks[i]);
+                    List<Device> devices = mDevices.getDevicesOnNetwork(router_id, network.networkId());
+                    mOverviewFragment.showNetwork(i, network.name(), devices.size());
+                    mOverviewFragment.setupClickListener(i);
+                }
+                break;
+            }
+            case Router.ACTIVITY_TRAFFIC_UPDATED: {
+                String[] network_ids = mRouter.getNetworkIds();
+                for (int i=0; i<network_ids.length; i++) {
+                    mOverviewFragment.setupClickListener(i);
+                }
+                if (status==Router.ACTIVITY_STATUS_SUCCESS) {
+//                    if (network_ids.length > 1) {
+//                        float total_traffic = 0;
+//                        Network[] networks = new Network[mRouter.getNetworkIds().length];
+//                        for (int i = 0; i < network_ids.length; i++) {
+//                            networks[i] = mNetworks.get(mRouter.getRouterId(), network_ids[i]);
+//                            total_traffic += networks[i].speed();
+//                        }
+//                        for (int i = 0; i < network_ids.length; i++) {
+//                            mOverviewFragment.setNetworkTrafficColor(i, networks[i].speed() / total_traffic);
+//                        }
+//                    }
                 }
                 break;
             }
@@ -97,26 +137,10 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-
-    public String getNetworkId(int index) {
-        if (index >= mRouter.getNetworkIds().length) return "";
-        else return mRouter.getNetworkIds()[index];
-    }
-
-    public void onNetworkScanComplete() {
-        if (overview != null)
-            overview.setupNetworkClickListeners();
-        for (int i=0;i<5; i++) {
-            ((TextView)mViewPager.findViewById(iconId(i))).setTextColor(Color.WHITE);
-        }
-    }
-
     @Override
     protected void onPause() {
-        OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
-        if (overview != null && overview.isDetailViewVisible())
-            overview.hideDetailView();
+        if (mOverviewFragment.isDetailViewVisible())
+            mOverviewFragment.hideDetailView();
         if (mRouter!=null)
             mRouter.disconnect();
         super.onPause();
@@ -125,13 +149,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        hideAllIcons();
+        if (mOverviewFragment!=null) {
+            mOverviewFragment.showRouter(false);
+            mOverviewFragment.hideAllNetworkIcons();
+            mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+        }
         mRouter.connect();
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-        //TODO:
     }
 
     @Override
@@ -164,111 +187,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        Fragment current_fragment = mSectionsPagerAdapter.getRegisteredFragment(mViewPager.getCurrentItem());
-        if ( current_fragment instanceof OverviewFragment && ((OverviewFragment)current_fragment).isDetailViewVisible()) {
-            ((OverviewFragment)current_fragment).hideDetailView();
+        if (mViewPager.getCurrentItem()==0 && mOverviewFragment.isDetailViewVisible()) {
+            mOverviewFragment.hideDetailView();
         } else {
             super.onBackPressed();
         }
     }
-
-    public void setWifiMessage(String message) {
-        TextView view = (TextView)mViewPager.findViewById(R.id.wifi_message);
-        view.setText(message);
-        view.setVisibility(message.isEmpty()?View.INVISIBLE:View.VISIBLE);
-    }
-
-    public void setStatusMessage(String message) {
-        TextView view = (TextView)mViewPager.findViewById(R.id.status_message);
-        view.setText(message);
-        view.setVisibility(message.isEmpty()?View.INVISIBLE:View.VISIBLE);
-    }
-
-    public void setDevicesMessage(String numDevices, String deviceStatus) {
-        TextView devices = (TextView)mViewPager.findViewById(R.id.devices);
-        TextView are_connected = (TextView)mViewPager.findViewById(R.id.are_connected);
-        devices.setText(numDevices);
-        devices.setVisibility(numDevices.isEmpty()?View.INVISIBLE:View.VISIBLE);
-        are_connected.setText(deviceStatus);
-        are_connected.setVisibility(deviceStatus.isEmpty()?View.INVISIBLE:View.VISIBLE);
-    }
-
-    private int iconId(int index) {
-        int[] icons = new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
-        return icons[index];
-    }
-
-    private int lineId(int index){
-        int[] lines = new int[] {R.id.lan_0_l,R.id.lan_1_l,R.id.lan_2_l,R.id.lan_3_l,R.id.lan_4_l};
-        return lines[index];
-    }
-
-    public void initializeNetworks() {
-        for (int i=0; i<5; i++) {
-            mViewPager.findViewById(iconId(i)).setVisibility(View.INVISIBLE);
-            mViewPager.findViewById(lineId(i)).setVisibility(View.INVISIBLE);
-            ((TextView)mViewPager.findViewById(iconId(i))).setTextColor(Color.argb(90, 128, 128, 128));
-            for (TextView label:mIconLabels) {
-                mViewPager.removeView(label);
-            }
-        }
-    }
-
-    public void setNetworkText(int i, String text) {
-        showIcon(iconId(i), !text.isEmpty());
-        showIcon(lineId(i), !text.isEmpty());
-        setIconText(iconId(i), text);
-    }
-
-    public void hideAllIcons() {
-        int[] icons = {R.id.router, R.id.lan_0, R.id.lan_1, R.id.lan_2, R.id.lan_3, R.id.lan_4, R.id.router_l, R.id.lan_0_l, R.id.lan_1_l, R.id.lan_2_l, R.id.lan_3_l, R.id.lan_4_l};
-        for (int id : icons) {
-            showIcon(id, false);
-        }
-        RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
-        for (TextView label:mIconLabels) {
-            layout.removeView(label);
-        }
-    }
-
-    public void hideNetwork(int id) {
-        setNetworkText(id, "");
-    }
-
-    public void showIcon(int id, boolean show) {
-        try {
-            View icon = mViewPager.findViewById(id);
-            icon.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
-        } catch (Exception ex) {
-            Log.w(TAG, ex.getMessage());
-        }
-    }
-
-    public void setIconText(int id, String text) {
-        try {
-            TextView icon = (TextView) mViewPager.findViewById(id);
-            icon.setText(text);
-        } catch (Exception ex) {
-            Log.w(TAG, ex.getMessage());
-        }
-    }
-
-    public void addIconLabel(int id, String text) {
-        mViewPager.findViewById(id).setTag(text); //save the label in the tag
-        RelativeLayout layout = (RelativeLayout)mViewPager.findViewById(R.id.overview_layout);
-        TextView label = new TextView(this);
-        mIconLabels.add(label);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.ALIGN_TOP, id);
-        params.addRule(RelativeLayout.RIGHT_OF, id);
-        label.setLayoutParams(params);
-        label.setTextSize(14);
-        label.setTextColor(Color.parseColor("White"));
-        label.setText(text);
-        layout.addView(label, 1); //add before detail_layout
-    }
-
 
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
@@ -280,7 +204,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             if (position==0) {
-                mOverviewFragment = OverviewFragment.newInstance(mDevices);
+                mOverviewFragment = OverviewFragment.newInstance(mNetworks, mDevices);
                 return mOverviewFragment;
             }
             else {

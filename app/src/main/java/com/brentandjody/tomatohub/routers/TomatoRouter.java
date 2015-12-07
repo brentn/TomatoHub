@@ -1,15 +1,14 @@
 package com.brentandjody.tomatohub.routers;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.MainActivity;
-import com.brentandjody.tomatohub.R;
-import com.brentandjody.tomatohub.WelcomeActivity;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
+import com.brentandjody.tomatohub.database.Network;
+import com.brentandjody.tomatohub.database.Networks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,123 +22,105 @@ public class TomatoRouter extends Router {
     private static final String TAG = TomatoRouter.class.getName();
 
     private Devices mDevicesDB = null;
+    private Networks mNetworksDB = null;
+    private String mRouterId;
+    private String[] mNetworkIds;
+    private String[] mWifiIds;
     private String[] cacheNVRam;
     private String[] cacheArp;
     private String[] cacheBrctl;
     private String[] cacheWf;
 
-    public TomatoRouter(MainActivity context, Devices devices) {
+    public TomatoRouter(MainActivity context, Devices devices, Networks networks) {
         super(context);
         mDevicesDB=devices;
+        mNetworksDB=networks;
     }
 
     @Override
     public void initialize() {
+        mRouterId=null;
+        mNetworkIds=null;
+        mWifiIds=null;
+        cacheNVRam=null;
+        cacheBrctl=null;
+        cacheWf=null;
         new Initializer().execute();
     }
+
+    @Override
+    public void connect() {
+        new SSHLogon().execute();
+    }
+
+    @Override
+    public void updateDevices() {
+        new DeviceUpdater().execute();
+    }
+    @Override
+    public void updateTrafficStats() {
+        new NetworkTrafficAnalyzer().execute();
+    }
+    @Override
+    public String getRouterId() {
+        if (mRouterId==null) {
+            String[] result = grep(cacheNVRam, "wan_hwaddr");
+            if (result.length > 0 && result[0].contains("=")) mRouterId = result[0].split("=")[1];
+        }
+        return mRouterId;
+    }
+
     @Override
     public String[] getWIFILabels() {
-        String[] result = new String[cacheWf.length];
-        for (int i=0; i<cacheWf.length; i++) {
-            result[i] = cacheWf[i].split("\"")[1].replace("\"","");
+        if (mWifiIds==null) {
+            mWifiIds = new String[cacheWf.length];
+            for (int i = 0; i < cacheWf.length; i++) {
+                mWifiIds[i] = cacheWf[i].split("\"")[1].replace("\"", "");
+            }
         }
-        return result;
+        return mWifiIds;
     }
-
     @Override
-    public String[] getNetworks() {
-        return
-    }
-
-    // COMMANDS
-    @Override
-    //router id is WAN MAC
-    public String getRouterId() {
-        String result = "";
-        try {
-            String[] response = sshCommand("arp|grep `nvram show|grep wan_iface|cut -d= -f2`|cut -d' ' -f4");
-            if (response.length>0) result = response[0];
-        } catch (Exception ex) {
-            Log.e(TAG, "Error getting router ID");
+    public String[] getNetworkIds() {
+        if (mNetworkIds == null) {
+            List<String> list = new ArrayList<>();
+            for (String line:cacheBrctl) {
+                if (line.contains("\t") && line.charAt(0)!='\t' && !line.startsWith("bridge name"))
+                    list.add(line.split("\t")[0]);
+            }
+            mNetworkIds = list.toArray(new String[list.size()]);
         }
-        return result;
+        return mNetworkIds;
     }
-
     @Override
-    public String[] getNetworkIds() { return mNetworksOnRouter; }
-
-    // lookup values on router
-    @Override
-    public String lookupWANInterface() {
-        String result = "none";
-        try {
-            String[] response = sshCommand("nvram show|grep wan_iface|cut -d= -f2");
-            if (response.length>0) result=response[0];
+    public String getTotalDevices() {
+        int total=0;
+        for (String network_id : getNetworkIds()) {
+            total += grep(cacheArp, network_id).length;
         }
-        catch (Exception ex) { Log.e(TAG, "Error getting WAN interface"); return ""; }
-        return result;
-    }
-    @Override
-    public String[] lookupLANInterfaces() {
-        return sshCommand("arp|cut -d' ' -f8|sort -u|grep -v `nvram show|grep wan_iface|cut -d= -f2`");
-    }
-    @Override
-    public String[] lookupWIFILabels() {
-        return sshCommand(" for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null|cut -d' ' -f3-|tr -d '\"'; done");
-    }
-    @Override
-    public String[] lookupConnectedDevices(String network) {
-        return sshCommand("arp|grep "+network);
-    }
-    @Override
-    public int lookupTxTrafficForIP(String ip) {
-        int result;
-        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f6")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
-        return result;
-    }
-    @Override
-    public int lookupRxTrafficForIP(String ip) {
-        int result;
-        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f20")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
-        return result;
+        return String.valueOf(total);
     }
 
-    @Override
-    public int lookupRxTrafficForNetwork(String ip) {
-        int result;
-        ip=ip.substring(0,ip.lastIndexOf('.'));
-        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f6|awk '{s+=$1} END {print s}'")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
-        return result;
+    private String[] grep(String[] lines, String pattern) {
+        List<String> result = new ArrayList<>();
+        for (String line : lines) {
+            if (line.contains(pattern)) result.add(line);
+        }
+        return result.toArray(new String[result.size()]);
     }
 
-    @Override
-    public int lookupTxTrafficForNetwork(String ip) {
-        int result;
-        ip=ip.substring(0,ip.lastIndexOf('.'));
-        try {result = Integer.parseInt(sshCommand("grep ' "+ip+" ' /proc/net/ipt_account/*|cut -d' ' -f20|awk '{s+=$1} END {print s}'")[0]); }
-        catch (Exception ex) { Log.w(TAG, "Error getting tx traffic"); result= -1;}
-        return result;
+
+    private class SSHLogon extends Router.SSHLogon {
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+        }
     }
-
-    private long currentTime() { return System.currentTimeMillis()/1000L;}
-
-
-//    private void launchWelcomeActivityOrFail() {
-//        if (){
-//            Log.i(TAG, "Redirecting to Welcome screen");
-//            Intent intent = new Intent(mContext, WelcomeActivity.class);
-//            intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
-//            mContext.startActivity(intent);
-//        } else {
-//            mContext.setStatusMessage(mContext.getString(R.string.connection_failure));
-//        }
-//    }
 
     private class Initializer extends AsyncTask<Void, Void, Void> {
         // Initialize Caches
+        boolean success;
         @Override
         protected Void doInBackground(Void... voids) {
             try {
@@ -147,9 +128,9 @@ public class TomatoRouter extends Router {
                 cacheArp = sshCommand("arp");
                 cacheBrctl = sshCommand("brctl show");
                 cacheWf = sshCommand("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
-                mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_SUCCESS);
+                success=true;
             } catch(Exception ex) {
-                mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_ERROR);
+                success=false;
                 Log.e(TAG, "QuickScan:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
             }
             return null;
@@ -158,71 +139,31 @@ public class TomatoRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            if (success) mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_SUCCESS);
-            else mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_ERROR);
-
-
-            try {
-                if (success) {
-                    int total = 0;
-                    mContext.initializeNetworks();
-                    for (int i = 0; i < 5; i++) {
-                        if (mNetworksOnRouter != null && i < mNetworksOnRouter.length) {
-                            total += mDevicesOnNetwork[i].length;
-                            mContext.addIconLabel(icons[i], mNetworksOnRouter[i]);
-                            mContext.setNetworkText(i, String.valueOf(mDevicesOnNetwork[i].length));
-                        } else {
-                            mContext.hideNetwork(i);
-                        }
-                    }
-                    mContext.setStatusMessage(mContext.getString(R.string.everything_looks_good));
-                    mContext.setDevicesMessage(String.valueOf(total) + mContext.getString(R.string.devices), mContext.getString(R.string.are_connected));
-                    mContext.setWifiMessage("'"+TextUtils.join("'"+mContext.getString(R.string.is_on)+",  '", mWifiOnRouter) + "'" + mContext.getString(R.string.is_on));
-                    if (mDevicesOnNetwork !=null) {
-                        new DeviceScan().execute(mDevicesOnNetwork);
-                    }
-                } else {
-                    mContext.setStatusMessage(mContext.getString(R.string.scan_failure));
-                }
-            } catch (Exception ex) {
-                Log.e(TAG, "QuickScan.postExecute:"+ex.getMessage());
-            }
+            mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
         }
     }
 
-    private class DeviceScan extends AsyncTask<String[], Void, Void> {
-
+    private class DeviceUpdater extends AsyncTask<Void, Void, Void> {
+        // ensures all devices are in database
+        // marks current devices as active
+        boolean success;
         @Override
-        protected Void doInBackground(String[]... networkDevices) {
+        protected Void doInBackground(Void... params) {
             try {
                 mDevicesDB.inactivateAll();
-                // update device data
-                for (String[] deviceLines : networkDevices) {
-                    for (String line : deviceLines) {
-                        String[] fields = line.split(" ");
-                        String name = (fields.length > 0 ? fields[0] : "");
-                        String ip = (fields.length > 1 ? fields[1].replace("(","").replace(")","") : "");
-                        String mac = (fields.length > 3 ? fields[3] : "");
-                        String nwk = (fields.length > 7 ? fields[7] : "");
-                        if (mac.length() == 17) {
-                            Device device = mDevicesDB.get(mRouterId, mac);
-                            device.setCurrentNetwork(nwk);
-                            device.setOriginalName(name);
+                for (String network : getNetworkIds()) {
+                    for (String line : grep(cacheArp, network)) {
+                        if (line.split(" ")[7].equals(network)) {
+                            String mac = line.split(" ")[4];
+                            Device device = mDevicesDB.get(getRouterId(), mac);
                             device.setActive(true);
-                            if (!ip.isEmpty())
-                                device.setCurrentIP(ip);
-                                long tx = lookupTxTrafficForIP(ip);
-                                long rx = lookupRxTrafficForIP(ip);
-                                device.setTrafficStats(tx, rx, currentTime());
                             mDevicesDB.insertOrUpdate(device);
                         }
                     }
                 }
-                // update network data
-                for (int i = 0; i< mNetworksOnRouter.length; i++) {
-                    String id = mNetworksOnRouter[i];
-                }
-            } catch(Exception ex) {
+                success=true;
+            } catch (Exception ex) {
+                success=false;
                 Log.e(TAG, ex.getMessage());
             }
             return null;
@@ -231,7 +172,51 @@ public class TomatoRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mContext.onNetworkScanComplete();
+            mListener.onRouterActivityComplete(ACTIVITY_DEVICES_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+        }
+    }
+
+    private class NetworkTrafficAnalyzer extends AsyncTask<Void, Void, Void> {
+        boolean success;
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                String[] ipTraffic = sshCommand("cat /proc/net/ipt_account/*|cut -d' ' -f3,6,20"); //|grep -v ' 0 0$'
+                long timestamp = System.currentTimeMillis() / 1000L;
+                for (String network_id : getNetworkIds()) {
+                    float network_traffic = 0;
+                    for (String line : grep(cacheArp, network_id)) {
+                        try {
+                            String ip = line.split(" ")[1].replaceAll("[()]", "");
+                            String mac = line.split(" ")[3];
+                            String stats = grep(ipTraffic, ip)[0];
+                            long tx = Integer.parseInt(stats.split(" ")[1]);
+                            long rx = Integer.parseInt(stats.split(" ")[2]);
+                            Device device = mDevicesDB.get(getRouterId(), mac);
+                            device.setTrafficStats(tx, rx, timestamp);
+                            network_traffic += device.lastSpeed();
+                            mDevicesDB.insertOrUpdate(device);
+                        } catch (Exception ex) {
+                            Log.w(TAG, ex.getMessage());
+                            //continue to next item
+                        }
+                    }
+                    Network network = mNetworksDB.get(getRouterId(), network_id);
+                    network.setSpeed(network_traffic);
+                    mNetworksDB.insertOrUpdate(network);
+                }
+                success=true;
+            } catch (Exception ex) {
+                success=false;
+                Log.e(TAG, ex.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mListener.onRouterActivityComplete(ACTIVITY_TRAFFIC_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
         }
     }
 

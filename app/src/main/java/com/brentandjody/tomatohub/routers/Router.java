@@ -24,7 +24,8 @@ public abstract class Router {
 
     public static final int ACTIVITY_LOGON = 1;
     public static final int ACTIVITY_INTIALIZE = 2;
-    public static final int ACTIVITY_NETWORK_SCAN = 3;
+    public static final int ACTIVITY_DEVICES_UPDATED = 3;
+    public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
     public static final int ACTIVITY_STATUS_ERROR = 3;
@@ -74,13 +75,17 @@ public abstract class Router {
     }
     // COMMANDS
     public abstract void initialize();
-
+    public abstract void updateDevices();
+    public abstract void updateTrafficStats();
+    public abstract String getRouterId();
     public abstract String[] getWIFILabels();
-    public abstract String[] getNetworks()
+    public abstract String[] getNetworkIds();
+    public abstract String getTotalDevices();
 
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {
+        boolean success;
         @Override
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
@@ -92,15 +97,16 @@ public abstract class Router {
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
                 mSession.connect(10000);
-                mListener.onRouterActivityComplete(ACTIVITY_LOGON, ACTIVITY_STATUS_SUCCESS);
+                success=true;
             } catch (Exception ex) {
-                mListener.onRouterActivityComplete(ACTIVITY_LOGON, ACTIVITY_STATUS_FAILURE);
+                success=false;
                 if (mSession!=null)
                     mSession.disconnect();
                 Log.e(TAG, ex.getMessage());
             }
             return null;
         }
+
     }
 
 
