@@ -1,4 +1,4 @@
-package com.brentandjody.tomatohub.classes;
+package com.brentandjody.tomatohub.overview;
 
 import android.content.Context;
 import android.graphics.Color;

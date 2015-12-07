@@ -13,76 +13,98 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 
+import android.text.TextUtils;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.brentandjody.tomatohub.database.Devices;
-import com.brentandjody.tomatohub.classes.Router;
-import com.brentandjody.tomatohub.classes.TomatoRouter;
+import com.brentandjody.tomatohub.overview.OverviewFragment;
+import com.brentandjody.tomatohub.routers.Router;
+import com.brentandjody.tomatohub.routers.TomatoRouter;
+import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.dummy.DummyContent;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.brentandjody.tomatohub.wifi.WifiFragment;
 
 public class MainActivity extends AppCompatActivity
-        implements  OverviewFragment.OnFragmentInteractionListener,
+        implements Router.OnRouterActivityCompleteListener,
                     WifiFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getName();
-    private Router mRouter;
-    private List<TextView> mIconLabels;
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     private ViewPager mViewPager;
+    private Router mRouter;
+    private Networks mNetworks;
+    private Devices mDevices;
+    private OverviewFragment mOverviewFragment;
+    private WifiFragment mWifiFragment;
+
+    public MainActivity() {
+        mNetworks = new Networks(this);
+        mDevices = new Devices(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mIconLabels = new ArrayList<>();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mRouter = new TomatoRouter(this);
-
+        mRouter = new TomatoRouter(this, mDevices);
+        if (mOverviewFragment!=null)
+            mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+        mRouter.connect();
     }
 
-    public Devices getDevicesDB() {
-        return mRouter.getDevicesDB();
+    @Override
+    public void onRouterActivityComplete(int activity_id, int status) {
+        switch (activity_id) {
+            case Router.ACTIVITY_LOGON: {
+                if (status==Router.ACTIVITY_STATUS_SUCCESS) {
+                    mOverviewFragment.showRouter(true);
+                    mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
+                    mRouter.initialize();
+                } else {
+                    mOverviewFragment.showRouter(false);
+                    mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
+                    //TODO: launch welcome activity??
+                }
+                break;
+            }
+            case Router.ACTIVITY_INTIALIZE: {
+                if (status==Router.ACTIVITY_STATUS_SUCCESS) {
+                    mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
+                    String wifiMessage =
+                            "'" + TextUtils.join("'"+getString(R.string.is_on)+",  '", mRouter.getWIFILabels())
+                            + "'" + getString(R.string.is_on);
+                    mOverviewFragment.setWifiMessage(wifiMessage);
+                    mOverviewFragment.setDevicesMessage();
+                }
+                break;
+            }
+        }
     }
+
+
+
+
     public String getNetworkId(int index) {
         if (index >= mRouter.getNetworkIds().length) return "";
         else return mRouter.getNetworkIds()[index];
     }
 
     public void onNetworkScanComplete() {
-        OverviewFragment overview = (OverviewFragment)mSectionsPagerAdapter.getRegisteredFragment(0);
         if (overview != null)
             overview.setupNetworkClickListeners();
         for (int i=0;i<5; i++) {
@@ -250,7 +272,6 @@ public class MainActivity extends AppCompatActivity
 
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        SparseArray<Fragment> registeredFragments = new SparseArray<>();
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -258,20 +279,18 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public Fragment getItem(int position) {
-            if (position==0) return OverviewFragment.newInstance();
-            else return WifiFragment.newInstance();
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            Fragment fragment = (Fragment) super.instantiateItem(container, position);
-            registeredFragments.put(position, fragment);
-            return fragment;
+            if (position==0) {
+                mOverviewFragment = OverviewFragment.newInstance(mDevices);
+                return mOverviewFragment;
+            }
+            else {
+                mWifiFragment = WifiFragment.newInstance();
+                return mWifiFragment;
+            }
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return 2;
         }
 
@@ -284,10 +303,6 @@ public class MainActivity extends AppCompatActivity
                     return getString(R.string.title_wifi_access);
             }
             return null;
-        }
-
-        public Fragment getRegisteredFragment(int position) {
-            return registeredFragments.get(position);
         }
     }
 

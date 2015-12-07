@@ -1,4 +1,4 @@
-package com.brentandjody.tomatohub.classes;
+package com.brentandjody.tomatohub.routers;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -11,6 +11,9 @@ import com.brentandjody.tomatohub.WelcomeActivity;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by brent on 28/11/15.
  * Commands to get results from Tomato Firmware
@@ -19,28 +22,36 @@ public class TomatoRouter extends Router {
 
     private static final String TAG = TomatoRouter.class.getName();
 
-    private boolean mStartActivityHasBeenRun;
-    private String mRouterId;
-    private String[] mNetworks = new String[0];
-    private String[] mWifi;
-    private String[][] mDevices;
     private Devices mDevicesDB = null;
+    private String[] cacheNVRam;
+    private String[] cacheArp;
+    private String[] cacheBrctl;
+    private String[] cacheWf;
 
-    public TomatoRouter(MainActivity context) {
+    public TomatoRouter(MainActivity context, Devices devices) {
         super(context);
-        mStartActivityHasBeenRun=false;
+        mDevicesDB=devices;
     }
 
     @Override
-    public void connect() {
-        new SSHLogon().execute();
+    public void initialize() {
+        new Initializer().execute();
     }
     @Override
-    public void disconnect() {
-        super.disconnect();
+    public String[] getWIFILabels() {
+        String[] result = new String[cacheWf.length];
+        for (int i=0; i<cacheWf.length; i++) {
+            result[i] = cacheWf[i].split("\"")[1].replace("\"","");
+        }
+        return result;
     }
+
+    @Override
+    public String[] getNetworks() {
+        return
+    }
+
     // COMMANDS
-
     @Override
     //router id is WAN MAC
     public String getRouterId() {
@@ -53,10 +64,9 @@ public class TomatoRouter extends Router {
         }
         return result;
     }
+
     @Override
-    public Devices getDevicesDB() {return mDevicesDB;}
-    @Override
-    public String[] getNetworkIds() { return mNetworks; }
+    public String[] getNetworkIds() { return mNetworksOnRouter; }
 
     // lookup values on router
     @Override
@@ -116,65 +126,30 @@ public class TomatoRouter extends Router {
 
     private long currentTime() { return System.currentTimeMillis()/1000L;}
 
-    private class SSHLogon extends Router.SSHLogon
-    {
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            try {
-                mContext.setWifiMessage("");
-                mContext.setDevicesMessage("", "");
-                mContext.hideAllIcons();
-                if (success) {
-                    mContext.showIcon(R.id.router, true);
-                    mContext.showIcon(R.id.router_l, true);
-                    mContext.addIconLabel(R.id.router, mContext.getString(R.string.router));
-                    mContext.setStatusMessage(mContext.getString(R.string.scanning_network));
-                    new QuickScan().execute();
-                } else {
-                    launchWelcomeActivityOrFail();
-                }
-            } catch (Exception ex) {
-                Log.e(TAG, "SSHLogon.postExecute:"+ex.getMessage());
-                launchWelcomeActivityOrFail();
-            }
-        }
-    }
+//    private void launchWelcomeActivityOrFail() {
+//        if (){
+//            Log.i(TAG, "Redirecting to Welcome screen");
+//            Intent intent = new Intent(mContext, WelcomeActivity.class);
+//            intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+//            mContext.startActivity(intent);
+//        } else {
+//            mContext.setStatusMessage(mContext.getString(R.string.connection_failure));
+//        }
+//    }
 
-    private void launchWelcomeActivityOrFail() {
-        if (!mStartActivityHasBeenRun) {
-            mStartActivityHasBeenRun = true;
-            Log.i(TAG, "Redirecting to Welcome screen");
-            Intent intent = new Intent(mContext, WelcomeActivity.class);
-            intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
-            mContext.startActivity(intent);
-        } else {
-            mContext.setStatusMessage(mContext.getString(R.string.connection_failure));
-        }
-    }
-
-    private class QuickScan extends AsyncTask<Void, Void, Void> {
-
-        boolean success=false;
+    private class Initializer extends AsyncTask<Void, Void, Void> {
+        // Initialize Caches
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                mRouterId = getRouterId();
-                // identify networks
-                Log.d(TAG, "identify networks");
-                mNetworks = lookupLANInterfaces();
-                // identify various wifi networks
-                Log.d(TAG, "identify wifi");
-                mWifi = lookupWIFILabels();
-                // enumerate devices on each network
-                Log.d(TAG, "enumerate network devices");
-                mDevices = new String[mNetworks.length][];
-                for (int i = 0; i < mNetworks.length; i++) {
-                    mDevices[i] = lookupConnectedDevices(mNetworks[i]);
-                }
-                success=true;
+                cacheNVRam = sshCommand("nvram show");
+                cacheArp = sshCommand("arp");
+                cacheBrctl = sshCommand("brctl show");
+                cacheWf = sshCommand("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
+                mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_SUCCESS);
             } catch(Exception ex) {
+                mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_ERROR);
                 Log.e(TAG, "QuickScan:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
             }
             return null;
@@ -183,26 +158,28 @@ public class TomatoRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mDevicesDB = new Devices(mContext, mRouterId);
-            int[] icons = new int[] {R.id.lan_0,R.id.lan_1,R.id.lan_2,R.id.lan_3,R.id.lan_4};
+            if (success) mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_SUCCESS);
+            else mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, ACTIVITY_STATUS_ERROR);
+
+
             try {
                 if (success) {
                     int total = 0;
                     mContext.initializeNetworks();
                     for (int i = 0; i < 5; i++) {
-                        if (mNetworks != null && i < mNetworks.length) {
-                            total += mDevices[i].length;
-                            mContext.addIconLabel(icons[i], mNetworks[i]);
-                            mContext.setNetworkText(i, String.valueOf(mDevices[i].length));
+                        if (mNetworksOnRouter != null && i < mNetworksOnRouter.length) {
+                            total += mDevicesOnNetwork[i].length;
+                            mContext.addIconLabel(icons[i], mNetworksOnRouter[i]);
+                            mContext.setNetworkText(i, String.valueOf(mDevicesOnNetwork[i].length));
                         } else {
                             mContext.hideNetwork(i);
                         }
                     }
                     mContext.setStatusMessage(mContext.getString(R.string.everything_looks_good));
                     mContext.setDevicesMessage(String.valueOf(total) + mContext.getString(R.string.devices), mContext.getString(R.string.are_connected));
-                    mContext.setWifiMessage("'"+TextUtils.join("'"+mContext.getString(R.string.is_on)+",  '", mWifi) + "'" + mContext.getString(R.string.is_on));
-                    if (mDevices!=null) {
-                        new DeviceScan().execute(mDevices);
+                    mContext.setWifiMessage("'"+TextUtils.join("'"+mContext.getString(R.string.is_on)+",  '", mWifiOnRouter) + "'" + mContext.getString(R.string.is_on));
+                    if (mDevicesOnNetwork !=null) {
+                        new DeviceScan().execute(mDevicesOnNetwork);
                     }
                 } else {
                     mContext.setStatusMessage(mContext.getString(R.string.scan_failure));
@@ -218,8 +195,7 @@ public class TomatoRouter extends Router {
         @Override
         protected Void doInBackground(String[]... networkDevices) {
             try {
-                Devices devices = mDevicesDB;
-                devices.inactivateAll();
+                mDevicesDB.inactivateAll();
                 // update device data
                 for (String[] deviceLines : networkDevices) {
                     for (String line : deviceLines) {
@@ -229,7 +205,7 @@ public class TomatoRouter extends Router {
                         String mac = (fields.length > 3 ? fields[3] : "");
                         String nwk = (fields.length > 7 ? fields[7] : "");
                         if (mac.length() == 17) {
-                            Device device = devices.get(mac);
+                            Device device = mDevicesDB.get(mRouterId, mac);
                             device.setCurrentNetwork(nwk);
                             device.setOriginalName(name);
                             device.setActive(true);
@@ -238,13 +214,13 @@ public class TomatoRouter extends Router {
                                 long tx = lookupTxTrafficForIP(ip);
                                 long rx = lookupRxTrafficForIP(ip);
                                 device.setTrafficStats(tx, rx, currentTime());
-                            devices.insertOrUpdate(device);
+                            mDevicesDB.insertOrUpdate(device);
                         }
                     }
                 }
                 // update network data
-                for (int i=0; i<mNetworks.length; i++) {
-                    String id = mNetworks[i];
+                for (int i = 0; i< mNetworksOnRouter.length; i++) {
+                    String id = mNetworksOnRouter[i];
                 }
             } catch(Exception ex) {
                 Log.e(TAG, ex.getMessage());

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.brentandjody.tomatohub.OverviewFragment"
+    tools:context=".overview.OverviewFragment"
     android:background="#5744a2"
     android:id="@+id/overview_layout">
 

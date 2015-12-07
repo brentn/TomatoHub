@@ -1,4 +1,4 @@
-package com.brentandjody.tomatohub.classes;
+package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -22,11 +22,19 @@ import java.util.List;
  */
 public abstract class Router {
 
+    public static final int ACTIVITY_LOGON = 1;
+    public static final int ACTIVITY_INTIALIZE = 2;
+    public static final int ACTIVITY_NETWORK_SCAN = 3;
+    public static final int ACTIVITY_STATUS_SUCCESS = 1;
+    public static final int ACTIVITY_STATUS_FAILURE = 2;
+    public static final int ACTIVITY_STATUS_ERROR = 3;
+
     public static final String IP_PREF = "prefRouterIP";
     public static final  String PORT_PREF = "prefRouterPort";
     public static final  String USER_PREF = "prefRouterUser";
     public static final String PASS_PREF = "prefRouterPass";
 
+    protected OnRouterActivityCompleteListener mListener;
     protected SharedPreferences mPrefs;
     protected String mIpAddress;
     protected int mPort;
@@ -38,9 +46,15 @@ public abstract class Router {
     protected Session mSession;
     private String mWAN="";
 
-    public Router(MainActivity context) {
-        mContext = context;
-        mPrefs = context.getSharedPreferences("Application", Context.MODE_PRIVATE);
+    public Router(MainActivity activity) {
+        if (activity instanceof OnRouterActivityCompleteListener) {
+            mListener = (OnRouterActivityCompleteListener) activity;
+        } else {
+            throw new RuntimeException(activity.toString()
+                    + " must implement OnRouterActivityCompleteListener");
+        }
+        mContext = activity;
+        mPrefs = activity.getSharedPreferences("Application", Context.MODE_PRIVATE);
 
         mIpAddress = mPrefs.getString(IP_PREF, "0.0.0.0");
         mPort = mPrefs.getInt(PORT_PREF, 22);
@@ -59,21 +73,14 @@ public abstract class Router {
         }
     }
     // COMMANDS
-    public abstract String getRouterId();
-    public abstract String[] getNetworkIds();
-    public abstract Devices getDevicesDB();
-    public abstract String lookupWANInterface();
-    public abstract String[] lookupLANInterfaces();
-    public abstract String[] lookupWIFILabels();
-    public abstract String[] lookupConnectedDevices(String network);
-    public abstract int lookupTxTrafficForIP(String ip);
-    public abstract int lookupRxTrafficForIP(String ip);
-    public abstract int lookupTxTrafficForNetwork(String ip);
-    public abstract int lookupRxTrafficForNetwork(String ip);
+    public abstract void initialize();
+
+    public abstract String[] getWIFILabels();
+    public abstract String[] getNetworks()
+
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {
-        boolean success;
         @Override
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
@@ -85,9 +92,9 @@ public abstract class Router {
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
                 mSession.connect(10000);
-                success = true;
+                mListener.onRouterActivityComplete(ACTIVITY_LOGON, ACTIVITY_STATUS_SUCCESS);
             } catch (Exception ex) {
-                success = false;
+                mListener.onRouterActivityComplete(ACTIVITY_LOGON, ACTIVITY_STATUS_FAILURE);
                 if (mSession!=null)
                     mSession.disconnect();
                 Log.e(TAG, ex.getMessage());
@@ -120,5 +127,9 @@ public abstract class Router {
             }
         }
         return result;
+    }
+
+    public interface OnRouterActivityCompleteListener {
+        public void onRouterActivityComplete(int activity_id, int status);
     }
 }

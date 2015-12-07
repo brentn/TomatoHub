@@ -21,7 +21,6 @@ public class Devices {
     private static final String TAG = Devices.class.getName();
 
     private DatabaseHelper mDatabaseHelper;
-    private String mRouterId;
     private static final String[] PROJECTION = {
             DeviceEntry._ID,
             DeviceEntry.COLUMN_ROUTER_ID,
@@ -37,8 +36,7 @@ public class Devices {
             DeviceEntry.COLUMN_LAST_SPEED
     };
 
-    public Devices(Context context, String routerId){
-        mRouterId = routerId;
+    public Devices(Context context){
         mDatabaseHelper = new DatabaseHelper(context);
     }
 
@@ -53,9 +51,9 @@ public class Devices {
         }
     }
 
-    public Device get(String mac) {
+    public Device get(String router_id, String mac) {
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
-        Device result = new Device(mRouterId, mac, "unknown");
+        Device result = new Device(router_id, mac, "unknown");
         try {
             String[] macs = {mac};
             Cursor c = db.query(
@@ -66,7 +64,7 @@ public class Devices {
                     null, null, null
             );
             if (c.moveToFirst()) {
-                result = getDeviceFromCursor(c);
+                result = getDeviceFromCursor(router_id, c);
             }
             c.close();
         } catch (Exception ex) {
@@ -77,21 +75,21 @@ public class Devices {
         return result;
     }
 
-    public List<Device> getDevicesOnNetwork(String network_id) {
+    public List<Device> getDevicesOnNetwork(String router_id, String network_id) {
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
         List<Device> result = new ArrayList<>();
         try {
             Cursor c = db.query(
                     DeviceEntry.TABLE_NAME,
                     PROJECTION,
-                    DeviceEntry.COLUMN_LAST_NETWORK+"=?",
-                    new String[] {network_id},
+                    DeviceEntry.COLUMN_ROUTER_ID+"=? AND "+DeviceEntry.COLUMN_LAST_NETWORK+"=?",
+                    new String[] {router_id, network_id},
                     null,
                     null,
                     DeviceEntry.COLUMN_ACTIVE+" DESC, " + DeviceEntry.COLUMN_LAST_SPEED+" DESC"
             );
             while (c.moveToNext()) {
-                result.add(getDeviceFromCursor(c));
+                result.add(getDeviceFromCursor(router_id, c));
             }
             c.close();
         } finally {
@@ -124,9 +122,9 @@ public class Devices {
         return result;
     }
 
-    private Device getDeviceFromCursor(Cursor c) {
+    private Device getDeviceFromCursor(String router_id, Cursor c) {
         String mac = c.getString(c.getColumnIndex(DeviceEntry.COLUMN_MAC));
-        Device device = new Device(mRouterId, mac, "unknown");
+        Device device = new Device(router_id, mac, "unknown");
         device.setDetails(
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_NAME)),
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_CUSTOM_NAME)),

@@ -1,4 +1,4 @@
-package com.brentandjody.tomatohub.classes;
+package com.brentandjody.tomatohub.wifi;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.brentandjody.tomatohub.WifiFragment.OnListFragmentInteractionListener;
+import com.brentandjody.tomatohub.wifi.WifiFragment.OnListFragmentInteractionListener;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.dummy.DummyContent.DummyItem;
 

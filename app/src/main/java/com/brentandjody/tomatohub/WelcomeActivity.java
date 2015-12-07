@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
-import com.brentandjody.tomatohub.classes.Router;
+import com.brentandjody.tomatohub.routers.Router;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.

@@ -14,7 +14,6 @@ public class Networks {
     private static final String TAG = Networks.class.getName();
 
     private DatabaseHelper mDatabaseHelper;
-    private String mRouterId;
     private static final String[] PROJECTION = {
             DBContract.NetworkEntry._ID,
             DBContract.NetworkEntry.COLUMN_ROUTER_ID,
@@ -26,16 +25,15 @@ public class Networks {
             DBContract.NetworkEntry.COLUMN_LAST_SPEED
     };
 
-    public Networks(Context context, String routerId){
-        mRouterId = routerId;
+    public Networks(Context context){
         mDatabaseHelper = new DatabaseHelper(context);
     }
 
-    public Network get(String network_id) {
+    public Network get(String router_id, String network_id) {
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
-        Network result = new Network(mRouterId, network_id);
+        Network result = new Network(router_id, network_id);
         try {
-            String[] args = {mRouterId, network_id};
+            String[] args = {router_id, network_id};
             Cursor c = db.query(
                     DBContract.NetworkEntry.TABLE_NAME,
                     PROJECTION,
@@ -45,7 +43,7 @@ public class Networks {
                     null, null, null
             );
             if (c.moveToFirst()) {
-                result = networkFromCursor(c);
+                result = networkFromCursor(router_id, c);
             }
             c.close();
         } catch (Exception ex) {
@@ -76,9 +74,9 @@ public class Networks {
         return result;
     }
 
-    private Network networkFromCursor(Cursor c) {
+    private Network networkFromCursor(String router_id, Cursor c) {
         String networkId = c.getString(c.getColumnIndex(DBContract.NetworkEntry.COLUMN_NETWORK_ID));
-        Network network = new Network(mRouterId, networkId);
+        Network network = new Network(router_id, networkId);
         network.setDetails(c.getString(c.getColumnIndex(DBContract.NetworkEntry.COLUMN_CUSTOM_NAME)),
                 c.getInt(c.getColumnIndex(DBContract.NetworkEntry.COLUMN_TX_BYTES)),
                 c.getInt(c.getColumnIndex(DBContract.NetworkEntry.COLUMN_RX_BYTES)),
