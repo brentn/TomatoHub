@@ -30,7 +30,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements Router.OnRouterActivityCompleteListener,
-                    OverviewFragment.OnLoadedListener,
+                    OverviewFragment.OnSignalListener,
                     WifiFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getName();
@@ -64,8 +64,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onLoaded() {
-        mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+    public void onSignal(int signal) {
+        switch (signal) {
+            case OverviewFragment.SIGNAL_LOADED: {
+                mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+                break;
+            }
+            case OverviewFragment.SIGNAL_REFRESH: {
+                refresh();
+                break;
+            }
+        }
     }
 
     @Override
@@ -107,8 +116,8 @@ public class MainActivity extends AppCompatActivity
                 String[] networks = mRouter.getNetworkIds();
                 for (int i=0; i<networks.length; i++) {
                     Network network = mNetworks.get(router_id, networks[i]);
-                    List<Device> devices = mDevices.getDevicesOnNetwork(router_id, network.networkId());
-                    mOverviewFragment.showNetwork(i, network.name(), devices.size());
+                    int total = mRouter.getTotalDevicesOn(networks[i]);
+                    mOverviewFragment.showNetwork(i, network.name(), total);
                     mOverviewFragment.setupClickListener(i);
                 }
                 break;
@@ -118,18 +127,19 @@ public class MainActivity extends AppCompatActivity
                 for (int i=0; i<network_ids.length; i++) {
                     mOverviewFragment.setupClickListener(i);
                 }
+                mOverviewFragment.setupRefreshListener();
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-//                    if (network_ids.length > 1) {
-//                        float total_traffic = 0;
-//                        Network[] networks = new Network[mRouter.getNetworkIds().length];
-//                        for (int i = 0; i < network_ids.length; i++) {
-//                            networks[i] = mNetworks.get(mRouter.getRouterId(), network_ids[i]);
-//                            total_traffic += networks[i].speed();
-//                        }
-//                        for (int i = 0; i < network_ids.length; i++) {
-//                            mOverviewFragment.setNetworkTrafficColor(i, networks[i].speed() / total_traffic);
-//                        }
-//                    }
+                    if (network_ids.length > 1) {
+                        float total_traffic = 0;
+                        Network[] networks = new Network[mRouter.getNetworkIds().length];
+                        for (int i = 0; i < network_ids.length; i++) {
+                            networks[i] = mNetworks.get(mRouter.getRouterId(), network_ids[i]);
+                            total_traffic += networks[i].speed();
+                        }
+                        for (int i = 0; i < network_ids.length; i++) {
+                            mOverviewFragment.setNetworkTrafficColor(i, networks[i].speed() / total_traffic);
+                        }
+                    }
                 }
                 break;
             }
@@ -149,6 +159,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        refresh();
+    }
+
+    private void refresh() {
         if (mOverviewFragment!=null) {
             mOverviewFragment.showRouter(false);
             mOverviewFragment.hideAllNetworkIcons();

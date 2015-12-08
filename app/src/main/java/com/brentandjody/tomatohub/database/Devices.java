@@ -27,7 +27,7 @@ public class Devices {
             DeviceEntry.COLUMN_MAC,
             DeviceEntry.COLUMN_NAME,
             DeviceEntry.COLUMN_CUSTOM_NAME,
-            DeviceEntry.COLUMN_LAST_NETWORK,
+            DeviceEntry.COLUMN_NETWORK_ID,
             DeviceEntry.COLUMN_LAST_IP,
             DeviceEntry.COLUMN_ACTIVE,
             DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP,
@@ -56,12 +56,12 @@ public class Devices {
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
         Device result = new Device(router_id, mac, "unknown");
         try {
-            String[] macs = {mac};
+            String[] args = {router_id, mac};
             Cursor c = db.query(
                     DeviceEntry.TABLE_NAME,
                     PROJECTION,
-                    DeviceEntry.COLUMN_MAC+"=?",
-                    macs,
+                    DeviceEntry.COLUMN_ROUTER_ID+"=? AND "+DeviceEntry.COLUMN_MAC+"=?",
+                    args,
                     null, null, null
             );
             if (c.moveToFirst()) {
@@ -83,7 +83,7 @@ public class Devices {
             Cursor c = db.query(
                     DeviceEntry.TABLE_NAME,
                     PROJECTION,
-                    DeviceEntry.COLUMN_ROUTER_ID+"=? AND "+DeviceEntry.COLUMN_LAST_NETWORK+"=?",
+                    DeviceEntry.COLUMN_ROUTER_ID+"=? AND "+DeviceEntry.COLUMN_NETWORK_ID +"=?",
                     new String[] {router_id, network_id},
                     null,
                     null,
@@ -108,7 +108,7 @@ public class Devices {
             values.put(DeviceEntry.COLUMN_MAC, device.mac());
             values.put(DeviceEntry.COLUMN_NAME, device.originalName());
             values.put(DeviceEntry.COLUMN_CUSTOM_NAME, device.customName());
-            values.put(DeviceEntry.COLUMN_LAST_NETWORK, device.lastNetwork());
+            values.put(DeviceEntry.COLUMN_NETWORK_ID, device.lastNetwork());
             values.put(DeviceEntry.COLUMN_LAST_IP, device.lastIP());
             values.put(DeviceEntry.COLUMN_ACTIVE, device.isActive());
             values.put(DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP, device.timestamp());
@@ -129,7 +129,7 @@ public class Devices {
         device.setDetails(
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_NAME)),
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_CUSTOM_NAME)),
-                c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_NETWORK)),
+                c.getString(c.getColumnIndex(DeviceEntry.COLUMN_NETWORK_ID)),
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_IP)),
                 c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_ACTIVE))==1,
                 c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_TX_BYTES)),

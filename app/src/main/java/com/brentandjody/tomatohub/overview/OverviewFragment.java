@@ -2,7 +2,6 @@ package com.brentandjody.tomatohub.overview;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -29,8 +28,11 @@ import java.util.List;
 
 public class OverviewFragment extends Fragment {
 
+    public static final int SIGNAL_LOADED = 1;
+    public static final int SIGNAL_REFRESH = 2;
+    
     private static final String TAG = OverviewFragment.class.getName();
-    private OnLoadedListener mListener;
+    private OnSignalListener mListener;
 
     private Networks mNetworks;
     private Devices mDevices;
@@ -44,6 +46,7 @@ public class OverviewFragment extends Fragment {
     private TextView[] mNetworkIcons;
     private View[] mNetworkLines;
     private List<TextView> mNetworkLabels;
+    private List<Device>[] mDevicesList;
 
     public OverviewFragment() {
         // Required empty public constructor
@@ -59,10 +62,10 @@ public class OverviewFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            this.mListener = (OnLoadedListener)activity;
+            this.mListener = (OnSignalListener)activity;
         }
         catch (final ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnLoadedListener");
+            throw new ClassCastException(activity.toString() + " must implement OnSignalListener");
         }
     }
 
@@ -71,6 +74,7 @@ public class OverviewFragment extends Fragment {
                              Bundle savedInstanceState) {
         mDetailViewVisible=false;
         mNetworkLabels = new ArrayList<>();
+        mDevicesList = new List[5];
 
         mView= inflater.inflate(R.layout.fragment_overview, container, false);
         FloatingActionButton fab = (FloatingActionButton) mView.findViewById(R.id.fab);
@@ -97,7 +101,7 @@ public class OverviewFragment extends Fragment {
                 mView.findViewById(R.id.lan_3_l),
                 mView.findViewById(R.id.lan_4_l)};
         initialize();
-        mListener.onLoaded();
+        mListener.onSignal(SIGNAL_LOADED);
         return mView;
     }
 
@@ -128,6 +132,7 @@ public class OverviewFragment extends Fragment {
         }
         for (View icon : mNetworkIcons) {
             icon.setVisibility(View.INVISIBLE);
+            icon.setOnClickListener(null);
         }
         for (View line : mNetworkLines) {
             line.setVisibility(View.INVISIBLE);
@@ -146,7 +151,7 @@ public class OverviewFragment extends Fragment {
     }
     public void setNetworkTrafficColor(int index, float percent) {
         int RR = Math.round(128*percent);
-        mNetworkIcons[index].setBackgroundColor(Color.argb(200, RR, 64, 64));
+        //mNetworkIcons[index].setBackgroundColor(Color.argb(200, RR, 64, 64));
     }
 
     private void addNetworkLabel(View icon, String label) {
@@ -163,15 +168,27 @@ public class OverviewFragment extends Fragment {
         ((ViewGroup)mView).addView(tvLabel, 1); //add before detail_layout
     }
 
-    public void setupClickListener(int index) {
+    public void setupRefreshListener() {
+        mView.findViewById(R.id.internet).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mView.findViewById(R.id.internet).setOnClickListener(null);
+                initialize();
+                setStatusMessage(getString(R.string.rescannng_network));
+                mListener.onSignal(SIGNAL_REFRESH);
+            }
+        });
+    }
+
+    public void setupClickListener(final int index) {
         final View icon = mNetworkIcons[index];
         final String network_id = (String)icon.getTag();
+        mDevicesList[index] = mDevices.getDevicesOnNetwork(mRouterId, network_id);
         icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<Device> devices = mDevices.getDevicesOnNetwork(mRouterId, network_id);
                 Network network = mNetworks.get(mRouterId, network_id);
-                DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), devices);
+                DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[index]);
                 ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
                 detailList.setAdapter(adapter);
                 showDetailView(network.name());
@@ -199,7 +216,7 @@ public class OverviewFragment extends Fragment {
         }
     }
 
-    public static interface OnLoadedListener {
-        public abstract void onLoaded();
+    public static interface OnSignalListener {
+        public abstract void onSignal(int signal);
     }
 }

@@ -80,7 +80,8 @@ public abstract class Router {
     public abstract String getRouterId();
     public abstract String[] getWIFILabels();
     public abstract String[] getNetworkIds();
-    public abstract String getTotalDevices();
+    public abstract int getTotalDevices();
+    public abstract int getTotalDevicesOn(String network_id);
 
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>

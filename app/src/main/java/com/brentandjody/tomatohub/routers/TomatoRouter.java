@@ -93,15 +93,21 @@ public class TomatoRouter extends Router {
         return mNetworkIds;
     }
     @Override
-    public String getTotalDevices() {
+    public int getTotalDevices() {
         int total=0;
         for (String network_id : getNetworkIds()) {
-            total += grep(cacheArp, network_id).length;
+            total += getTotalDevicesOn(network_id);
         }
-        return String.valueOf(total);
+        return total;
+    }
+
+    @Override
+    public int getTotalDevicesOn(String network_id) {
+        return grep(cacheArp, network_id).length;
     }
 
     private String[] grep(String[] lines, String pattern) {
+        if (lines==null || lines.length==0) return new String[0];
         List<String> result = new ArrayList<>();
         for (String line : lines) {
             if (line.contains(pattern)) result.add(line);
@@ -154,8 +160,12 @@ public class TomatoRouter extends Router {
                 for (String network : getNetworkIds()) {
                     for (String line : grep(cacheArp, network)) {
                         if (line.split(" ")[7].equals(network)) {
-                            String mac = line.split(" ")[4];
+                            String mac = line.split(" ")[3];
+                            String ip = line.split(" ")[1].replaceAll("[()]", "");
                             Device device = mDevicesDB.get(getRouterId(), mac);
+                            device.setOriginalName(line.split(" ")[0]);
+                            device.setCurrentNetwork(network);
+                            device.setCurrentIP(ip);
                             device.setActive(true);
                             mDevicesDB.insertOrUpdate(device);
                         }
@@ -181,7 +191,7 @@ public class TomatoRouter extends Router {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                String[] ipTraffic = sshCommand("cat /proc/net/ipt_account/*|cut -d' ' -f3,6,20"); //|grep -v ' 0 0$'
+                String[] ipTraffic = sshCommand("cat /proc/net/ipt_account/*|cut -d' ' -f3,6,20|grep -v ' 0 0$'"); //
                 long timestamp = System.currentTimeMillis() / 1000L;
                 for (String network_id : getNetworkIds()) {
                     float network_traffic = 0;
@@ -190,8 +200,8 @@ public class TomatoRouter extends Router {
                             String ip = line.split(" ")[1].replaceAll("[()]", "");
                             String mac = line.split(" ")[3];
                             String stats = grep(ipTraffic, ip)[0];
-                            long tx = Integer.parseInt(stats.split(" ")[1]);
-                            long rx = Integer.parseInt(stats.split(" ")[2]);
+                            long tx = Long.parseLong(stats.split(" ")[1]);
+                            long rx = Long.parseLong(stats.split(" ")[2]);
                             Device device = mDevicesDB.get(getRouterId(), mac);
                             device.setTrafficStats(tx, rx, timestamp);
                             network_traffic += device.lastSpeed();
