@@ -159,7 +159,8 @@ public class TomatoRouter extends Router {
                 mDevicesDB.inactivateAll();
                 for (String network : getNetworkIds()) {
                     for (String line : grep(cacheArp, network)) {
-                        if (line.split(" ")[7].equals(network)) {
+                        String[] fields = line.split(" ");
+                        if (fields.length>7 && fields[7].equals(network)) {
                             String mac = line.split(" ")[3];
                             String ip = line.split(" ")[1].replaceAll("[()]", "");
                             Device device = mDevicesDB.get(getRouterId(), mac);
@@ -204,8 +205,8 @@ public class TomatoRouter extends Router {
                             long rx = Long.parseLong(stats.split(" ")[2]);
                             Device device = mDevicesDB.get(getRouterId(), mac);
                             device.setTrafficStats(tx, rx, timestamp);
-                            network_traffic += device.lastSpeed();
                             mDevicesDB.insertOrUpdate(device);
+                            network_traffic += device.lastSpeed();
                         } catch (Exception ex) {
                             Log.w(TAG, ex.getMessage());
                             //continue to next item

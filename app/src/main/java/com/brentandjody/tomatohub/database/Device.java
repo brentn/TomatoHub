@@ -1,11 +1,14 @@
 package com.brentandjody.tomatohub.database;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 /**
  * Created by brent on 28/11/15.
  */
 public class Device {
+
+    private static final String TAG = Device.class.getName();
 
     private static final int SPEED_THRESHOLD = 60; //seconds below which speed won't be updated
 

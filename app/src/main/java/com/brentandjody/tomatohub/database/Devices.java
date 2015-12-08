@@ -132,9 +132,9 @@ public class Devices {
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_NETWORK_ID)),
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_IP)),
                 c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_ACTIVE))==1,
-                c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_TX_BYTES)),
-                c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_RX_BYTES)),
-                c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP)),
+                c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_TX_BYTES)),
+                c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_RX_BYTES)),
+                c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP)),
                 c.getFloat(c.getColumnIndex(DeviceEntry.COLUMN_LAST_SPEED))
         );
         return device;

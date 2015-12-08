@@ -2,6 +2,9 @@ package com.brentandjody.tomatohub.overview;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -150,8 +153,10 @@ public class OverviewFragment extends Fragment {
         }
     }
     public void setNetworkTrafficColor(int index, float percent) {
-        int RR = Math.round(128*percent);
-        //mNetworkIcons[index].setBackgroundColor(Color.argb(200, RR, 64, 64));
+        int RR = Math.round(128*percent)+128;
+        Drawable circle = getResources().getDrawable(R.drawable.circle);
+        circle.setColorFilter(new PorterDuffColorFilter(Color.argb(176, RR, 96, 96), PorterDuff.Mode.MULTIPLY));
+        mNetworkIcons[index].setBackground(circle);
     }
 
     private void addNetworkLabel(View icon, String label) {
