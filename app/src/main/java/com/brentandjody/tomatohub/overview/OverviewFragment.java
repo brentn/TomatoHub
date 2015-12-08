@@ -1,14 +1,17 @@
 package com.brentandjody.tomatohub.overview;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -129,6 +132,7 @@ public class OverviewFragment extends Fragment {
         mView.findViewById(R.id.router_l).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
         if (visible) addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
     }
+
     public void hideAllNetworkIcons() {
         for (View label:mNetworkLabels) {
             ((ViewGroup)mView).removeView(label);
@@ -152,11 +156,16 @@ public class OverviewFragment extends Fragment {
             Log.e(TAG, "showNetwork: "+ex.getMessage());
         }
     }
+    @TargetApi(16)
     public void setNetworkTrafficColor(int index, float percent) {
-        int RR = Math.round(128*percent)+128;
-        Drawable circle = getResources().getDrawable(R.drawable.circle);
-        circle.setColorFilter(new PorterDuffColorFilter(Color.argb(176, RR, 96, 96), PorterDuff.Mode.MULTIPLY));
-        mNetworkIcons[index].setBackground(circle);
+        if (Build.VERSION.SDK_INT >= 16) {
+            int red = Math.round(128 * percent) + 128;
+            Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
+            if (circle!= null) {
+                circle.setColorFilter(new PorterDuffColorFilter(Color.argb(176, red, 128, 128), PorterDuff.Mode.MULTIPLY));
+                mNetworkIcons[index].setBackground(circle);
+            }
+        }
     }
 
     private void addNetworkLabel(View icon, String label) {
@@ -221,7 +230,7 @@ public class OverviewFragment extends Fragment {
         }
     }
 
-    public static interface OnSignalListener {
-        public abstract void onSignal(int signal);
+    public interface OnSignalListener {
+        void onSignal(int signal);
     }
 }

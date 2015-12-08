@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getName();
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
+    private boolean mConnecting=false;
     private ViewPager mViewPager;
     private Router mRouter;
     private Networks mNetworks;
@@ -157,18 +158,32 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        mRouter.disconnect();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mConnecting=true;
+        mRouter.connect();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        refresh();
+        if (!mConnecting)
+            refresh();
+        mConnecting=false;
     }
 
     private void refresh() {
         if (mOverviewFragment!=null) {
-            mOverviewFragment.showRouter(false);
             mOverviewFragment.hideAllNetworkIcons();
-            mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+            mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
         }
-        mRouter.connect();
+        mRouter.updateDevices();
     }
 
     @Override

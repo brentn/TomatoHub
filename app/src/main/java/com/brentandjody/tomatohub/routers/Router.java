@@ -78,6 +78,7 @@ public abstract class Router {
     public abstract void updateDevices();
     public abstract void updateTrafficStats();
     public abstract String getRouterId();
+    public abstract String getExternalIP();
     public abstract String[] getWIFILabels();
     public abstract String[] getNetworkIds();
     public abstract int getTotalDevices();
@@ -137,6 +138,6 @@ public abstract class Router {
     }
 
     public interface OnRouterActivityCompleteListener {
-        public void onRouterActivityComplete(int activity_id, int status);
+        void onRouterActivityComplete(int activity_id, int status);
     }
 }

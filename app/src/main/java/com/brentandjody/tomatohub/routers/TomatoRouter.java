@@ -24,6 +24,7 @@ public class TomatoRouter extends Router {
     private Devices mDevicesDB = null;
     private Networks mNetworksDB = null;
     private String mRouterId;
+    private String mExternalIP;
     private String[] mNetworkIds;
     private String[] mWifiIds;
     private String[] cacheNVRam;
@@ -68,6 +69,15 @@ public class TomatoRouter extends Router {
             if (result.length > 0 && result[0].contains("=")) mRouterId = result[0].split("=")[1];
         }
         return mRouterId;
+    }
+
+    @Override
+    public String getExternalIP() {
+        if (mExternalIP==null) {
+            String[] result = grep(cacheNVRam, "wan_ipaddr");
+            if (result.length > 0 && result[0].contains("=")) mExternalIP = result[0].split("=")[1];
+        }
+        return mExternalIP;
     }
 
     @Override
