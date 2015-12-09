@@ -94,4 +94,5 @@
     <string name="pref_key_password">password</string>
     <string name="pref_key_port">port</string>
     <string name="pref_key_readonly">read_only</string>
+    <string name="modify_device_name">Rename this device</string>
 </resources>

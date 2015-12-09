@@ -2,22 +2,30 @@ package com.brentandjody.tomatohub.overview;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -159,7 +167,7 @@ public class OverviewFragment extends Fragment {
     @TargetApi(16)
     public void setNetworkTrafficColor(int index, float percent) {
         if (Build.VERSION.SDK_INT >= 16) {
-            int red = 128+Math.round(128 * percent) ;
+            int red = 120+Math.round(128 * percent) ;
             Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
             if (circle!= null) {
                 circle.setColorFilter(new PorterDuffColorFilter(Color.argb(176, red, 128, 128), PorterDuff.Mode.MULTIPLY));
@@ -204,10 +212,40 @@ public class OverviewFragment extends Fragment {
                 Network network = mNetworks.get(mRouterId, network_id);
                 DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[index]);
                 ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
+                detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                        final EditText editText = new EditText(getActivity());
+                        final Device device = mDevicesList[index].get(position);
+                        editText.setHint(device.originalName());
+                        editText.setText(device.customName());
+                        editText.setSingleLine();
+                        alert.setTitle(getString(R.string.modify_device_name));
+                        alert.setView(editText);
+                        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                updateDeviceName(device, editText.getText().toString(), index);
+                            }
+                        });
+                        alert.show();
+                    }
+                });
                 detailList.setAdapter(adapter);
                 showDetailView(network.name());
             }
         });
+    }
+
+
+    private void updateDeviceName(Device device, String custom_name, int list_index) {
+        if (! device.customName().equals(custom_name)) {
+            device.setCustomName(custom_name);
+            mDevices.updateName(device.mac(), custom_name);
+            mDevicesList[list_index] = mDevices.getDevicesOnNetwork(mRouterId, device.lastNetwork());
+            ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+        }
     }
 
     public boolean isDetailViewVisible() {return mDetailViewVisible;}
@@ -233,4 +271,38 @@ public class OverviewFragment extends Fragment {
     public interface OnSignalListener {
         void onSignal(int signal);
     }
+
+    public class DeviceListAdapter extends ArrayAdapter<Device> {
+        Context mContext;
+        public DeviceListAdapter(Context context, List<Device> devices) {
+            super(context, 0, devices);
+            mContext = context;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Device device = getItem(position);
+            if (convertView == null) {
+                convertView = LayoutInflater.from(mContext).inflate(R.layout.item_device_list, parent, false);
+            }
+            View listItem = convertView.findViewById(R.id.device_item);
+            TextView tvName = (TextView)convertView.findViewById(R.id.device_name);
+            TextView tvIP = (TextView)convertView.findViewById(R.id.device_ip);
+            TextView tvTraffic = (TextView)convertView.findViewById(R.id.device_traffic);
+            tvName.setText(device.name());
+            tvIP.setText(device.lastIP());
+            if (device.isActive()) tvName.setTextColor(Color.WHITE);
+            else tvName.setTextColor(Color.GRAY);
+            if (device.isActive()) {
+                tvTraffic.setText(String.format("%.2f", device.lastSpeed() / 1000) + " kb/s");
+                int red = Math.min(255, Math.round(device.lastSpeed() / 50));
+                listItem.setBackgroundColor(Color.argb(128, red, 0, 0));
+            } else {
+                listItem.setBackgroundColor(Color.argb(128, 0, 0, 0));
+            }
+            return convertView;
+        }
+
+    }
+
 }

@@ -123,6 +123,20 @@ public class Devices {
         return result;
     }
 
+    public void updateName(String mac, String custom_name) {
+        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        try {
+            Cursor c = db.rawQuery("UPDATE " + DeviceEntry.TABLE_NAME + " SET " + DeviceEntry.COLUMN_CUSTOM_NAME + "=?"
+                    + " WHERE " + DeviceEntry.COLUMN_MAC + "=?", new String[]{custom_name, mac});
+            c.moveToFirst();
+            c.close();
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage());
+        } finally {
+            db.close();
+        }
+    }
+
     private Device getDeviceFromCursor(String router_id, Cursor c) {
         String mac = c.getString(c.getColumnIndex(DeviceEntry.COLUMN_MAC));
         Device device = new Device(router_id, mac, "unknown");

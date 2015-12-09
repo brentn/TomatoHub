@@ -170,7 +170,7 @@ public class TomatoRouter extends Router {
                 for (String network : getNetworkIds()) {
                     for (String line : grep(cacheArp, network)) {
                         String[] fields = line.split(" ");
-                        if (fields.length>7 && fields[7].equals(network)) {
+                        if (fields.length>6 && fields[fields.length-1].equals(network)) {
                             String mac = line.split(" ")[3];
                             String ip = line.split(" ")[1].replaceAll("[()]", "");
                             Device device = mDevicesDB.get(getRouterId(), mac);
