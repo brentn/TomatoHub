@@ -24,17 +24,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".WelcomeActivity"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_welcome"
-            android:theme="@style/FullscreenTheme"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.brentandjody.tomatohub.MainActivity" />
-        </activity>
-        <activity
             android:name=".SettingsActivity"
             android:screenOrientation="portrait"
             android:label="@string/title_activity_settings"

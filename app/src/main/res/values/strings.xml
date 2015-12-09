@@ -8,24 +8,21 @@
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
+    <string name="pref_allow_changes">Allow the app to make changes to the router\'s configuration (may include rebooting the router)</string>
 
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
+    <string name="pref_title_ip_address">IP Address</string>
+    <string name="pref_default_username">root</string>
 
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>Always</item>
-        <item>When possible</item>
-        <item>Never</item>
+    <string name="pref_title_router_type">Router type</string>
+    <string-array name="pref_router_firmware">
+        <item>Tomato</item>
+        <item>DD-Wrt</item>
+        <item>OpenWrt</item>
     </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>0</item>
-        <item>-1</item>
+    <string-array name="pref_router_firmware_value">
+        <item>tomato</item>
+        <item>ddwrt</item>
+        <item>openwrt</item>
     </string-array>
 
     <!-- Example settings for Data & Sync -->
@@ -67,7 +64,7 @@
     <string name="title_activity_welcome">Welcome</string>
     <string name="continu">Continue</string>
     <string name="ip_address">IP Address</string>
-    <string name="password">Password</string>
+    <string name="change_password">Change password</string>
     <string name="welcome_text">Welcome to Router Hub</string>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -87,4 +84,14 @@
     <string name="devices_on">"Devices on "</string>
     <string name="searching_for_router">searching for router...</string>
     <string name="rescannng_network">Re-scanning network...</string>
+    <string name="username">Username</string>
+    <string name="port">Port</string>
+    <string name="pref_title_allow_changes">Allow changes to router config</string>
+    <string name="pref_title_username">Username</string>
+    <string name="pref_key_router_type">router_type</string>
+    <string name="pref_key_ip_address">ip_address</string>
+    <string name="pref_key_username">username</string>
+    <string name="pref_key_password">password</string>
+    <string name="pref_key_port">port</string>
+    <string name="pref_key_readonly">read_only</string>
 </resources>

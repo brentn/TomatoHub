@@ -1,32 +1,29 @@
 package com.brentandjody.tomatohub;
 
+import android.content.Context;
 import android.content.Intent;
-
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
+import android.net.DhcpInfo;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
-
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
+import com.brentandjody.tomatohub.database.Networks;
+import com.brentandjody.tomatohub.dummy.DummyContent;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
-import com.brentandjody.tomatohub.database.Networks;
-import com.brentandjody.tomatohub.dummy.DummyContent;
 import com.brentandjody.tomatohub.wifi.WifiFragment;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements Router.OnRouterActivityCompleteListener,
@@ -68,7 +65,8 @@ public class MainActivity extends AppCompatActivity
     public void onSignal(int signal) {
         switch (signal) {
             case OverviewFragment.SIGNAL_LOADED: {
-                mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+                if (mOverviewFragment!=null)
+                    mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
                 break;
             }
             case OverviewFragment.SIGNAL_REFRESH: {
@@ -83,62 +81,78 @@ public class MainActivity extends AppCompatActivity
         switch (activity_id) {
             case Router.ACTIVITY_LOGON: {
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    mOverviewFragment.showRouter(true);
-                    mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
+                    if (mOverviewFragment!=null) {
+                        mOverviewFragment.showRouter(true);
+                        mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
+                    }
                     mRouter.initialize();
                 } else {
-                    mOverviewFragment.showRouter(false);
-                    mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
-                    Log.i(TAG, "Redirecting to Welcome screen");
-                    Intent intent = new Intent(this, WelcomeActivity.class);
-                    intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                    if (mOverviewFragment!=null) {
+                        mOverviewFragment.showRouter(false);
+                        mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
+                    }
+                    WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                    DhcpInfo dhcp = wifi.getDhcpInfo();
+                    String gateway = intToIp(dhcp.gateway);
+                    Log.i(TAG, "Redirecting to Settings screen");
+                    Intent intent = new Intent(this, SettingsActivity.class);
+                    Log.i(TAG, "Resetting ip address to: "+gateway);
+                    intent.putExtra(getString(R.string.pref_key_ip_address), gateway);
                     this.startActivity(intent);
                 }
                 break;
             }
             case Router.ACTIVITY_INTIALIZE: {
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    mOverviewFragment.setRouterId(mRouter.getRouterId());
-                    mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
-                    String wifiMessage =
-                            "'" + TextUtils.join("'"+getString(R.string.is_on)+",  '", mRouter.getWIFILabels())
-                            + "'" + getString(R.string.is_on);
-                    mOverviewFragment.setWifiMessage(wifiMessage);
-                    mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices()+" "+getString(R.string.devices), getString(R.string.are_connected));
+                    if (mOverviewFragment!=null) {
+                        mOverviewFragment.setRouterId(mRouter.getRouterId());
+                        mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
+                        String wifiMessage =
+                                "'" + TextUtils.join("'" + getString(R.string.is_on) + ",  '", mRouter.getWIFILabels())
+                                        + "'" + getString(R.string.is_on);
+                        mOverviewFragment.setWifiMessage(wifiMessage);
+                        mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
+                    }
                     mRouter.updateDevices();
                     mRouter.updateTrafficStats();
                 } else {
-                    mOverviewFragment.setStatusMessage(getString(R.string.scan_failure));
+                    if (mOverviewFragment!=null) {
+                        mOverviewFragment.setStatusMessage(getString(R.string.scan_failure));
+                    }
                 }
                 break;
             }
             case Router.ACTIVITY_DEVICES_UPDATED: {
-                String router_id = mRouter.getRouterId();
-                String[] networks = mRouter.getNetworkIds();
-                for (int i=0; i<networks.length; i++) {
-                    Network network = mNetworks.get(router_id, networks[i]);
-                    int total = mRouter.getTotalDevicesOn(networks[i]);
-                    mOverviewFragment.showNetwork(i, network.name(), total);
-                    mOverviewFragment.setupClickListener(i);
+                if (mOverviewFragment!=null) {
+                    String router_id = mRouter.getRouterId();
+                    String[] networks = mRouter.getNetworkIds();
+                    for (int i = 0; i < networks.length; i++) {
+                        Network network = mNetworks.get(router_id, networks[i]);
+                        int total = mRouter.getTotalDevicesOn(networks[i]);
+                        mOverviewFragment.showNetwork(i, network.name(), total);
+                        mOverviewFragment.setupClickListener(i);
+                    }
                 }
                 break;
             }
             case Router.ACTIVITY_TRAFFIC_UPDATED: {
-                String[] network_ids = mRouter.getNetworkIds();
-                for (int i=0; i<network_ids.length; i++) {
-                    mOverviewFragment.setupClickListener(i);
-                }
-                mOverviewFragment.setupRefreshListener();
-                if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    if (network_ids.length > 1) {
-                        float total_traffic = 0;
-                        Network[] networks = new Network[mRouter.getNetworkIds().length];
-                        for (int i = 0; i < network_ids.length; i++) {
-                            networks[i] = mNetworks.get(mRouter.getRouterId(), network_ids[i]);
-                            total_traffic += networks[i].speed();
-                        }
-                        for (int i = 0; i < network_ids.length; i++) {
-                            mOverviewFragment.setNetworkTrafficColor(i, networks[i].speed() / total_traffic);
+                if (mOverviewFragment!=null) {
+                    String[] network_ids = mRouter.getNetworkIds();
+                    for (int i = 0; i < network_ids.length; i++) {
+                        mOverviewFragment.setupClickListener(i);
+                    }
+                    mOverviewFragment.setupRefreshListener();
+                    if (status == Router.ACTIVITY_STATUS_SUCCESS) {
+                        if (network_ids.length > 1) {
+                            float total_traffic = 0;
+                            Network[] networks = new Network[mRouter.getNetworkIds().length];
+                            for (int i = 0; i < network_ids.length; i++) {
+                                networks[i] = mNetworks.get(mRouter.getRouterId(), network_ids[i]);
+                                total_traffic += networks[i].speed();
+                            }
+                            for (int i = 0; i < network_ids.length; i++) {
+                                mOverviewFragment.setNetworkTrafficColor(i, networks[i].speed() / total_traffic);
+                            }
                         }
                     }
                 }
@@ -150,7 +164,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onPause() {
-        if (mOverviewFragment.isDetailViewVisible())
+        if (mOverviewFragment!=null && mOverviewFragment.isDetailViewVisible())
             mOverviewFragment.hideDetailView();
         if (mRouter!=null)
             mRouter.disconnect();
@@ -181,6 +195,7 @@ public class MainActivity extends AppCompatActivity
     private void refresh() {
         if (mOverviewFragment!=null) {
             mOverviewFragment.hideAllNetworkIcons();
+            mOverviewFragment.showRouter(true);
             mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
         }
         mRouter.updateDevices();
@@ -216,7 +231,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        if (mViewPager.getCurrentItem()==0 && mOverviewFragment.isDetailViewVisible()) {
+        if (mViewPager.getCurrentItem()==0 && mOverviewFragment!=null && mOverviewFragment.isDetailViewVisible()) {
             mOverviewFragment.hideDetailView();
         } else {
             super.onBackPressed();
@@ -259,8 +274,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private String intToIp(int i) {
 
-
-
+        return (i & 0xFF ) + "." +
+                ((i >> 8 ) & 0xFF) + "." +
+                ((i >> 16 ) & 0xFF) + "." +
+                ( (i >> 24 ) & 0xFF) ;
+    }
 
 }

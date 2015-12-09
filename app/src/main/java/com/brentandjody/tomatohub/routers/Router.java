@@ -1,12 +1,12 @@
 package com.brentandjody.tomatohub.routers;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.MainActivity;
-import com.brentandjody.tomatohub.database.Devices;
+import com.brentandjody.tomatohub.R;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -30,10 +30,10 @@ public abstract class Router {
     public static final int ACTIVITY_STATUS_FAILURE = 2;
     public static final int ACTIVITY_STATUS_ERROR = 3;
 
-    public static final String IP_PREF = "prefRouterIP";
-    public static final  String PORT_PREF = "prefRouterPort";
-    public static final  String USER_PREF = "prefRouterUser";
-    public static final String PASS_PREF = "prefRouterPass";
+//    public static final String IP_PREF = "prefRouterIP";
+//    public static final  String PORT_PREF = "prefRouterPort";
+//    public static final  String USER_PREF = "prefRouterUser";
+//    public static final String PASS_PREF = "prefRouterPass";
 
     protected OnRouterActivityCompleteListener mListener;
     protected SharedPreferences mPrefs;
@@ -55,12 +55,12 @@ public abstract class Router {
                     + " must implement OnRouterActivityCompleteListener");
         }
         mContext = activity;
-        mPrefs = activity.getSharedPreferences("Application", Context.MODE_PRIVATE);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(activity);//activity.getSharedPreferences("Application", Context.MODE_PRIVATE);
 
-        mIpAddress = mPrefs.getString(IP_PREF, "0.0.0.0");
-        mPort = mPrefs.getInt(PORT_PREF, 22);
-        mUser = mPrefs.getString(USER_PREF, "root");
-        mPassword = mPrefs.getString(PASS_PREF, "");
+        mIpAddress = mPrefs.getString(activity.getString(R.string.pref_key_ip_address), "0.0.0.0");
+        mPort = Integer.parseInt(mPrefs.getString(activity.getString(R.string.pref_key_port), "22"));
+        mUser = mPrefs.getString(activity.getString(R.string.pref_key_username), "root");
+        mPassword = mPrefs.getString(activity.getString(R.string.pref_key_password), "");
     }
 
     public void connect() {

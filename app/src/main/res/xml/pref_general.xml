@@ -1,33 +1,63 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="example_switch"
-        android:summary="@string/pref_description_social_recommendations"
-        android:title="@string/pref_title_social_recommendations" />
+    <ListPreference
+        android:defaultValue="tomato"
+        android:entries="@array/pref_router_firmware"
+        android:entryValues="@array/pref_router_firmware_value"
+        android:key="@string/pref_key_router_type"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_title_router_type" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
     <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_display_name"
-        android:inputType="textCapWords"
-        android:key="example_text"
+        android:defaultValue="0.0.0.0"
+        android:inputType="phone"
+        android:key="@string/pref_key_ip_address"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="@string/pref_title_display_name" />
+        android:title="@string/pref_title_ip_address" />
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_username"
+        android:inputType="textAutoComplete"
+        android:key="@string/pref_key_username"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_username" />
+
+    <EditTextPreference
+        android:defaultValue="@null"
+        android:inputType="textPassword"
+        android:key="@string/pref_key_password"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/change_password" />
+
+    <EditTextPreference
+        android:defaultValue="22"
+        android:inputType="number"
+        android:key="@string/pref_key_port"
+        android:numeric="integer"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/port" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="@string/pref_key_readonly"
+        android:summary="@string/pref_allow_changes"
+        android:title="@string/pref_title_allow_changes" />
+
+
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
-    <ListPreference
-        android:defaultValue="-1"
-        android:entries="@array/pref_example_list_titles"
-        android:entryValues="@array/pref_example_list_values"
-        android:key="example_list"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
-        android:title="@string/pref_title_add_friends_to_messages" />
 
 </PreferenceScreen>

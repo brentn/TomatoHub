@@ -159,7 +159,7 @@ public class OverviewFragment extends Fragment {
     @TargetApi(16)
     public void setNetworkTrafficColor(int index, float percent) {
         if (Build.VERSION.SDK_INT >= 16) {
-            int red = Math.round(128 * percent) + 128;
+            int red = 128+Math.round(128 * percent) ;
             Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
             if (circle!= null) {
                 circle.setColorFilter(new PorterDuffColorFilter(Color.argb(176, red, 128, 128), PorterDuff.Mode.MULTIPLY));
