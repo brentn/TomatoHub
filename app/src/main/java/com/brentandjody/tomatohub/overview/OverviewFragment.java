@@ -240,7 +240,7 @@ public class OverviewFragment extends Fragment {
 
 
     private void updateDeviceName(Device device, String custom_name, int list_index) {
-        if (! device.customName().equals(custom_name)) {
+        if (device.customName()==null || ! device.customName().equals(custom_name)) {
             device.setCustomName(custom_name);
             mDevices.updateName(device.mac(), custom_name);
             mDevicesList[list_index] = mDevices.getDevicesOnNetwork(mRouterId, device.lastNetwork());

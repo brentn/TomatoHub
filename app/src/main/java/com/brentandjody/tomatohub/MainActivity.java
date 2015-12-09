@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Networks;
+import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.dummy.DummyContent;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.Router;
@@ -28,9 +29,10 @@ import com.brentandjody.tomatohub.wifi.WifiFragment;
 public class MainActivity extends AppCompatActivity
         implements Router.OnRouterActivityCompleteListener,
                     OverviewFragment.OnSignalListener,
-                    WifiFragment.OnListFragmentInteractionListener {
+                    WifiFragment.OnSignalListener {
 
     private static final String TAG = MainActivity.class.getName();
+    private static final int SETTINGS_REQUEST_CODE = 38;
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
     private boolean mConnecting=false;
@@ -107,11 +109,16 @@ public class MainActivity extends AppCompatActivity
                     if (mOverviewFragment!=null) {
                         mOverviewFragment.setRouterId(mRouter.getRouterId());
                         mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
-                        String wifiMessage =
-                                "'" + TextUtils.join("'" + getString(R.string.is_on) + ",  '", mRouter.getWIFILabels())
-                                        + "'" + getString(R.string.is_on);
+                        String wifiMessage = "";
+                        for (Wifi wifi : mRouter.getWifiList()) {
+                            wifiMessage += "'"+wifi.SSID()+"'"+getString(R.string.is_on) + ", ";
+                        }
+                        wifiMessage = wifiMessage.replaceAll(", $", "");
                         mOverviewFragment.setWifiMessage(wifiMessage);
                         mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
+                    }
+                    if (mWifiFragment != null) {
+                        mWifiFragment.setWifiList(mRouter.getWifiList());
                     }
                     mRouter.updateDevices();
                     mRouter.updateTrafficStats();
@@ -202,11 +209,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
-        //TODO:
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -222,7 +224,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            startActivityForResult(new Intent(MainActivity.this, SettingsActivity.class), SETTINGS_REQUEST_CODE);
             return true;
         }
 
@@ -238,6 +240,27 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SETTINGS_REQUEST_CODE) {
+            mConnecting=true;
+            if (mOverviewFragment!=null) {
+                mOverviewFragment.initialize();
+                mOverviewFragment.setStatusMessage(getString(R.string.rescannng_network));
+            }
+            mRouter.connect();
+        }
+    }
+
+
+    private String intToIp(int i) {
+
+        return (i & 0xFF ) + "." +
+                ((i >> 8 ) & 0xFF) + "." +
+                ((i >> 16 ) & 0xFF) + "." +
+                ( (i >> 24 ) & 0xFF) ;
+    }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -272,14 +295,6 @@ public class MainActivity extends AppCompatActivity
             }
             return null;
         }
-    }
-
-    private String intToIp(int i) {
-
-        return (i & 0xFF ) + "." +
-                ((i >> 8 ) & 0xFF) + "." +
-                ((i >> 16 ) & 0xFF) + "." +
-                ( (i >> 24 ) & 0xFF) ;
     }
 
 }

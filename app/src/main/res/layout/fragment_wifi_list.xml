@@ -10,4 +10,5 @@
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
     tools:context=".wifi.WifiFragment"
-    tools:listitem="@layout/item_wifi_list" />
+    tools:listitem="@layout/item_wifi_list"
+    android:background="#5744a2" />

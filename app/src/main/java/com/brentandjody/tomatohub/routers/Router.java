@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
+import com.brentandjody.tomatohub.database.Wifi;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -79,7 +80,7 @@ public abstract class Router {
     public abstract void updateTrafficStats();
     public abstract String getRouterId();
     public abstract String getExternalIP();
-    public abstract String[] getWIFILabels();
+    public abstract List<Wifi> getWifiList();
     public abstract String[] getNetworkIds();
     public abstract int getTotalDevices();
     public abstract int getTotalDevicesOn(String network_id);

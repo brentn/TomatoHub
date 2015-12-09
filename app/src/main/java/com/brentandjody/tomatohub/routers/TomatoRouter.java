@@ -9,9 +9,12 @@ import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Networks;
+import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by brent on 28/11/15.
@@ -81,14 +84,21 @@ public class TomatoRouter extends Router {
     }
 
     @Override
-    public String[] getWIFILabels() {
+    public List<Wifi> getWifiList() {
         if (mWifiIds==null) {
             mWifiIds = new String[cacheWf.length];
-            for (int i = 0; i < cacheWf.length; i++) {
-                mWifiIds[i] = cacheWf[i].split("\"")[1].replace("\"", "");
+            Pattern p = Pattern.compile("\"([^\"]*)\"");
+            for (int i=0; i< cacheWf.length; i++) {
+                Matcher m = p.matcher(cacheWf[i]);
+                if (m.find()) mWifiIds[i] = m.group(1);
+                else mWifiIds[i] = "<unknown>";
             }
         }
-        return mWifiIds;
+        List<Wifi> result = new ArrayList<>();
+        for (String ssid : mWifiIds) {
+            result.add(new Wifi(ssid));
+        }
+        return result;
     }
     @Override
     public String[] getNetworkIds() {
@@ -113,7 +123,14 @@ public class TomatoRouter extends Router {
 
     @Override
     public int getTotalDevicesOn(String network_id) {
-        return grep(cacheArp, network_id).length;
+        int total=0;
+        for (String line : cacheArp) {
+            String[] fields = line.split(" ");
+            if (fields.length>6 && fields[fields.length-1].equals(network_id)) {
+                total++;
+            }
+        }
+        return total;
     }
 
     private String[] grep(String[] lines, String pattern) {
@@ -170,6 +187,7 @@ public class TomatoRouter extends Router {
                 for (String network : getNetworkIds()) {
                     for (String line : grep(cacheArp, network)) {
                         String[] fields = line.split(" ");
+                        // arp: android-acd667fdce64f7f1 (192.168.8.117) at C4:43:8F:F4:C4:C3 [ether]  on br0
                         if (fields.length>6 && fields[fields.length-1].equals(network)) {
                             String mac = line.split(" ")[3];
                             String ip = line.split(" ")[1].replaceAll("[()]", "");
@@ -207,19 +225,22 @@ public class TomatoRouter extends Router {
                 for (String network_id : getNetworkIds()) {
                     float network_traffic = 0;
                     for (String line : grep(cacheArp, network_id)) {
-                        try {
-                            String ip = line.split(" ")[1].replaceAll("[()]", "");
-                            String mac = line.split(" ")[3];
-                            String stats = grep(ipTraffic, ip)[0];
-                            long tx = Long.parseLong(stats.split(" ")[1]);
-                            long rx = Long.parseLong(stats.split(" ")[2]);
-                            Device device = mDevicesDB.get(getRouterId(), mac);
-                            device.setTrafficStats(tx, rx, timestamp);
-                            mDevicesDB.insertOrUpdate(device);
-                            network_traffic += device.lastSpeed();
-                        } catch (Exception ex) {
-                            Log.w(TAG, ex.getMessage());
-                            //continue to next item
+                        String[] fields = line.split(" ");
+                        if (fields.length>6) {
+                            try {
+                                String ip = fields[1].replaceAll("[()]", "");
+                                String mac = fields[3];
+                                String stats = grep(ipTraffic, ip)[0];
+                                long tx = Long.parseLong(stats.split(" ")[1]);
+                                long rx = Long.parseLong(stats.split(" ")[2]);
+                                Device device = mDevicesDB.get(getRouterId(), mac);
+                                device.setTrafficStats(tx, rx, timestamp);
+                                mDevicesDB.insertOrUpdate(device);
+                                network_traffic += device.lastSpeed();
+                            } catch (Exception ex) {
+                                Log.w(TAG, ex.getMessage());
+                                //continue to next item
+                            }
                         }
                     }
                     Network network = mNetworksDB.get(getRouterId(), network_id);

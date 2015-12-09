@@ -1,20 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
-
-    <TextView
-        android:id="@+id/id"
-        android:layout_width="wrap_content"
+    android:orientation="horizontal"
+    card_view:cardUseCompatPadding="true">
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:textAppearance="?attr/textAppearanceListItem" />
+        android:background="#EbE3C3">
 
-    <TextView
-        android:id="@+id/content"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:textAppearance="?attr/textAppearanceListItem" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/title_area">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="128dp"
+                android:id="@+id/wifi_background"
+                android:src="@drawable/wifi_background"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/ssid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.WindowTitle"
+                android:text="Wifi"
+                android:layout_gravity="bottom"
+                android:textSize="18pt"
+                android:paddingLeft="30dp"
+                android:layout_margin="@dimen/text_margin"
+                android:textColor="#ffffff" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/menu_button"
+                android:layout_gravity="right|top"
+                android:src="@android:drawable/ic_menu_edit" />
+        </FrameLayout>
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enabled"
+            android:id="@+id/enabled_switch"
+            android:layout_below="@+id/wifi_details"
+            android:layout_alignRight="@+id/wifi_details"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="20dp"
+            android:textOn="Wifi is enabled"
+            android:textOff="Wifi is DISABLED"
+            android:switchPadding="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/wifi_details"
+            android:layout_below="@+id/title_area"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/share_password"
+            android:id="@+id/share_button"
+            android:layout_below="@+id/wifi_details"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginBottom="20dp" />
+
+    </RelativeLayout>
 </android.support.v7.widget.CardView>
