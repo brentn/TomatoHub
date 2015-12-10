@@ -9,7 +9,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#EbE3C3">
+        android:background="#8879d3">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -40,7 +40,10 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/menu_button"
                 android:layout_gravity="right|top"
-                android:src="@android:drawable/ic_menu_edit" />
+                android:src="@android:drawable/ic_menu_edit"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:padding="8dp" />
         </FrameLayout>
 
         <Switch
@@ -54,7 +57,8 @@
             android:layout_marginRight="20dp"
             android:textOn="Wifi is enabled"
             android:textOff="Wifi is DISABLED"
-            android:switchPadding="20dp" />
+            android:switchPadding="20dp"
+            android:textColor="#ffffff" />
 
         <TextView
             android:layout_width="match_parent"
@@ -65,7 +69,11 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:paddingLeft="20dp"
-            android:paddingRight="20dp" />
+            android:paddingRight="20dp"
+            android:textColor="#ffffff"
+            android:textStyle="italic"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp" />
 
         <Button
             android:layout_width="wrap_content"

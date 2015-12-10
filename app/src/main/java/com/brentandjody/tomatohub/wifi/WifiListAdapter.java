@@ -19,11 +19,6 @@ import com.brentandjody.tomatohub.R;
 
 import java.util.List;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link Wifi} and makes a call to the
- * specified {@link OnSignalListener}.
- * TODO: Replace the implementation with code for your data type.
- */
 public class WifiListAdapter extends RecyclerView.Adapter<WifiListAdapter.ViewHolder> {
 
     private static final String TAG = WifiListAdapter.class.getName();
@@ -47,24 +42,15 @@ public class WifiListAdapter extends RecyclerView.Adapter<WifiListAdapter.ViewHo
     public void onBindViewHolder(final ViewHolder holder, int position) {
         Wifi item = mWifiList.get(position);
         holder.mItem = item;
-        float[] hsv = new float[] {0, 40, 40};
+        float[] hsv = new float[] {0, 0.6F, 0.6F};
         hsv[0] = (float)(item.SSID().hashCode()%360);
         int backColor = Color.HSVToColor(hsv);
-        hsv[0] = (hsv[0]+=180)%360;
+        hsv[0] = (hsv[0]+=120)%360;
         int foreColor = Color.HSVToColor(hsv);
         holder.mBackground.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
         holder.mSSID.setText(item.SSID());
         holder.mSSID.setTextColor(foreColor);
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.onSignal(-1);
-                }
-            }
-        });
+        holder.mEnabled.setChecked(true);
     }
 
     @Override

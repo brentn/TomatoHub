@@ -28,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -167,10 +168,9 @@ public class OverviewFragment extends Fragment {
     @TargetApi(16)
     public void setNetworkTrafficColor(int index, float percent) {
         if (Build.VERSION.SDK_INT >= 16) {
-            int red = 120+Math.round(128 * percent) ;
             Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
             if (circle!= null) {
-                circle.setColorFilter(new PorterDuffColorFilter(Color.argb(176, red, 128, 128), PorterDuff.Mode.MULTIPLY));
+                circle.setColorFilter(new PorterDuffColorFilter(Color.HSVToColor(new float[] {0, percent, 1F}), PorterDuff.Mode.MULTIPLY));
                 mNetworkIcons[index].setBackground(circle);
             }
         }
@@ -274,9 +274,12 @@ public class OverviewFragment extends Fragment {
 
     public class DeviceListAdapter extends ArrayAdapter<Device> {
         Context mContext;
+        float mTotalTraffic;
         public DeviceListAdapter(Context context, List<Device> devices) {
             super(context, 0, devices);
             mContext = context;
+            mTotalTraffic=0;
+            for (Device d : devices) if (d.isActive()) mTotalTraffic+=d.lastSpeed();
         }
 
         @Override
@@ -289,14 +292,15 @@ public class OverviewFragment extends Fragment {
             TextView tvName = (TextView)convertView.findViewById(R.id.device_name);
             TextView tvIP = (TextView)convertView.findViewById(R.id.device_ip);
             TextView tvTraffic = (TextView)convertView.findViewById(R.id.device_traffic);
+            ProgressBar pbTrafficBar = (ProgressBar)convertView.findViewById(R.id.traffic_bar);
             tvName.setText(device.name());
             tvIP.setText(device.lastIP());
-            if (device.isActive()) tvName.setTextColor(Color.WHITE);
+            if (device.isActive()) tvName.setTextColor(Color.BLACK);
             else tvName.setTextColor(Color.GRAY);
             if (device.isActive()) {
                 tvTraffic.setText(String.format("%.2f", device.lastSpeed() / 1000) + " kb/s");
-                int red = Math.min(255, Math.round(device.lastSpeed() / 50));
-                listItem.setBackgroundColor(Color.argb(128, red, 0, 0));
+                if (mTotalTraffic>0)
+                    pbTrafficBar.setProgress(Math.round(device.lastSpeed()/mTotalTraffic*100));
             } else {
                 listItem.setBackgroundColor(Color.argb(128, 0, 0, 0));
             }

@@ -280,12 +280,13 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/message_area"
-        android:layout_marginTop="-32dp"
         android:id="@+id/detail_layout"
-        android:background="#ea3b3fc5"
         android:visibility="gone"
-        android:elevation="16dp">
+        android:elevation="16dp"
+        android:layout_alignTop="@+id/message_area"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:background="#e0444444">
 
         <TextView
             android:layout_width="match_parent"
@@ -296,17 +297,19 @@
             android:padding="16dp"
             android:textColor="#4dd0e1"
             android:singleLine="true"
-            android:background="#3b3fc5"
             android:textSize="12pt"
             android:textIsSelectable="false"
-            android:textStyle="italic" />
+            android:textStyle="italic"
+            android:background="#5744a2" />
 
         <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/network_device_list"
             android:layout_below="@+id/message_area"
-            android:paddingBottom="50dp" />
+            android:paddingBottom="50dp"
+            android:paddingLeft="1dp"
+            android:paddingTop="1dp" />
 
     </LinearLayout>
 
