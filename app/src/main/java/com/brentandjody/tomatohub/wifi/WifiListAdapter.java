@@ -45,11 +45,8 @@ public class WifiListAdapter extends RecyclerView.Adapter<WifiListAdapter.ViewHo
         float[] hsv = new float[] {0, 0.6F, 0.6F};
         hsv[0] = (float)(item.SSID().hashCode()%360);
         int backColor = Color.HSVToColor(hsv);
-        hsv[0] = (hsv[0]+=120)%360;
-        int foreColor = Color.HSVToColor(hsv);
         holder.mBackground.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
         holder.mSSID.setText(item.SSID());
-        holder.mSSID.setTextColor(foreColor);
         holder.mEnabled.setChecked(true);
     }
 

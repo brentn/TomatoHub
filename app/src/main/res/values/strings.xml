@@ -97,4 +97,9 @@
     <string name="modify_device_name">Rename this device</string>
     <string name="share_password">Share Password</string>
     <string name="enabled">Enabled?</string>
+    <string name="external_ip_address">External IP Address:</string>
+    <string name="uptime">Uptime:</string>
+    <string name="memory">Memory:</string>
+    <string name="cpu">CPU:</string>
+    <string name="router_details">Router details</string>
 </resources>

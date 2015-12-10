@@ -27,6 +27,9 @@ public class TomatoRouter extends Router {
     private Devices mDevicesDB = null;
     private Networks mNetworksDB = null;
     private String mRouterId;
+    private long mBootTime;
+    private int[] mCPUUsage;
+    private int mMemoryUsage;
     private String mExternalIP;
     private String[] mNetworkIds;
     private String[] mWifiIds;
@@ -72,6 +75,20 @@ public class TomatoRouter extends Router {
             if (result.length > 0 && result[0].contains("=")) mRouterId = result[0].split("=")[1];
         }
         return mRouterId;
+    }
+    @Override
+    public long getBootTime() {
+        return mBootTime;
+    }
+
+    @Override
+    public int getMemoryUsage() {
+        return mMemoryUsage;
+    }
+
+    @Override
+    public int[] getCPUUsage() {
+        return mCPUUsage;
     }
 
     @Override
@@ -142,7 +159,6 @@ public class TomatoRouter extends Router {
         return result.toArray(new String[result.size()]);
     }
 
-
     private class SSHLogon extends Router.SSHLogon {
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -161,6 +177,10 @@ public class TomatoRouter extends Router {
                 cacheArp = sshCommand("arp");
                 cacheBrctl = sshCommand("brctl show");
                 cacheWf = sshCommand("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
+                try {mBootTime = Long.parseLong(sshCommand("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
+                catch (Exception ex){mBootTime = -1;}
+                refreshLoadAverages();
+                refreshMemoryStats();
                 success=true;
             } catch(Exception ex) {
                 success=false;
@@ -247,6 +267,8 @@ public class TomatoRouter extends Router {
                     network.setSpeed(network_traffic);
                     mNetworksDB.insertOrUpdate(network);
                 }
+                refreshMemoryStats();
+                refreshLoadAverages();
                 success=true;
             } catch (Exception ex) {
                 success=false;
@@ -262,4 +284,23 @@ public class TomatoRouter extends Router {
         }
     }
 
+    private void refreshMemoryStats() {
+        try {
+            String[] mem = sshCommand("grep Mem /proc/meminfo |awk '{ print $2 }'");
+            mMemoryUsage = Math.round(Float.parseFloat(mem[1])/Float.parseFloat(mem[0])*100);
+        } catch (Exception ex) {
+            mMemoryUsage = 0;
+        }
+    }
+
+    private void refreshLoadAverages() {
+        try {
+            String[] load = sshCommand("for x in `cat /proc/loadavg|cut -d' ' -f1-3`; do echo $x | awk '{print $1 * 100}'; done");
+            mCPUUsage = new int[] { Integer.parseInt(load[0]),
+                    Integer.parseInt(load[1]),
+                    Integer.parseInt(load[2])};
+        } catch (Exception ex) {
+            mCPUUsage = new int[] {0,0,0};
+        }
+    }
 }

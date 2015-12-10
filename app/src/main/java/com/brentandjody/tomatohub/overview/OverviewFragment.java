@@ -10,13 +10,11 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -202,7 +200,26 @@ public class OverviewFragment extends Fragment {
         });
     }
 
-    public void setupClickListener(final int index) {
+    public void setupRouterClickListener(final String router_type, final String external_ip, final long bootTime, final int memory, final int[] cpu) {
+        mView.findViewById(R.id.router).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                 View routerView =  getLayoutInflater(null).inflate(R.layout.router_details, null);
+                ((TextView)routerView.findViewById(R.id.router_type)).setText(router_type);
+                ((TextView)routerView.findViewById(R.id.external_ip)).setText(external_ip);
+                ((TextView)routerView.findViewById(R.id.uptime)).setText(uptimeSince(bootTime));
+                ((ProgressBar)routerView.findViewById(R.id.memory_usage)).setProgress(memory);
+                ((ProgressBar)routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
+                ((ProgressBar)routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
+                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                alert.setTitle(getString(R.string.router_details));
+                alert.setView(routerView);
+                alert.show();
+            }
+        });
+    }
+
+    public void setupNetworkClickListener(final int index) {
         final View icon = mNetworkIcons[index];
         final String network_id = (String)icon.getTag();
         mDevicesList[index] = mDevices.getDevicesOnNetwork(mRouterId, network_id);
@@ -272,6 +289,16 @@ public class OverviewFragment extends Fragment {
         void onSignal(int signal);
     }
 
+    private String uptimeSince(long bootTime) {
+        if (bootTime<0) return "??";
+        long time = (System.currentTimeMillis()/1000)-bootTime;
+        String days = time>86400?String.valueOf(time/86400)+" days ":"";
+        String hours = String.valueOf((time%86400)/3600)+" hours ";
+        String mins = String.valueOf(((time%86400)%3600)/60)+" mins ";
+        String secs = String.valueOf(((time%86400)%3600)%60)+" secs";
+        return days+hours+mins+secs;
+    }
+
     public class DeviceListAdapter extends ArrayAdapter<Device> {
         Context mContext;
         float mTotalTraffic;
@@ -301,8 +328,10 @@ public class OverviewFragment extends Fragment {
                 tvTraffic.setText(String.format("%.2f", device.lastSpeed() / 1000) + " kb/s");
                 if (mTotalTraffic>0)
                     pbTrafficBar.setProgress(Math.round(device.lastSpeed()/mTotalTraffic*100));
+                else
+                    pbTrafficBar.setProgress(0);
             } else {
-                listItem.setBackgroundColor(Color.argb(128, 0, 0, 0));
+                pbTrafficBar.setProgress(0);
             }
             return convertView;
         }

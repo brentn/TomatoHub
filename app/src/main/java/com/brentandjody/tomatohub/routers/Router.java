@@ -76,15 +76,19 @@ public abstract class Router {
     }
     // COMMANDS
     public abstract void initialize();
+    public abstract long getBootTime();
+    public abstract String getExternalIP();
+    public abstract int getMemoryUsage();
+    public abstract int[] getCPUUsage();
     public abstract void updateDevices();
     public abstract void updateTrafficStats();
     public abstract String getRouterId();
-    public abstract String getExternalIP();
     public abstract List<Wifi> getWifiList();
     public abstract String[] getNetworkIds();
     public abstract int getTotalDevices();
     public abstract int getTotalDevicesOn(String network_id);
 
+    public String getRouterType() { return mPrefs.getString(mContext.getString(R.string.pref_key_router_type), "<unknown"); }
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {

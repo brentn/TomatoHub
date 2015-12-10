@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +19,6 @@ import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
-import com.brentandjody.tomatohub.dummy.DummyContent;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
@@ -116,6 +114,13 @@ public class MainActivity extends AppCompatActivity
                         wifiMessage = wifiMessage.replaceAll(", $", "");
                         mOverviewFragment.setWifiMessage(wifiMessage);
                         mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
+                        mOverviewFragment.setupRouterClickListener(
+                                mRouter.getRouterType(),
+                                mRouter.getExternalIP(),
+                                mRouter.getBootTime(),
+                                mRouter.getMemoryUsage(),
+                                mRouter.getCPUUsage()
+                        );
                     }
                     if (mWifiFragment != null) {
                         mWifiFragment.setWifiList(mRouter.getWifiList());
@@ -137,7 +142,7 @@ public class MainActivity extends AppCompatActivity
                         Network network = mNetworks.get(router_id, networks[i]);
                         int total = mRouter.getTotalDevicesOn(networks[i]);
                         mOverviewFragment.showNetwork(i, network.name(), total);
-                        mOverviewFragment.setupClickListener(i);
+                        mOverviewFragment.setupNetworkClickListener(i);
                     }
                 }
                 break;
@@ -146,7 +151,7 @@ public class MainActivity extends AppCompatActivity
                 if (mOverviewFragment!=null) {
                     String[] network_ids = mRouter.getNetworkIds();
                     for (int i = 0; i < network_ids.length; i++) {
-                        mOverviewFragment.setupClickListener(i);
+                        mOverviewFragment.setupNetworkClickListener(i);
                     }
                     mOverviewFragment.setupRefreshListener();
                     if (status == Router.ACTIVITY_STATUS_SUCCESS) {

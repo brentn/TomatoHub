@@ -290,17 +290,19 @@
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Network Devices"
             android:id="@+id/network_name"
             android:padding="16dp"
-            android:textColor="#4dd0e1"
+            android:textColor="#ffffff"
             android:singleLine="true"
             android:textSize="12pt"
             android:textIsSelectable="false"
             android:textStyle="italic"
-            android:background="#5744a2" />
+            android:background="@drawable/texture"
+            android:backgroundTint="#5744a2"
+            android:backgroundTintMode="multiply" />
 
         <ListView
             android:layout_width="match_parent"
