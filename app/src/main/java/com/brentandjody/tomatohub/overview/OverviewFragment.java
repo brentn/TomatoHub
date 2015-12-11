@@ -354,16 +354,17 @@ public class OverviewFragment extends Fragment {
             ProgressBar pbTrafficBar = (ProgressBar)convertView.findViewById(R.id.traffic_bar);
             tvName.setText(device.name());
             tvIP.setText(device.lastIP());
-            if (device.isActive()) tvName.setTextColor(Color.BLACK);
-            else tvName.setTextColor(Color.GRAY);
             if (device.isActive()) {
+                tvName.setTextColor(Color.BLACK);
                 tvTraffic.setText(String.format("%.2f", device.lastSpeed() / 1000) + " kb/s");
                 if (mTotalTraffic>0)
                     pbTrafficBar.setProgress(Math.round(device.lastSpeed()/mTotalTraffic*100));
                 else
                     pbTrafficBar.setProgress(0);
             } else {
-                pbTrafficBar.setProgress(0);
+                tvName.setTextColor(Color.GRAY);
+                pbTrafficBar.setVisibility(View.GONE);
+                tvTraffic.setText("");
             }
             return convertView;
         }

@@ -2,10 +2,12 @@ package com.brentandjody.tomatohub.wifi;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -91,12 +93,14 @@ public class WifiFragment extends Fragment {
         private Context mContext;
         private final List<Wifi> mWifiList;
         private final OnSignalListener mListener;
+        private SharedPreferences mPrefs;
 
         public WifiListAdapter(Context context, List<Wifi> items, OnSignalListener listener) {
             super(context, 0, items);
             mContext = context;
             mWifiList = items;
             mListener = listener;
+            mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         }
 
         @Override
@@ -112,6 +116,9 @@ public class WifiFragment extends Fragment {
             background.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
             ((TextView)convertView.findViewById(R.id.ssid)).setText(wifi.SSID());
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(true);
+            if (mPrefs.getBoolean(getString(R.string.pref_key_readonly),false)) {
+                convertView.findViewById(R.id.enabled_switch).setEnabled(false);
+            }
 //            ((Button) convertView.findViewById(R.id.share_button));
             return convertView;
         }

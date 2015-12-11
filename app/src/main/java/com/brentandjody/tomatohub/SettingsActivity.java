@@ -195,10 +195,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("router_type"));
-            bindPreferenceSummaryToValue(findPreference("ip_address"));
-            bindPreferenceSummaryToValue(findPreference("username"));
-            bindPreferenceSummaryToValue(findPreference("port"));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_router_type)));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_protocol)));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_ip_address)));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_username)));
         }
 
         @Override

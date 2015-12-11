@@ -21,7 +21,7 @@ import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.Router;
-import com.brentandjody.tomatohub.routers.TomatoRouter;
+import com.brentandjody.tomatohub.routers.LinuxRouter;
 import com.brentandjody.tomatohub.wifi.WifiFragment;
 
 public class MainActivity extends AppCompatActivity
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mRouter = new TomatoRouter(this, mDevices, mNetworks);
+        mRouter = new LinuxRouter(this, mDevices, mNetworks);
     }
 
     @Override

@@ -13,7 +13,11 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,13 +43,13 @@ public abstract class Router {
     protected OnRouterActivityCompleteListener mListener;
     protected SharedPreferences mPrefs;
     protected String mIpAddress;
-    protected int mPort;
     protected String mUser;
     protected String mPassword;
 
-    private static final String TAG = TomatoRouter.class.getName();
+    private static final String TAG = LinuxRouter.class.getName();
     protected MainActivity mContext;
-    protected Session mSession;
+    protected Session mSession = null;
+    protected Socket mSocket = null;
     private String mWAN="";
 
     public Router(MainActivity activity) {
@@ -59,19 +63,30 @@ public abstract class Router {
         mPrefs = PreferenceManager.getDefaultSharedPreferences(activity);//activity.getSharedPreferences("Application", Context.MODE_PRIVATE);
 
         mIpAddress = mPrefs.getString(activity.getString(R.string.pref_key_ip_address), "0.0.0.0");
-        mPort = Integer.parseInt(mPrefs.getString(activity.getString(R.string.pref_key_port), "22"));
         mUser = mPrefs.getString(activity.getString(R.string.pref_key_username), "root");
         mPassword = mPrefs.getString(activity.getString(R.string.pref_key_password), "");
     }
 
     public void connect() {
-        new SSHLogon().execute();
+        switch (mPrefs.getString(mContext.getString(R.string.pref_key_protocol), "ssh")) {
+            case "ssh":
+                new SSHLogon().execute();
+                break;
+            case "telnet":
+                new TelnetLogon().execute();
+                break;
+        }
     }
 
     public void disconnect() {
         if (mSession != null) {
             mSession.disconnect();
             mSession = null;
+        }
+        if (mSocket != null) {
+            try { mSocket.close(); }
+            catch (Exception ex) {}
+            mSocket=null;
         }
     }
     // COMMANDS
@@ -97,10 +112,11 @@ public abstract class Router {
         protected Void doInBackground(Void... voids) {
             JSch ssh = new JSch();
             try {
+                Log.d(TAG, "Logging in via SSH");
                 if (mSession!=null) mSession.disconnect();
                 java.util.Properties config = new java.util.Properties();
                 config.put("StrictHostKeyChecking", "no");
-                mSession = ssh.getSession(mUser, mIpAddress, mPort);
+                mSession = ssh.getSession(mUser, mIpAddress, 22);
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
                 mSession.connect(10000);
@@ -116,8 +132,52 @@ public abstract class Router {
 
     }
 
+    protected class TelnetLogon extends AsyncTask<Void, Void, Void> {
+        boolean success;
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                success=false;
+                Log.d(TAG, "Logging in via Telnet");
+                if (mSocket !=null) {
+                    try { mSocket.close(); }
+                    catch (Exception ex) {}
+                }
+                mSocket = new Socket(mIpAddress, 23);
+                mSocket.setKeepAlive(true);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+                PrintWriter writer = new PrintWriter(mSocket.getOutputStream(), true);
+                while (mSocket!=null) {
+                    String line = reader.readLine();
+                    if (line==null) break;
+                    Log.v(TAG, "TELNET sent:"+line);
+                    if (line.trim().endsWith("username:") || line.trim().endsWith("ogin:")) {
+                        Log.d(TAG, "TELNET: sending username");
+                        writer.write(mUser+"\r\n");
+                        writer.flush();
+                        writer.write("\r\n");
+                        writer.flush();
+                    } else if (line.trim().endsWith("assword:")) {
+                        Log.d(TAG, "TELNET: sending password");
+                        writer.write(mPassword+"\r\n");
+                        writer.flush();
+                        Log.w(TAG, "TELNET: Logged in");
+                        success=true;
+                        break;
+                    } else {
+                        writer.write("\r\n");
+                        writer.flush();
+                    }
+                }
+            } catch (Exception ex) {
+                success=false;
+                Log.d(TAG, ex.getMessage());
+            }
+            return null;
+        }
+    }
 
-    protected String[] sshCommand(String command){
+    protected String[] command(String command){
         String[] result = new String[0];
         if (mSession!=null) {
             try {
@@ -131,13 +191,16 @@ public abstract class Router {
                 }
                 channel.disconnect();
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
-                lines.removeAll(Arrays.asList("", null));
+                try {lines.removeAll(Arrays.asList("", null));}
+                catch (Exception ex) {}
                 result = lines.toArray(new String[lines.size()]);
                 Log.v("SSH result", sb.toString());
             } catch (Exception ex) {
                 result = new String[0];
                 Log.e(TAG, (ex.getMessage()==null?"SSH command failed: "+command:ex.getMessage()));
             }
+        } else {
+            Log.d(TAG, "null ssh session");
         }
         return result;
     }
