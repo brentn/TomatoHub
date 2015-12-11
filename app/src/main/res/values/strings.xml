@@ -102,4 +102,5 @@
     <string name="memory">Memory:</string>
     <string name="cpu">CPU:</string>
     <string name="router_details">Router details</string>
+    <string name="modify_network_name">Modify network name</string>
 </resources>

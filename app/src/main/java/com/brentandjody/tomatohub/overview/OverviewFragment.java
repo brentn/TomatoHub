@@ -226,7 +226,26 @@ public class OverviewFragment extends Fragment {
         icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Network network = mNetworks.get(mRouterId, network_id);
+                final Network network = mNetworks.get(mRouterId, network_id);
+                mDetailView.findViewById(R.id.network_name).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                        final EditText editText = new EditText(getActivity());
+                        editText.setHint(network.name());
+                        editText.setText(network.customName());
+                        editText.setSingleLine();
+                        alert.setTitle(getString(R.string.modify_network_name));
+                        alert.setView(editText);
+                        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                            updateNetworkName(network, editText.getText().toString());
+                            }
+                        });
+                        alert.show();
+                    }
+                });
                 DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[index]);
                 ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
                 detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -243,7 +262,7 @@ public class OverviewFragment extends Fragment {
                         alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
                             @Override
                             public void onCancel(DialogInterface dialog) {
-                                updateDeviceName(device, editText.getText().toString(), index);
+                            updateDeviceName(device, editText.getText().toString(), index);
                             }
                         });
                         alert.show();
@@ -262,6 +281,14 @@ public class OverviewFragment extends Fragment {
             mDevices.updateName(device.mac(), custom_name);
             mDevicesList[list_index] = mDevices.getDevicesOnNetwork(mRouterId, device.lastNetwork());
             ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+        }
+    }
+
+    private void updateNetworkName(Network network, String custom_name) {
+        if (network.customName()==null || ! network.customName().equals(custom_name)) {
+            network.setCustomName(custom_name);
+            mNetworks.insertOrUpdate(network);
+            ((TextView)mDetailView.findViewById(R.id.network_name)).setText(custom_name);
         }
     }
 
@@ -315,7 +342,6 @@ public class OverviewFragment extends Fragment {
             if (convertView == null) {
                 convertView = LayoutInflater.from(mContext).inflate(R.layout.item_device_list, parent, false);
             }
-            View listItem = convertView.findViewById(R.id.device_item);
             TextView tvName = (TextView)convertView.findViewById(R.id.device_name);
             TextView tvIP = (TextView)convertView.findViewById(R.id.device_ip);
             TextView tvTraffic = (TextView)convertView.findViewById(R.id.device_traffic);

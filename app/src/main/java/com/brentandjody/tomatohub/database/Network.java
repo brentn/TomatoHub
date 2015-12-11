@@ -21,7 +21,7 @@ public class Network {
         _networkId=network_id;
     }
 
-    public void setName(String name) {
+    public void setCustomName(String name) {
         _customName = name;
     }
     public void setDetails(String custom_name, long tx, long rx, long timestamp, float speed) {
