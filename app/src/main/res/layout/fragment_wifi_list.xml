@@ -8,7 +8,7 @@
     app:layoutManager="LinearLayoutManager"
     android:background="#5744a2" >
     <ListView
-        android:id="@+id/list"
+        android:id="@+id/wifi_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="16dp"

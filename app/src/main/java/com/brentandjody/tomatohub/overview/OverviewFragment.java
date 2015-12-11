@@ -83,6 +83,12 @@ public class OverviewFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mDetailViewVisible=false;
