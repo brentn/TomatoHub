@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/menu_button"
                 android:layout_gravity="right|top"
-                android:src="@android:drawable/ic_menu_edit"
+                android:src="@drawable/ic_menu_moreoverflow"
                 android:background="@android:color/transparent"
                 android:clickable="true"
                 android:padding="8dp" />

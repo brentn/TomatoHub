@@ -158,7 +158,7 @@ public class OverviewFragment extends Fragment {
             mNetworkIcons[index].setVisibility(View.VISIBLE);
             mNetworkIcons[index].setText(String.valueOf(total));
             mNetworkIcons[index].setTag(network_id);
-            addNetworkLabel(mNetworkIcons[index], network_id);
+            addNetworkLabel(mNetworkIcons[index], mNetworks.get(mRouterId, network_id).name());
         } catch (Exception ex) {
             Log.e(TAG, "showNetwork: "+ex.getMessage());
         }
@@ -232,7 +232,7 @@ public class OverviewFragment extends Fragment {
                     public void onClick(View v) {
                         AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
                         final EditText editText = new EditText(getActivity());
-                        editText.setHint(network.name());
+                        editText.setHint(network.networkId());
                         editText.setText(network.customName());
                         editText.setSingleLine();
                         alert.setTitle(getString(R.string.modify_network_name));
@@ -288,7 +288,7 @@ public class OverviewFragment extends Fragment {
         if (network.customName()==null || ! network.customName().equals(custom_name)) {
             network.setCustomName(custom_name);
             mNetworks.insertOrUpdate(network);
-            ((TextView)mDetailView.findViewById(R.id.network_name)).setText(custom_name);
+            ((TextView)mDetailView.findViewById(R.id.network_name)).setText(getString(R.string.devices_on)+" "+custom_name);
         }
     }
 

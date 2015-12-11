@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity
                     for (int i = 0; i < networks.length; i++) {
                         Network network = mNetworks.get(router_id, networks[i]);
                         int total = mRouter.getTotalDevicesOn(networks[i]);
-                        mOverviewFragment.showNetwork(i, network.name(), total);
+                        mOverviewFragment.showNetwork(i, network.networkId(), total);
                         mOverviewFragment.setupNetworkClickListener(i);
                     }
                 }
