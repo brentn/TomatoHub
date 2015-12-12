@@ -18,11 +18,15 @@
         <item>Tomato</item>
         <item>DD-Wrt</item>
         <item>OpenWrt</item>
+        <item>Linksys</item>
+        <item>Cisco</item>
     </string-array>
     <string-array name="pref_router_firmware_value">
-        <item>tomato</item>
-        <item>ddwrt</item>
-        <item>openwrt</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
     </string-array>
     <string-array name="pref_router_protocol">
         <item>ssh</item>

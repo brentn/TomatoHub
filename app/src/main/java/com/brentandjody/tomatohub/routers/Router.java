@@ -13,19 +13,11 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-import org.apache.commons.net.telnet.*;
+import org.apache.commons.net.telnet.TelnetClient;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.nio.CharBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,7 +33,6 @@ public abstract class Router {
     public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
-    public static final int ACTIVITY_STATUS_ERROR = 3;
 
     protected OnRouterActivityCompleteListener mListener;
     protected SharedPreferences mPrefs;
@@ -52,7 +43,7 @@ public abstract class Router {
     private static final String TAG = LinuxRouter.class.getName();
     protected MainActivity mContext;
     protected Session mSession = null;
-    private AutomatedTelnetClient mTelnet;
+    private TelnetHelper mTelnet;
     private String mWAN="";
 
     public Router(MainActivity activity) {
@@ -82,13 +73,15 @@ public abstract class Router {
     }
 
     public void disconnect() {
-        if (mSession != null) {
-            mSession.disconnect();
-            mSession = null;
-        }
-        if (mTelnet != null) {
-            mTelnet.disconnect();
-        }
+        try {
+            if (mSession != null) {
+                mSession.disconnect();
+                mSession = null;
+            }
+            if (mTelnet != null) {
+                mTelnet.disconnect();
+            }
+        } catch (Exception ex) {}
     }
 
     // COMMANDS
@@ -105,15 +98,13 @@ public abstract class Router {
     public abstract int getTotalDevices();
     public abstract int getTotalDevicesOn(String network_id);
 
-    public String getRouterType() { return mPrefs.getString(mContext.getString(R.string.pref_key_router_type), "<unknown>"); }
-
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {
         boolean success;
         @Override
         protected Void doInBackground(Void... voids) {
-            JSch ssh = new JSch();
             try {
+                JSch ssh = new JSch();
                 Log.d(TAG, "Logging in via SSH");
                 if (mSession!=null) mSession.disconnect();
                 java.util.Properties config = new java.util.Properties();
@@ -125,8 +116,10 @@ public abstract class Router {
                 success=true;
             } catch (Exception ex) {
                 success=false;
-                if (mSession!=null)
+                if (mSession!=null) {
                     mSession.disconnect();
+                    mSession = null;
+                }
                 Log.e(TAG, ex.getMessage());
             }
             return null;
@@ -141,12 +134,16 @@ public abstract class Router {
         protected Void doInBackground(Void... params) {
             try {
                 Log.d(TAG, "Logging in via telnet");
-                mTelnet = new AutomatedTelnetClient(mIpAddress, mUser, mPassword);
+                mTelnet = new TelnetHelper(mIpAddress, mUser, mPassword);
                 success = true;
                 Log.d(TAG, "Telnet logged in");
             } catch (Exception ex) {
-                Log.e(TAG, ex.getMessage());
                 success=false;
+                if (mTelnet!=null) {
+                    mTelnet.disconnect();
+                    mTelnet=null;
+                }
+                Log.e(TAG, ex.getMessage());
             }
             return null;
         }
@@ -209,4 +206,80 @@ public abstract class Router {
     public interface OnRouterActivityCompleteListener {
         void onRouterActivityComplete(int activity_id, int status);
     }
+
+    private class TelnetHelper {
+
+        private TelnetClient telnet = new TelnetClient();
+        private InputStream in;
+        private PrintStream out;
+        private String prompt = "# ";
+
+        public TelnetHelper(String server, String user, String password) throws Exception {
+            telnet.connect(server, 23);
+            in = telnet.getInputStream();
+            out = new PrintStream(telnet.getOutputStream());
+
+            readUntil("ogin: ");
+            write(user);
+            readUntil("assword: ");
+            write(password);
+            readUntil(prompt);
+            write("stty -echo");
+            readUntil(prompt);
+        }
+
+        public String readUntil(String pattern) throws Exception {
+            char lastChar = pattern.charAt(pattern.length() - 1);
+            StringBuffer sb = new StringBuffer();
+            char ch = (char) in.read();
+            while (true) {
+                sb.append(ch);
+                //System.out.print(ch);
+                if (sb.toString().endsWith("Closing connection")) {
+                    throw new Exception("Wrong Telnet arguments passed");
+                }
+                if (sb.toString().endsWith(prompt) && !pattern.equals(prompt)) {
+                    return sb.toString();
+                }
+                if (ch == lastChar) {
+                    if (sb.toString().endsWith(pattern)) {
+                        return sb.toString();
+                    }
+                }
+                ch = (char) in.read();
+            }
+        }
+
+        public void write(String value) {
+            try {
+                out.println(value);
+                out.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public String[] sendCommand(String command) {
+            try {
+                write(command);
+                //readUntil(command+"  \n");  //ignore echo of command
+                String[] result = readUntil(prompt).split("\n");
+                return Arrays.copyOfRange(result, 0, result.length-1); //remove prompt from end
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public void disconnect() {
+            try {
+                telnet.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
 }
+

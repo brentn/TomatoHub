@@ -1,9 +1,6 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ListPreference
-        android:defaultValue="tomato"
-        android:entries="@array/pref_router_firmware"
-        android:entryValues="@array/pref_router_firmware_value"
         android:key="@string/pref_key_router_type"
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"

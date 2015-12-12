@@ -76,7 +76,7 @@
         android:src="@drawable/line_45"
         android:layout_alignTop="@+id/router"
         android:layout_alignLeft="@+id/router"
-        android:layout_marginTop="-40dp"
+        android:layout_marginTop="-39dp"
         android:layout_marginLeft="-37dp"
         android:visibility="visible" />
 

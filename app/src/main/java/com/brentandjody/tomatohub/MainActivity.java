@@ -2,9 +2,11 @@ package com.brentandjody.tomatohub;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -20,8 +22,14 @@ import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
+import com.brentandjody.tomatohub.routers.CiscoRouter;
+import com.brentandjody.tomatohub.routers.DDWrtRouter;
+import com.brentandjody.tomatohub.routers.LinksysRouter;
+import com.brentandjody.tomatohub.routers.OpenWrtRouter;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.LinuxRouter;
+import com.brentandjody.tomatohub.routers.RouterType;
+import com.brentandjody.tomatohub.routers.TomatoRouter;
 import com.brentandjody.tomatohub.wifi.WifiFragment;
 
 public class MainActivity extends AppCompatActivity
@@ -59,7 +67,14 @@ public class MainActivity extends AppCompatActivity
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mRouter = new LinuxRouter(this, mDevices, mNetworks);
+        switch (getRouterType()) {
+            case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
+            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
+            case RouterType.OPENWRT: mRouter = new OpenWrtRouter(this, mDevices, mNetworks); break;
+            case RouterType.LINKSYS: mRouter = new LinksysRouter(this); break;
+            case RouterType.CISCO: mRouter = new CiscoRouter(this); break;
+            default: mRouter = new LinuxRouter(this, mDevices, mNetworks);
+        }
     }
 
     @Override
@@ -119,7 +134,7 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.setWifiMessage(wifiMessage);
                         mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
                         mOverviewFragment.setupRouterClickListener(
-                                mRouter.getRouterType(),
+                                RouterType.name(getRouterType()),
                                 mRouter.getExternalIP(),
                                 mRouter.getBootTime(),
                                 mRouter.getMemoryUsage(),
@@ -263,6 +278,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public int getRouterType() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        return RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
+    }
 
     private String intToIp(int i) {
 

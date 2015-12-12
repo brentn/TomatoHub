@@ -21,6 +21,8 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
+import com.brentandjody.tomatohub.routers.RouterType;
+
 import java.util.List;
 
 /**
@@ -189,6 +191,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_general);
+            ListPreference routerType = (ListPreference)findPreference(getString(R.string.pref_key_router_type));
+            routerType.setEntries(RouterType.getEntries());
+            routerType.setEntryValues(RouterType.getEntryValues());
+            routerType.setDefaultValue(RouterType.defaultValue);
             setHasOptionsMenu(true);
 
             // Bind the summaries of EditText/List/Dialog/Ringtone preferences

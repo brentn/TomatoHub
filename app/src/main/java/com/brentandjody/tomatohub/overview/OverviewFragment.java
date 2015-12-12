@@ -4,12 +4,14 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -207,6 +209,7 @@ public class OverviewFragment extends Fragment {
     }
 
     public void setupRouterClickListener(final String router_type, final String external_ip, final long bootTime, final int memory, final int[] cpu) {
+
         mView.findViewById(R.id.router).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -355,6 +358,7 @@ public class OverviewFragment extends Fragment {
             tvName.setText(device.name());
             tvIP.setText(device.lastIP());
             if (device.isActive()) {
+                pbTrafficBar.setVisibility(View.VISIBLE);
                 tvName.setTextColor(Color.BLACK);
                 tvTraffic.setText(String.format("%.2f", device.lastSpeed() / 1000) + " kb/s");
                 if (mTotalTraffic>0)
