@@ -140,6 +140,7 @@ public abstract class Router {
         @Override
         protected Void doInBackground(Void... params) {
             try {
+                Log.d(TAG, "Logging in via telnet");
                 mTelnet = new AutomatedTelnetClient(mIpAddress, mUser, mPassword);
                 success = true;
                 Log.d(TAG, "Telnet logged in");
@@ -149,56 +150,8 @@ public abstract class Router {
             }
             return null;
         }
-
-
     }
 
-//    protected class TelnetLogon extends AsyncTask<Void, Void, Void> {
-//        boolean success;
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//            try {
-//                success=false;
-//                Log.d(TAG, "Logging in via Telnet");
-//                if (mSocket !=null) {
-//                    try { mSocket.close(); }
-//                    catch (Exception ex) {}
-//                }
-//                mSocket = new Socket(mIpAddress, 23);
-//                mSocket.setKeepAlive(true);
-//                mSocketReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
-//                mSocketWriter = new PrintWriter(mSocket.getOutputStream(), true);
-//                int state = 0;
-//                char[] buffer = new char[1024];
-//                int count;
-//                while ((count = mSocketReader.read(buffer)) > 0) {
-//                    StringBuilder sb = new StringBuilder();
-//                    sb.append(buffer, 0, count);
-//                    String line = sb.toString();
-//                    Log.v(TAG, "TELNET says:" + line);
-//                    if (line.trim().endsWith("sername:") || line.trim().endsWith("ogin:")) {
-//                        Log.d(TAG, "TELNET: sending username");
-//                        mSocketWriter.write(mUser + "\r\n");
-//                        mSocketWriter.flush();
-//                        state = 1;
-//                    } else if (state == 1 && line.trim().endsWith("assword:")) {
-//                        Log.d(TAG, "TELNET: sending password");
-//                        mSocketWriter.write(mPassword + "\r\n");
-//                        mSocketWriter.flush();
-//                        state = 2;
-//                    } else if (state == 2 && line.trim().endsWith("#")) {
-//                        Log.d(TAG, "TELNET: Logged in");
-//                        success = true;
-//                        break;
-//                    }
-//                }
-//            } catch (Exception ex) {
-//                success=false;
-//                Log.d(TAG, ex.getMessage());
-//            }
-//            return null;
-//        }
-//    }
 
     public String[] command(String command) {
         String[] result;
@@ -245,8 +198,8 @@ public abstract class Router {
         String[] result = new String[0];
         Log.v("Telnet command:",command);
         try {
-            String[] output = mTelnet.sendCommand(command);
-            Log.v("Telnet result", Arrays.toString(output));
+            result = mTelnet.sendCommand(command);
+            Log.v("Telnet result", Arrays.toString(result));
         } catch (Exception ex) {
             Log.e(TAG, (ex.getMessage()==null?"Telnet command failed: "+command:ex.getMessage()));
         }

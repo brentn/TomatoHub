@@ -65,6 +65,7 @@ public class LinuxRouter extends Router {
             case "telnet":
                 new TelnetLogon().execute();
                 break;
+            default: Log.e(TAG, "Unknown protocol");
         }
     }
 
@@ -130,8 +131,11 @@ public class LinuxRouter extends Router {
         if (mNetworkIds == null) {
             List<String> list = new ArrayList<>();
             for (String line:cacheBrctl) {
-                if (line.contains("\t") && line.charAt(0)!='\t' && !line.startsWith("bridge name"))
-                    list.add(line.split("\t")[0]);
+                if (line.charAt(0)!='\t' && line.charAt(0)!=' ' && !line.startsWith("bridge name")) {
+                    if (line.contains("\t")) list.add(line.split("\t")[0]);
+                    else list.add(line.split(" ")[0]);
+                }
+
             }
             mNetworkIds = list.toArray(new String[list.size()]);
         }
@@ -193,7 +197,7 @@ public class LinuxRouter extends Router {
                 cacheNVRam = command("nvram show");
                 cacheArp = command("arp");
                 cacheBrctl = command("brctl show");
-                cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x; done");
+                cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
                 catch (Exception ex){mBootTime = -1;}
                 refreshLoadAverages();

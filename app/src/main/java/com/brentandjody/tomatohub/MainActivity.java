@@ -197,6 +197,7 @@ public class MainActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
         mConnecting=true;
+        Log.d(TAG, "Connecting...");
         mRouter.connect();
     }
 

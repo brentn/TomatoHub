@@ -14,7 +14,7 @@ public class AutomatedTelnetClient {
     private TelnetClient telnet = new TelnetClient();
     private InputStream in;
     private PrintStream out;
-    private String prompt = "root#";
+    private String prompt = "# ";
 
     public AutomatedTelnetClient(String server, String user, String password) throws Exception {
         telnet.connect(server, 23);
@@ -26,6 +26,8 @@ public class AutomatedTelnetClient {
         readUntil("assword: ");
         write(password);
         readUntil(prompt);
+        write("stty -echo");
+        readUntil(prompt);
     }
 
     public String readUntil(String pattern) throws Exception {
@@ -34,6 +36,7 @@ public class AutomatedTelnetClient {
         char ch = (char) in.read();
         while (true) {
             sb.append(ch);
+            //System.out.print(ch);
             if (sb.toString().endsWith("Closing connection")) {
                 throw new Exception("Wrong Telnet arguments passed");
             }
@@ -61,7 +64,7 @@ public class AutomatedTelnetClient {
     public String[] sendCommand(String command) {
         try {
             write(command);
-            readUntil(command+"\n");  //ignore echo of command
+            //readUntil(command+"  \n");  //ignore echo of command
             String[] result = readUntil(prompt).split("\n");
             return Arrays.copyOfRange(result, 0, result.length-1); //remove prompt from end
         } catch (Exception e) {
