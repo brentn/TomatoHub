@@ -122,7 +122,12 @@ public class LinuxRouter extends Router {
         }
         List<Wifi> result = new ArrayList<>();
         for (String ssid : mWifiIds) {
-            result.add(new Wifi(ssid));
+            Wifi wifi = new Wifi(ssid);
+            String prefix = grep(cacheNVRam, "ssid="+wifi.SSID())[0].split("_ssid")[0];
+            String mode = grep(cacheNVRam, prefix+"_security_mode=")[0].split("=")[1];
+            if (mode.contains("wpa"))
+                wifi.setPassword(grep(cacheNVRam, prefix+"_wpa_psk=")[0].split("=")[1]);
+            result.add(wifi);
         }
         return result;
     }
@@ -324,4 +329,5 @@ public class LinuxRouter extends Router {
             mCPUUsage = new int[] {0,0,0};
         }
     }
+
 }

@@ -2,19 +2,26 @@ package com.brentandjody.tomatohub.wifi;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
@@ -100,12 +107,12 @@ public class WifiFragment extends Fragment {
             mContext = context;
             mWifiList = items;
             mListener = listener;
-            mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            Wifi wifi = getItem(position);
+            final Wifi wifi = getItem(position);
             if (convertView == null) {
                 convertView = LayoutInflater.from(mContext).inflate(R.layout.item_wifi_list, parent, false);
             }
@@ -116,10 +123,34 @@ public class WifiFragment extends Fragment {
             background.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
             ((TextView)convertView.findViewById(R.id.ssid)).setText(wifi.SSID());
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(true);
-            if (mPrefs.getBoolean(getString(R.string.pref_key_readonly),false)) {
-                convertView.findViewById(R.id.enabled_switch).setEnabled(false);
-            }
-//            ((Button) convertView.findViewById(R.id.share_button));
+            convertView.findViewById(R.id.enabled_switch).setEnabled(mPrefs.getBoolean(getString(R.string.pref_key_readonly),false));
+            convertView.findViewById(R.id.share_button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                    alert.setTitle(mContext.getString(R.string.wifi_password));
+                    TextView message = new TextView(mContext);
+                    message.setText(wifi.password());
+                    message.setTextColor(getResources().getColor(R.color.colorAccent));
+                    message.setTextSize(24);
+                    message.setTypeface(null, Typeface.BOLD);
+                    message.setPadding(0,20,0,0);
+                    message.setGravity(Gravity.CENTER);
+                    alert.setView(message);
+                    alert.setPositiveButton(mContext.getString(R.string.share), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                            sharingIntent.setType("text/plain");
+                            String body = mContext.getString(R.string.share_body).replace("[SSID]", wifi.SSID()).replace("[PASSWORD]", wifi.password());
+                            sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, mContext.getString(R.string.share_subject));
+                            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, body);
+                            startActivity(Intent.createChooser(sharingIntent, mContext.getString(R.string.how_do_you_want_to_share)));
+                        }
+                    });
+                    alert.show();
+                }
+            });
             return convertView;
         }
 

@@ -6,8 +6,13 @@ package com.brentandjody.tomatohub.database;
  */
 public class Wifi {
     private String mSSID;
+    private String mPassword;
+
     public Wifi(String ssid) {
         mSSID=ssid;
     }
+
+    public void setPassword(String password) {mPassword = password;}
     public String SSID() {return mSSID;}
+    public String password() {return mPassword;}
 }
