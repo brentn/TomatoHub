@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getName();
     private static final int SETTINGS_REQUEST_CODE = 38;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-
+    private boolean mSentToSettings;
     private boolean mConnecting=false;
     private ViewPager mViewPager;
     private Router mRouter;
@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        mSentToSettings=false;
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -91,14 +92,17 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.showRouter(false);
                         mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
                     }
-                    WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                    DhcpInfo dhcp = wifi.getDhcpInfo();
-                    String gateway = intToIp(dhcp.gateway);
-                    Log.i(TAG, "Redirecting to Settings screen");
-                    Intent intent = new Intent(this, SettingsActivity.class);
-                    Log.i(TAG, "Resetting ip address to: "+gateway);
-                    intent.putExtra(getString(R.string.pref_key_ip_address), gateway);
-                    this.startActivity(intent);
+                    if (!mSentToSettings) {
+                        mSentToSettings=true;
+                        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                        DhcpInfo dhcp = wifi.getDhcpInfo();
+                        String gateway = intToIp(dhcp.gateway);
+                        Log.i(TAG, "Redirecting to Settings screen");
+                        Intent intent = new Intent(this, SettingsActivity.class);
+                        Log.i(TAG, "Resetting ip address to: "+gateway);
+                        intent.putExtra(getString(R.string.pref_key_ip_address), gateway);
+                        this.startActivity(intent);
+                    }
                 }
                 break;
             }

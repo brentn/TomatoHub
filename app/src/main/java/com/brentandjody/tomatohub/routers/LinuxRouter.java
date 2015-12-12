@@ -193,7 +193,7 @@ public class LinuxRouter extends Router {
                 cacheNVRam = command("nvram show");
                 cacheArp = command("arp");
                 cacheBrctl = command("brctl show");
-                cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
+                cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x; done");
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
                 catch (Exception ex){mBootTime = -1;}
                 refreshLoadAverages();

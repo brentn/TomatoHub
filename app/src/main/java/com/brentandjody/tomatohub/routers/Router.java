@@ -13,11 +13,19 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
+import org.apache.commons.net.telnet.*;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,11 +43,6 @@ public abstract class Router {
     public static final int ACTIVITY_STATUS_FAILURE = 2;
     public static final int ACTIVITY_STATUS_ERROR = 3;
 
-//    public static final String IP_PREF = "prefRouterIP";
-//    public static final  String PORT_PREF = "prefRouterPort";
-//    public static final  String USER_PREF = "prefRouterUser";
-//    public static final String PASS_PREF = "prefRouterPass";
-
     protected OnRouterActivityCompleteListener mListener;
     protected SharedPreferences mPrefs;
     protected String mIpAddress;
@@ -49,7 +52,7 @@ public abstract class Router {
     private static final String TAG = LinuxRouter.class.getName();
     protected MainActivity mContext;
     protected Session mSession = null;
-    protected Socket mSocket = null;
+    private AutomatedTelnetClient mTelnet;
     private String mWAN="";
 
     public Router(MainActivity activity) {
@@ -83,12 +86,11 @@ public abstract class Router {
             mSession.disconnect();
             mSession = null;
         }
-        if (mSocket != null) {
-            try { mSocket.close(); }
-            catch (Exception ex) {}
-            mSocket=null;
+        if (mTelnet != null) {
+            mTelnet.disconnect();
         }
     }
+
     // COMMANDS
     public abstract void initialize();
     public abstract long getBootTime();
@@ -103,7 +105,7 @@ public abstract class Router {
     public abstract int getTotalDevices();
     public abstract int getTotalDevicesOn(String network_id);
 
-    public String getRouterType() { return mPrefs.getString(mContext.getString(R.string.pref_key_router_type), "<unknown"); }
+    public String getRouterType() { return mPrefs.getString(mContext.getString(R.string.pref_key_router_type), "<unknown>"); }
 
     protected class SSHLogon extends AsyncTask<Void,Void,Void>
     {
@@ -133,51 +135,85 @@ public abstract class Router {
     }
 
     protected class TelnetLogon extends AsyncTask<Void, Void, Void> {
-        boolean success;
+        boolean success=false;
+
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                success=false;
-                Log.d(TAG, "Logging in via Telnet");
-                if (mSocket !=null) {
-                    try { mSocket.close(); }
-                    catch (Exception ex) {}
-                }
-                mSocket = new Socket(mIpAddress, 23);
-                mSocket.setKeepAlive(true);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
-                PrintWriter writer = new PrintWriter(mSocket.getOutputStream(), true);
-                while (mSocket!=null) {
-                    String line = reader.readLine();
-                    if (line==null) break;
-                    Log.v(TAG, "TELNET sent:"+line);
-                    if (line.trim().endsWith("username:") || line.trim().endsWith("ogin:")) {
-                        Log.d(TAG, "TELNET: sending username");
-                        writer.write(mUser+"\r\n");
-                        writer.flush();
-                        writer.write("\r\n");
-                        writer.flush();
-                    } else if (line.trim().endsWith("assword:")) {
-                        Log.d(TAG, "TELNET: sending password");
-                        writer.write(mPassword+"\r\n");
-                        writer.flush();
-                        Log.w(TAG, "TELNET: Logged in");
-                        success=true;
-                        break;
-                    } else {
-                        writer.write("\r\n");
-                        writer.flush();
-                    }
-                }
+                mTelnet = new AutomatedTelnetClient(mIpAddress, mUser, mPassword);
+                success = true;
+                Log.d(TAG, "Telnet logged in");
             } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
                 success=false;
-                Log.d(TAG, ex.getMessage());
             }
             return null;
         }
+
+
     }
 
-    protected String[] command(String command){
+//    protected class TelnetLogon extends AsyncTask<Void, Void, Void> {
+//        boolean success;
+//        @Override
+//        protected Void doInBackground(Void... params) {
+//            try {
+//                success=false;
+//                Log.d(TAG, "Logging in via Telnet");
+//                if (mSocket !=null) {
+//                    try { mSocket.close(); }
+//                    catch (Exception ex) {}
+//                }
+//                mSocket = new Socket(mIpAddress, 23);
+//                mSocket.setKeepAlive(true);
+//                mSocketReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+//                mSocketWriter = new PrintWriter(mSocket.getOutputStream(), true);
+//                int state = 0;
+//                char[] buffer = new char[1024];
+//                int count;
+//                while ((count = mSocketReader.read(buffer)) > 0) {
+//                    StringBuilder sb = new StringBuilder();
+//                    sb.append(buffer, 0, count);
+//                    String line = sb.toString();
+//                    Log.v(TAG, "TELNET says:" + line);
+//                    if (line.trim().endsWith("sername:") || line.trim().endsWith("ogin:")) {
+//                        Log.d(TAG, "TELNET: sending username");
+//                        mSocketWriter.write(mUser + "\r\n");
+//                        mSocketWriter.flush();
+//                        state = 1;
+//                    } else if (state == 1 && line.trim().endsWith("assword:")) {
+//                        Log.d(TAG, "TELNET: sending password");
+//                        mSocketWriter.write(mPassword + "\r\n");
+//                        mSocketWriter.flush();
+//                        state = 2;
+//                    } else if (state == 2 && line.trim().endsWith("#")) {
+//                        Log.d(TAG, "TELNET: Logged in");
+//                        success = true;
+//                        break;
+//                    }
+//                }
+//            } catch (Exception ex) {
+//                success=false;
+//                Log.d(TAG, ex.getMessage());
+//            }
+//            return null;
+//        }
+//    }
+
+    public String[] command(String command) {
+        String[] result;
+        switch (mPrefs.getString(mContext.getString(R.string.pref_key_protocol), "ssh")) {
+            case "ssh": result = sshCommand(command); break;
+            case "telnet": result = telnetCommand(command); break;
+            default:
+                Log.w(TAG, "Unrecognized protocol");
+                result = new String[0];
+                break;
+        }
+        return result;
+    }
+
+    private String[] sshCommand(String command){
         String[] result = new String[0];
         if (mSession!=null) {
             try {
@@ -201,6 +237,18 @@ public abstract class Router {
             }
         } else {
             Log.d(TAG, "null ssh session");
+        }
+        return result;
+    }
+
+    private String[] telnetCommand(String command) {
+        String[] result = new String[0];
+        Log.v("Telnet command:",command);
+        try {
+            String[] output = mTelnet.sendCommand(command);
+            Log.v("Telnet result", Arrays.toString(output));
+        } catch (Exception ex) {
+            Log.e(TAG, (ex.getMessage()==null?"Telnet command failed: "+command:ex.getMessage()));
         }
         return result;
     }
