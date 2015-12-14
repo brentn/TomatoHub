@@ -44,8 +44,8 @@
         android:title="@string/change_password" />
 
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="@string/pref_key_readonly"
+        android:defaultValue="false"
+        android:key="@string/pref_key_allow_changes"
         android:summary="@string/pref_allow_changes"
         android:title="@string/pref_title_allow_changes" />
 

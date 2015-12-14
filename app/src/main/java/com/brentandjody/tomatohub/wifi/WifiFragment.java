@@ -10,18 +10,13 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
@@ -107,7 +102,7 @@ public class WifiFragment extends Fragment {
             mContext = context;
             mWifiList = items;
             mListener = listener;
-            mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+            mPrefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), context.MODE_PRIVATE);
         }
 
         @Override
@@ -123,7 +118,7 @@ public class WifiFragment extends Fragment {
             background.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
             ((TextView)convertView.findViewById(R.id.ssid)).setText(wifi.SSID());
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(true);
-            convertView.findViewById(R.id.enabled_switch).setEnabled(mPrefs.getBoolean(getString(R.string.pref_key_readonly),false));
+            convertView.findViewById(R.id.enabled_switch).setVisibility(mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false)?View.VISIBLE:View.GONE);
             convertView.findViewById(R.id.share_button).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

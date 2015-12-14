@@ -1,5 +1,7 @@
 package com.brentandjody.tomatohub.routers;
 
+import android.content.Context;
+
 import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.database.Wifi;
 
@@ -10,7 +12,7 @@ import java.util.List;
  */
 public class CiscoRouter extends Router {
 
-    public CiscoRouter(MainActivity activity) {
+    public CiscoRouter(Context activity) {
         super(activity);
     }
 
@@ -72,5 +74,15 @@ public class CiscoRouter extends Router {
     @Override
     public int getTotalDevicesOn(String network_id) {
         return 0;
+    }
+
+    @Override
+    public void download10MbFile() {
+
+    }
+
+    @Override
+    public void onLogonComplete(boolean success) {
+
     }
 }

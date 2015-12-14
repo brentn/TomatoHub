@@ -101,7 +101,7 @@
     <string name="pref_key_username">username</string>
     <string name="pref_key_password">password</string>
     <string name="pref_key_port">port</string>
-    <string name="pref_key_readonly">read_only</string>
+    <string name="pref_key_allow_changes">allow changes</string>
     <string name="modify_device_name">Rename this device</string>
     <string name="share_password">Share Password</string>
     <string name="enabled">Enabled?</string>
@@ -118,4 +118,8 @@
     <string name="share_body">The wifi password for [SSID] is \'[PASSWORD]\'.</string>
     <string name="share_subject">Wifi password</string>
     <string name="how_do_you_want_to_share">How do you want to share the password?</string>
+    <string name="title_activity_speed_test">Speed Test</string>
+    <string name="sharedPreferences_name">RouterHub</string>
+    <string name="internet_speed">Internet speed</string>
+    <string name="wifi_speed">Wifi speed</string>
 </resources>

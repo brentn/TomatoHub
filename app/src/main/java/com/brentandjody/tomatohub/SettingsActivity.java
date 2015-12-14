@@ -123,6 +123,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Intent intent = getIntent();
         if (intent.hasExtra(getString(R.string.pref_key_ip_address))) {
             String ip_address = intent.getStringExtra(getString(R.string.pref_key_ip_address));
@@ -190,7 +191,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            PreferenceManager prefMgr = getPreferenceManager();
+            prefMgr.setSharedPreferencesName(getString(R.string.sharedPreferences_name));
+            prefMgr.setSharedPreferencesMode(MODE_PRIVATE);
+
             addPreferencesFromResource(R.xml.pref_general);
+
             ListPreference routerType = (ListPreference)findPreference(getString(R.string.pref_key_router_type));
             routerType.setEntries(RouterType.getEntries());
             routerType.setEntryValues(RouterType.getEntryValues());
@@ -227,6 +233,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            PreferenceManager prefMgr = getPreferenceManager();
+            prefMgr.setSharedPreferencesName(getString(R.string.sharedPreferences_name));
+            prefMgr.setSharedPreferencesMode(MODE_PRIVATE);
+
             addPreferencesFromResource(R.xml.pref_notification);
             setHasOptionsMenu(true);
 

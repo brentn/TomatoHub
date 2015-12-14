@@ -57,7 +57,7 @@
             android:layout_marginRight="20dp"
             android:textOn="Wifi is enabled"
             android:textOff="Wifi is DISABLED"
-            android:switchPadding="20dp"
+            android:switchPadding="10dp"
             android:textColor="#ffffff" />
 
         <TextView

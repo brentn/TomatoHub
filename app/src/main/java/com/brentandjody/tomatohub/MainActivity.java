@@ -22,10 +22,7 @@ import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
-import com.brentandjody.tomatohub.routers.CiscoRouter;
 import com.brentandjody.tomatohub.routers.DDWrtRouter;
-import com.brentandjody.tomatohub.routers.LinksysRouter;
-import com.brentandjody.tomatohub.routers.OpenWrtRouter;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.LinuxRouter;
 import com.brentandjody.tomatohub.routers.RouterType;
@@ -70,9 +67,6 @@ public class MainActivity extends AppCompatActivity
         switch (getRouterType()) {
             case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
             case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
-            case RouterType.OPENWRT: mRouter = new OpenWrtRouter(this, mDevices, mNetworks); break;
-            case RouterType.LINKSYS: mRouter = new LinksysRouter(this); break;
-            case RouterType.CISCO: mRouter = new CiscoRouter(this); break;
             default: mRouter = new LinuxRouter(this, mDevices, mNetworks);
         }
     }

@@ -1,11 +1,11 @@
 package com.brentandjody.tomatohub.routers;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.MainActivity;
-import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
@@ -39,7 +39,7 @@ public class LinuxRouter extends Router {
     private String[] cacheBrctl;
     private String[] cacheWf;
 
-    public LinuxRouter(MainActivity context, Devices devices, Networks networks) {
+    public LinuxRouter(Context context, Devices devices, Networks networks) {
         super(context);
         mDevicesDB=devices;
         mNetworksDB=networks;
@@ -54,19 +54,6 @@ public class LinuxRouter extends Router {
         cacheBrctl=null;
         cacheWf=null;
         new Initializer().execute();
-    }
-
-    @Override
-    public void connect() {
-        switch (mPrefs.getString(mContext.getString(R.string.pref_key_protocol), "ssh")) {
-            case "ssh":
-                new SSHLogon().execute();
-                break;
-            case "telnet":
-                new TelnetLogon().execute();
-                break;
-            default: Log.e(TAG, "Unknown protocol");
-        }
     }
 
     @Override
@@ -167,6 +154,11 @@ public class LinuxRouter extends Router {
         return total;
     }
 
+    @Override
+    public void download10MbFile() {
+        new InternetDownloader().execute();
+    }
+
     private String[] grep(String[] lines, String pattern) {
         if (lines==null || lines.length==0) return new String[0];
         List<String> result = new ArrayList<>();
@@ -176,22 +168,10 @@ public class LinuxRouter extends Router {
         return result.toArray(new String[result.size()]);
     }
 
-    private class SSHLogon extends Router.SSHLogon {
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
-        }
+    @Override
+    public void onLogonComplete(boolean success) {
+        mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
     }
-
-    private class TelnetLogon extends Router.TelnetLogon {
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
-        }
-    }
-
 
     private class Initializer extends AsyncTask<Void, Void, Void> {
         // Initialize Caches
@@ -307,6 +287,20 @@ public class LinuxRouter extends Router {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             mListener.onRouterActivityComplete(ACTIVITY_TRAFFIC_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+        }
+    }
+
+    private class InternetDownloader extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            command("wget -qO /dev/null http://cachefly.cachefly.net/10mb.test");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, ACTIVITY_STATUS_SUCCESS);
         }
     }
 

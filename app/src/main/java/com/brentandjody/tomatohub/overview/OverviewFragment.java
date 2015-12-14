@@ -4,16 +4,14 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -33,6 +31,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.brentandjody.tomatohub.R;
+import com.brentandjody.tomatohub.SpeedTestActivity;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
@@ -102,11 +101,10 @@ public class OverviewFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(getActivity(), SpeedTestActivity.class);
+                getActivity().startActivityForResult(intent, 0);
             }
-        });
-        mDetailView = (LinearLayout) mView.findViewById(R.id.detail_layout);
+        });        mDetailView = (LinearLayout) mView.findViewById(R.id.detail_layout);
         mWifiMessage = (TextView)mView.findViewById(R.id.wifi_message);
         mStatusMessage = (TextView)mView.findViewById(R.id.status_message);
         mDevicesMessage = new TextView[] {(TextView)mView.findViewById(R.id.devices),
@@ -145,7 +143,9 @@ public class OverviewFragment extends Fragment {
     public void showRouter(boolean visible) {
         mView.findViewById(R.id.router).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
         mView.findViewById(R.id.router_l).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
-        if (visible) addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
+        if (visible) {
+            addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
+        }
     }
 
     public void hideAllNetworkIcons() {
