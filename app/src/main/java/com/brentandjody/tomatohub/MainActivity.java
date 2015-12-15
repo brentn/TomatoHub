@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity
                         wifiMessage = wifiMessage.replaceAll(", $", "");
                         mOverviewFragment.setWifiMessage(wifiMessage);
                         mOverviewFragment.setupRouterClickListener(
-                                RouterType.name(getRouterType()),
+                                mRouter.getRouterType(),
                                 mRouter.getExternalIP(),
                                 mRouter.getBootTime(),
                                 mRouter.getMemoryUsage(),

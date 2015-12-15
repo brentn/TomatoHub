@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
@@ -37,6 +38,7 @@ public class LinuxRouter extends Router {
     private String[] cacheArp;
     private String[] cacheBrctl;
     private String[] cacheWf;
+    private String[] cacheMotd;
     private List<AsyncTask> mRunningTasks;
 
     public LinuxRouter(Context context, Devices devices, Networks networks) {
@@ -62,6 +64,7 @@ public class LinuxRouter extends Router {
         cacheNVRam=null;
         cacheBrctl=null;
         cacheWf=null;
+        cacheMotd=null;
         new Initializer().execute();
     }
 
@@ -86,6 +89,14 @@ public class LinuxRouter extends Router {
         }
         return mRouterId;
     }
+
+    @Override
+    public String getRouterType() {
+        if (grep(cacheMotd, "DD-WRT").length > 0) return RouterType.name(RouterType.DDWRT);
+        if (grep(cacheMotd, "Tomato").length > 0) return RouterType.name(RouterType.TOMATO);
+        else return mContext.getString(R.string.unknown_linux_router);
+    }
+
     @Override
     public long getBootTime() {
         return mBootTime;
@@ -226,6 +237,7 @@ public class LinuxRouter extends Router {
                 cacheArp = command("arp");
                 cacheBrctl = command("brctl show");
                 cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
+                cacheMotd = command("cat /etc/motd");
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
                 catch (Exception ex){mBootTime = -1;}
                 refreshLoadAverages();

@@ -24,6 +24,7 @@ interface IRouter {
     void updateDevices();
     void updateTrafficStats();
     String getRouterId();
+    String getRouterType();
     List<Wifi> getWifiList();
     String[] getNetworkIds();
     int getTotalDevices();
