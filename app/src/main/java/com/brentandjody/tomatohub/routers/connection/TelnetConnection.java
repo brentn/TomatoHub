@@ -42,6 +42,18 @@ public class TelnetConnection implements IConnection {
     }
 
     @Override
+    public void transferBytes(int number_of_bytes) {
+        try {
+            mSession.sendCommand("scp -t /dev/null");
+            byte[] data = new byte[number_of_bytes];
+            Arrays.fill(data, (byte) 0);
+            mSession.out.write(data);
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage()==null?"Error transferring bytes via telnet":ex.getMessage());
+        }
+    }
+
+    @Override
     public String[] execute(String command) {
         String[] result = new String[0];
         Log.v("Telnet command:",command);
@@ -137,7 +149,6 @@ public class TelnetConnection implements IConnection {
         public String[] sendCommand(String command) {
             try {
                 write(command);
-                //readUntil(command+"  \n");  //ignore echo of command
                 String[] result = readUntil(prompt).split("\n");
                 return Arrays.copyOfRange(result, 0, result.length-1); //remove prompt from end
             } catch (Exception e) {

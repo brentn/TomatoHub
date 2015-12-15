@@ -9,6 +9,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +44,27 @@ public class SshConnection implements IConnection {
         if (mSession!=null) {
             mSession.disconnect();
             mSession=null;
+        }
+    }
+
+    @Override
+    public void transferBytes(int number_of_bytes) {
+        if (mSession != null) {
+            try {
+                Channel channel = mSession.openChannel("exec");
+                ((ChannelExec) channel).setCommand("scp -t /dev/null");
+                OutputStream out = channel.getOutputStream();
+                InputStream in = channel.getInputStream();
+                channel.connect();
+                byte[] data = new byte[number_of_bytes];
+                Arrays.fill(data, (byte) 0);
+                out.write(data);
+                out.flush();
+                out.close();
+                channel.disconnect();
+            } catch (Exception ex) {
+                Log.e(TAG, (ex.getMessage()==null?"SSH transferBytes failed":ex.getMessage()));
+            }
         }
     }
 

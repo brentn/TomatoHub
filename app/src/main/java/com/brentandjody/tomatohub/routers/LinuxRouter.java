@@ -155,8 +155,13 @@ public class LinuxRouter extends Router {
     }
 
     @Override
-    public void download10MbFile() {
+    public void internetSpeedTest() {
         new InternetDownloader().execute();
+    }
+
+    @Override
+    public void wifiSpeedTest() {
+        new WifiTransfer().execute();
     }
 
     private String[] grep(String[] lines, String pattern) {
@@ -301,6 +306,20 @@ public class LinuxRouter extends Router {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, ACTIVITY_STATUS_SUCCESS);
+        }
+    }
+
+    private class WifiTransfer extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            transferBytes(10000000);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mListener.onRouterActivityComplete(ACTIVITY_TRANSFER_BYTES, ACTIVITY_STATUS_SUCCESS);
         }
     }
 

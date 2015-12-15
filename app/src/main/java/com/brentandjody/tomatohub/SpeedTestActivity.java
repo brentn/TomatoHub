@@ -1,6 +1,5 @@
 package com.brentandjody.tomatohub;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -50,7 +49,10 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
     @Override
     protected void onPause() {
         super.onPause();
-        mRouter.disconnect();
+        if (mRouter != null) {
+            mRouter.disconnect();
+            mRouter=null;
+        }
     }
 
     @Override
@@ -61,22 +63,38 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
 
     private void runDownloadTest() {
         mStartTime = System.currentTimeMillis();
-        mRouter.download10MbFile();
+        mRouter.internetSpeedTest();
+    }
+
+    private void runWifiTest() {
+        mStartTime = System.currentTimeMillis();
+        mRouter.transferBytes(10000000);
     }
 
     @Override
     public void onRouterActivityComplete(int activity_id, int status) {
+        long elapsedTime;
+        float fileSize;
+        float Mbps;
         switch(activity_id) {
             case Router.ACTIVITY_LOGON:
                 runDownloadTest();
                 break;
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
-                long elapsedTime = System.currentTimeMillis()-mStartTime;
+                elapsedTime = System.currentTimeMillis()-mStartTime;
                 mInternetTesting.setVisibility(View.INVISIBLE);
-                float fileSize = (10485760*8)/1000000; //adjust size to megabits
-                float Mbps = fileSize/(elapsedTime/1000F); //adjust time to seconds
+                fileSize = (10485760*8)/1000000; //adjust size to megabits
+                Mbps = fileSize/(elapsedTime/1000F); //adjust time to seconds
                 mInternetSpeed.setText(String.format("%.2f", Mbps)+" Mbps");
+                runWifiTest();
                 break;
+            case Router.ACTIVITY_TRANSFER_BYTES:
+                elapsedTime = System.currentTimeMillis()-mStartTime;
+                mWifiTesting.setVisibility(View.INVISIBLE);
+                fileSize = 80; //size in megabits
+                Mbps = fileSize/(elapsedTime/1000F); //adjust time to seconds
+                mWifiSpeed.setText(String.format("%.2f", Mbps)+" Mbps");
+                mRouter.disconnect();
         }
     }
 }

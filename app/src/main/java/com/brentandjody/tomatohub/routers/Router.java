@@ -25,6 +25,7 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
     public static final int ACTIVITY_DEVICES_UPDATED = 3;
     public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
     public static final int ACTIVITY_INTERNET_10MDOWNLOAD = 5;
+    public static final int ACTIVITY_TRANSFER_BYTES = 6;
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
 
@@ -69,6 +70,10 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
         else return new String[0];
     }
 
+    public void transferBytes(int number_of_bytes) {
+        if (mConnection != null) mConnection.transferBytes(number_of_bytes);
+    }
+
     public void disconnect() {
         if (mConnection != null) mConnection.disconnect();
     }
@@ -86,7 +91,8 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
     public abstract String[] getNetworkIds();
     public abstract int getTotalDevices();
     public abstract int getTotalDevicesOn(String network_id);
-    public abstract void download10MbFile();
+    public abstract void internetSpeedTest();
+    public abstract void wifiSpeedTest();
 
     public interface OnRouterActivityCompleteListener {
         void onRouterActivityComplete(int activity_id, int status);
