@@ -13,6 +13,7 @@ import android.widget.TextView;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,11 +34,13 @@ public class SshConnection implements IConnection {
     private String mPassword;
     private Session mSession;
     private float mSpeed=-1;
+    private List<AsyncTask> mRunningTasks;
 
 
     @Override
     public void connect(String ipAddress, String username, String password){
         try {
+            mRunningTasks = new ArrayList<>();
             mIpAddress = ipAddress;
             mUser = username;
             mPassword = password;
@@ -50,6 +53,9 @@ public class SshConnection implements IConnection {
     @Override
     public void disconnect() {
         try {
+            for(AsyncTask task : mRunningTasks) {
+                task.cancel(true);
+            }
             if (mSession!=null) {
                 mSession.disconnect();
                 mSession=null;
@@ -105,6 +111,13 @@ public class SshConnection implements IConnection {
     private class BackgroundLogon extends AsyncTask<Void,Void,Void>
     {
         boolean success;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mRunningTasks.add(this);
+        }
+
         @Override
         protected Void doInBackground(Void... voids) {
             try {
@@ -127,16 +140,11 @@ public class SshConnection implements IConnection {
         }
 
         @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            success=false;
-            resetSession();
-        }
-
-        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onActionComplete(IConnection.ACTION_LOGON, success);
+            mRunningTasks.remove(this);
+            if (isCancelled()) resetSession();
+            else mListener.onActionComplete(IConnection.ACTION_LOGON, success);
         }
 
         private void resetSession() {
@@ -151,6 +159,12 @@ public class SshConnection implements IConnection {
         int number_of_bytes=10000000;
         boolean success=false;
         long startTime;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mRunningTasks.add(this);
+        }
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -180,23 +194,21 @@ public class SshConnection implements IConnection {
             return null;
         }
 
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            success=false;
-        }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mSpeed = -1;
-            if (success) {
-                long elapsedTime = System.currentTimeMillis()-startTime;
-                float Mbits = number_of_bytes*8/1000000; //convert from bytes to Megabits
-                if (elapsedTime>0)
-                    mSpeed = Mbits/elapsedTime * 1000; // convert from milliseconds to seconds
+            mRunningTasks.remove(this);
+            if (!isCancelled()) {
+                mSpeed = -1;
+                if (success) {
+                    long elapsedTime = System.currentTimeMillis() - startTime;
+                    float Mbits = number_of_bytes * 8 / 1000000; //convert from bytes to Megabits
+                    if (elapsedTime > 0)
+                        mSpeed = Mbits / elapsedTime * 1000; // convert from milliseconds to seconds
+                }
+                mListener.onActionComplete(IConnection.ACTION_SPEED_TEST, success);
             }
-            mListener.onActionComplete(IConnection.ACTION_SPEED_TEST, success);
         }
 
     }

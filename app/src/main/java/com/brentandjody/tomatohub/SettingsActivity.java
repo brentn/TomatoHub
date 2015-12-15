@@ -130,7 +130,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         if (intent.hasExtra(getString(R.string.pref_key_ip_address))) {
             String ip_address = intent.getStringExtra(getString(R.string.pref_key_ip_address));
             SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-            //prefs.edit().putString(getString(R.string.pref_key_ip_address), ip_address).commit();
+            prefs.edit().putString(getString(R.string.pref_key_ip_address), ip_address).commit();
         }
         setupActionBar();
     }

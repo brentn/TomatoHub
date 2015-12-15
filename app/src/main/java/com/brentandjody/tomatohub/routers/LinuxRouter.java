@@ -37,11 +37,21 @@ public class LinuxRouter extends Router {
     private String[] cacheArp;
     private String[] cacheBrctl;
     private String[] cacheWf;
+    private List<AsyncTask> mRunningTasks;
 
     public LinuxRouter(Context context, Devices devices, Networks networks) {
         super(context);
+        mRunningTasks = new ArrayList<>();
         mDevicesDB=devices;
         mNetworksDB=networks;
+    }
+
+    @Override
+    public void disconnect() {
+        super.disconnect();
+        for (AsyncTask task : mRunningTasks) {
+            task.cancel(true);
+        }
     }
 
     @Override
@@ -66,8 +76,13 @@ public class LinuxRouter extends Router {
     @Override
     public String getRouterId() {
         if (mRouterId==null) {
-            String[] result = grep(cacheNVRam, "wan_hwaddr");
-            if (result.length > 0 && result[0].contains("=")) mRouterId = result[0].split("=")[1];
+            try {
+                String[] result = grep(cacheNVRam, "wan_hwaddr");
+                if (result.length > 0 && result[0].contains("="))
+                    mRouterId = result[0].split("=")[1];
+            } catch (Exception ex) {
+                Log.e(TAG, "getRouterId():"+ex.getMessage());
+            }
         }
         return mRouterId;
     }
@@ -89,8 +104,13 @@ public class LinuxRouter extends Router {
     @Override
     public String getExternalIP() {
         if (mExternalIP==null) {
-            String[] result = grep(cacheNVRam, "wan_ipaddr");
-            if (result.length > 0 && result[0].contains("=")) mExternalIP = result[0].split("=")[1];
+            try {
+                String[] result = grep(cacheNVRam, "wan_ipaddr");
+                if (result.length > 0 && result[0].contains("="))
+                    mExternalIP = result[0].split("=")[1];
+            } catch (Exception ex) {
+                Log.e(TAG, "getExternalIP():"+ex.getMessage());
+            }
         }
         return mExternalIP;
     }
@@ -98,14 +118,19 @@ public class LinuxRouter extends Router {
     @Override
     public List<Wifi> getWifiList() {
         if (mWifiIds==null) {
-            mWifiIds = new String[cacheWf.length];
-            Pattern p = Pattern.compile("\"([^\"]*)\"");
-            for (int i=0; i< cacheWf.length; i++) {
-                Matcher m = p.matcher(cacheWf[i]);
-                if (m.find()) mWifiIds[i] = m.group(1);
-                else mWifiIds[i] = "<unknown>";
+            try {
+                mWifiIds = new String[cacheWf.length];
+                Pattern p = Pattern.compile("\"([^\"]*)\"");
+                for (int i = 0; i < cacheWf.length; i++) {
+                    Matcher m = p.matcher(cacheWf[i]);
+                    if (m.find()) mWifiIds[i] = m.group(1);
+                    else mWifiIds[i] = "<unknown>";
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "getWifiList():"+ex.getMessage());
             }
         }
+        // find wifi passwords
         List<Wifi> result = new ArrayList<>();
         for (String ssid : mWifiIds) {
             Wifi wifi = new Wifi(ssid);
@@ -124,15 +149,19 @@ public class LinuxRouter extends Router {
     @Override
     public String[] getNetworkIds() {
         if (mNetworkIds == null) {
-            List<String> list = new ArrayList<>();
-            for (String line:cacheBrctl) {
-                if (line.charAt(0)!='\t' && line.charAt(0)!=' ' && !line.startsWith("bridge name")) {
-                    if (line.contains("\t")) list.add(line.split("\t")[0]);
-                    else list.add(line.split(" ")[0]);
-                }
+            try {
+                List<String> list = new ArrayList<>();
+                for (String line : cacheBrctl) {
+                    if (line.charAt(0) != '\t' && line.charAt(0) != ' ' && !line.startsWith("bridge name")) {
+                        if (line.contains("\t")) list.add(line.split("\t")[0]);
+                        else list.add(line.split(" ")[0]);
+                    }
 
+                }
+                mNetworkIds = list.toArray(new String[list.size()]);
+            } catch (Exception ex) {
+                Log.e(TAG, "getNetworkIds():"+ex.getMessage());
             }
-            mNetworkIds = list.toArray(new String[list.size()]);
         }
         return mNetworkIds;
     }
@@ -148,11 +177,15 @@ public class LinuxRouter extends Router {
     @Override
     public int getTotalDevicesOn(String network_id) {
         int total=0;
-        for (String line : cacheArp) {
-            String[] fields = line.split(" ");
-            if (fields.length>6 && fields[fields.length-1].equals(network_id)) {
-                total++;
+        try {
+            for (String line : cacheArp) {
+                String[] fields = line.split(" ");
+                if (fields.length > 6 && fields[fields.length - 1].equals(network_id)) {
+                    total++;
+                }
             }
+        } catch (Exception ex) {
+            Log.e(TAG, "getTotalDevicesOn("+network_id+"):"+ex.getMessage());
         }
         return total;
     }
@@ -164,16 +197,28 @@ public class LinuxRouter extends Router {
 
     private String[] grep(String[] lines, String pattern) {
         if (lines==null || lines.length==0) return new String[0];
-        List<String> result = new ArrayList<>();
-        for (String line : lines) {
-            if (line.contains(pattern)) result.add(line);
+        try {
+            List<String> result = new ArrayList<>();
+            for (String line : lines) {
+                if (line.contains(pattern)) result.add(line);
+            }
+            return result.toArray(new String[result.size()]);
+        } catch (Exception ex) {
+            Log.e(TAG, "internetSpeedTest():"+ex.getMessage());
+            return new String[0];
         }
-        return result.toArray(new String[result.size()]);
     }
 
     private class Initializer extends AsyncTask<Void, Void, Void> {
         // Initialize Caches
         boolean success;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mRunningTasks.add(this);
+        }
+
         @Override
         protected Void doInBackground(Void... voids) {
             try {
@@ -188,7 +233,7 @@ public class LinuxRouter extends Router {
                 success=true;
             } catch(Exception ex) {
                 success=false;
-                Log.e(TAG, "Initialize:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
+                Log.e(TAG, "Initialize:"+ ex.getMessage());
             }
             return null;
         }
@@ -196,7 +241,9 @@ public class LinuxRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+            mRunningTasks.remove(this);
+            if (!isCancelled())
+                mListener.onRouterActivityComplete(ACTIVITY_INTIALIZE, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
         }
     }
 
@@ -204,6 +251,13 @@ public class LinuxRouter extends Router {
         // ensures all devices are in database
         // marks current devices as active
         boolean success;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mRunningTasks.add(this);
+        }
+
         @Override
         protected Void doInBackground(Void... params) {
             try {
@@ -235,12 +289,21 @@ public class LinuxRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_DEVICES_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+            mRunningTasks.remove(this);
+            if (!isCancelled())
+                mListener.onRouterActivityComplete(ACTIVITY_DEVICES_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
         }
     }
 
     private class NetworkTrafficAnalyzer extends AsyncTask<Void, Void, Void> {
         boolean success;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mRunningTasks.add(this);
+        }
+
         @Override
         protected Void doInBackground(Void... voids) {
             try {
@@ -284,21 +347,39 @@ public class LinuxRouter extends Router {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_TRAFFIC_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+            mRunningTasks.remove(this);
+            if (!isCancelled())
+                mListener.onRouterActivityComplete(ACTIVITY_TRAFFIC_UPDATED, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
         }
     }
 
     private class InternetDownloader extends AsyncTask<Void, Void, Void> {
+        boolean success=false;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mRunningTasks.add(this);
+        }
+
         @Override
         protected Void doInBackground(Void... params) {
-            command("wget -qO /dev/null http://cachefly.cachefly.net/10mb.test");
+            try {
+                command("wget -qO /dev/null http://cachefly.cachefly.net/10mb.test");
+                success=true;
+            } catch (Exception ex) {
+                success=false;
+                Log.e(TAG, "InternetDownloader:"+ex.getMessage());
+            }
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, ACTIVITY_STATUS_SUCCESS);
+            mRunningTasks.remove(this);
+            if (!isCancelled())
+                mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
         }
     }
 
@@ -307,6 +388,7 @@ public class LinuxRouter extends Router {
             String[] mem = command("grep Mem /proc/meminfo |awk '{ print $2 }'");
             mMemoryUsage = Math.round(Float.parseFloat(mem[1])/Float.parseFloat(mem[0])*100);
         } catch (Exception ex) {
+            Log.w(TAG, "refreshMemoryStats():"+ex.getMessage());
             mMemoryUsage = 0;
         }
     }
@@ -318,6 +400,7 @@ public class LinuxRouter extends Router {
                     Math.round(Float.parseFloat(load[1])),
                     Math.round(Float.parseFloat(load[2]))};
         } catch (Exception ex) {
+            Log.w(TAG, "refreshLoadAverages():"+ex.getMessage());
             mCPUUsage = new int[] {0,0,0};
         }
     }
