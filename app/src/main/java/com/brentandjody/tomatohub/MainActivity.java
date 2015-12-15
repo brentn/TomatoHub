@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getName();
     private static final int SETTINGS_REQUEST_CODE = 38;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private boolean mSentToSettings;
+    private boolean mSentToSettings=false;
     private boolean mConnecting=false;
     private ViewPager mViewPager;
     private Router mRouter;
@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        mSentToSettings=false;
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -99,6 +98,7 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     if (mOverviewFragment!=null) {
                         mOverviewFragment.showRouter(false);
+                        mOverviewFragment.showSpeedTestButton(false);
                         mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
                     }
                     if (!mSentToSettings) {
@@ -119,14 +119,19 @@ public class MainActivity extends AppCompatActivity
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
                         mOverviewFragment.setRouterId(mRouter.getRouterId());
-                        mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
+                        if (mRouter.getNetworkIds().length < 1) {
+                            mOverviewFragment.setStatusMessage(getString(R.string.no_networks_found));
+                            mOverviewFragment.setDevicesMessage("","");
+                        } else {
+                            mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
+                            mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
+                        }
                         String wifiMessage = "";
                         for (Wifi wifi : mRouter.getWifiList()) {
                             wifiMessage += "'"+wifi.SSID()+"'"+getString(R.string.is_on) + ", ";
                         }
                         wifiMessage = wifiMessage.replaceAll(", $", "");
                         mOverviewFragment.setWifiMessage(wifiMessage);
-                        mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
                         mOverviewFragment.setupRouterClickListener(
                                 RouterType.name(getRouterType()),
                                 mRouter.getExternalIP(),
@@ -157,6 +162,7 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.showNetwork(i, network.networkId(), total);
                         mOverviewFragment.setupNetworkClickListener(i);
                     }
+                    mOverviewFragment.showSpeedTestButton(true);
                 }
                 break;
             }

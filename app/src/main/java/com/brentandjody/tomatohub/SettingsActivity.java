@@ -4,6 +4,7 @@ package com.brentandjody.tomatohub;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -18,6 +19,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
@@ -113,10 +115,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         // Trigger the listener immediately with the preference's
         // current value.
-        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                PreferenceManager
-                        .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
+        PreferenceManager prefMgr = preference.getPreferenceManager();
+        prefMgr.setSharedPreferencesName(preference.getContext().getString(R.string.sharedPreferences_name));
+        prefMgr.setSharedPreferencesMode(MODE_PRIVATE);
+        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, prefMgr.getSharedPreferences().getString(preference.getKey(), ""));
     }
 
 
@@ -127,7 +129,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         Intent intent = getIntent();
         if (intent.hasExtra(getString(R.string.pref_key_ip_address))) {
             String ip_address = intent.getStringExtra(getString(R.string.pref_key_ip_address));
-            PreferenceManager.getDefaultSharedPreferences(this).edit().putString(getString(R.string.pref_key_ip_address), ip_address).commit();
+            SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
+            //prefs.edit().putString(getString(R.string.pref_key_ip_address), ip_address).commit();
         }
         setupActionBar();
     }
@@ -178,8 +181,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName)
-                || NotificationPreferenceFragment.class.getName().equals(fragmentName);
+                || GeneralPreferenceFragment.class.getName().equals(fragmentName);
     }
 
     /**
@@ -224,38 +226,38 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         }
     }
 
-    /**
-     * This fragment shows notification preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class NotificationPreferenceFragment extends PreferenceFragment {
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            PreferenceManager prefMgr = getPreferenceManager();
-            prefMgr.setSharedPreferencesName(getString(R.string.sharedPreferences_name));
-            prefMgr.setSharedPreferencesMode(MODE_PRIVATE);
-
-            addPreferencesFromResource(R.xml.pref_notification);
-            setHasOptionsMenu(true);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-        }
-
-        @Override
-        public boolean onOptionsItemSelected(MenuItem item) {
-            int id = item.getItemId();
-            if (id == android.R.id.home) {
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
-                return true;
-            }
-            return super.onOptionsItemSelected(item);
-        }
-    }
+//    /**
+//     * This fragment shows notification preferences only. It is used when the
+//     * activity is showing a two-pane settings UI.
+//     */
+//    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+//    public static class NotificationPreferenceFragment extends PreferenceFragment {
+//        @Override
+//        public void onCreate(Bundle savedInstanceState) {
+//            super.onCreate(savedInstanceState);
+//            PreferenceManager prefMgr = getPreferenceManager();
+//            prefMgr.setSharedPreferencesName(getString(R.string.sharedPreferences_name));
+//            prefMgr.setSharedPreferencesMode(MODE_PRIVATE);
+//
+//            addPreferencesFromResource(R.xml.pref_notification);
+//            setHasOptionsMenu(true);
+//
+//            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
+//            // to their values. When their values change, their summaries are
+//            // updated to reflect the new value, per the Android Design
+//            // guidelines.
+//            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+//        }
+//
+//        @Override
+//        public boolean onOptionsItemSelected(MenuItem item) {
+//            int id = item.getItemId();
+//            if (id == android.R.id.home) {
+//                startActivity(new Intent(getActivity(), SettingsActivity.class));
+//                return true;
+//            }
+//            return super.onOptionsItemSelected(item);
+//        }
+//    }
 
 }

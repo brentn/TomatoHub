@@ -2,10 +2,8 @@ package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.routers.connection.IConnection;
@@ -18,14 +16,14 @@ import java.util.List;
  * Created by brent on 28/11/15.
  * Abstract router base class
  */
-public abstract class Router implements IConnection.OnLogonCompleteListener {
+public abstract class Router implements IConnection.OnConnectionActionCompleteListener {
 
     public static final int ACTIVITY_LOGON = 1;
     public static final int ACTIVITY_INTIALIZE = 2;
     public static final int ACTIVITY_DEVICES_UPDATED = 3;
     public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
     public static final int ACTIVITY_INTERNET_10MDOWNLOAD = 5;
-    public static final int ACTIVITY_TRANSFER_BYTES = 6;
+    public static final int ACTIVITY_WIFI_SPEED_TEST = 6;
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
 
@@ -35,8 +33,9 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
     protected String mIpAddress;
     protected String mUser;
     protected String mPassword;
+    private float mSpeed=-1;
 
-    private static final String TAG = LinuxRouter.class.getName();
+    private static final String TAG = Router.class.getName();
     protected Context mContext;
     private String mWAN="";
 
@@ -48,7 +47,7 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
                     + " must implement OnRouterActivityCompleteListener");
         }
         mContext = activity;
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(activity);//activity.getSharedPreferences("Application", Context.MODE_PRIVATE);
+        mPrefs = activity.getSharedPreferences(activity.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
 
         mIpAddress = mPrefs.getString(activity.getString(R.string.pref_key_ip_address), "0.0.0.0");
         mUser = mPrefs.getString(activity.getString(R.string.pref_key_username), "root");
@@ -62,7 +61,12 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
     }
 
     public void connect() {
+        Log.d(TAG, "Attempting to connect to: "+mIpAddress+" as: "+mUser);
         if (mConnection != null) mConnection.connect(mIpAddress, mUser, mPassword);
+    }
+
+    public void disconnect() {
+        if (mConnection != null) mConnection.disconnect();
     }
 
     public String[] command(String command) {
@@ -70,12 +74,23 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
         else return new String[0];
     }
 
-    public void transferBytes(int number_of_bytes) {
-        if (mConnection != null) mConnection.transferBytes(number_of_bytes);
+    public void wifiSpeedTest() {
+        if (mConnection != null) mConnection.speedTest();
     }
 
-    public void disconnect() {
-        if (mConnection != null) mConnection.disconnect();
+    public float getSpeedTestResult() {return mSpeed;}
+
+    @Override
+    public void onActionComplete(int action, boolean success) {
+        switch (action) {
+            case IConnection.ACTION_LOGON:
+                mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+                break;
+            case IConnection.ACTION_SPEED_TEST:
+                mSpeed = mConnection.getSpeedTestResult();
+                mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+                break;
+        }
     }
 
     // COMMANDS
@@ -92,7 +107,6 @@ public abstract class Router implements IConnection.OnLogonCompleteListener {
     public abstract int getTotalDevices();
     public abstract int getTotalDevicesOn(String network_id);
     public abstract void internetSpeedTest();
-    public abstract void wifiSpeedTest();
 
     public interface OnRouterActivityCompleteListener {
         void onRouterActivityComplete(int activity_id, int status);

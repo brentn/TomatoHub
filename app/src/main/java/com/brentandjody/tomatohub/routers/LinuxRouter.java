@@ -5,7 +5,6 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
@@ -110,11 +109,15 @@ public class LinuxRouter extends Router {
         List<Wifi> result = new ArrayList<>();
         for (String ssid : mWifiIds) {
             Wifi wifi = new Wifi(ssid);
-            String prefix = grep(cacheNVRam, "ssid="+wifi.SSID())[0].split("_ssid")[0];
-            String mode = grep(cacheNVRam, prefix+"_security_mode=")[0].split("=")[1];
-            if (mode.contains("wpa"))
-                wifi.setPassword(grep(cacheNVRam, prefix+"_wpa_psk=")[0].split("=")[1]);
-            result.add(wifi);
+            try {
+                String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+                String mode = grep(cacheNVRam, prefix + "_security_mode=")[0].split("=")[1];
+                if (mode.contains("wpa"))
+                    wifi.setPassword(grep(cacheNVRam, prefix + "_wpa_psk=")[0].split("=")[1]);
+                result.add(wifi);
+            } catch (Exception ex) {
+                Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
+            }
         }
         return result;
     }
@@ -159,11 +162,6 @@ public class LinuxRouter extends Router {
         new InternetDownloader().execute();
     }
 
-    @Override
-    public void wifiSpeedTest() {
-        new WifiTransfer().execute();
-    }
-
     private String[] grep(String[] lines, String pattern) {
         if (lines==null || lines.length==0) return new String[0];
         List<String> result = new ArrayList<>();
@@ -171,11 +169,6 @@ public class LinuxRouter extends Router {
             if (line.contains(pattern)) result.add(line);
         }
         return result.toArray(new String[result.size()]);
-    }
-
-    @Override
-    public void onLogonComplete(boolean success) {
-        mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
     }
 
     private class Initializer extends AsyncTask<Void, Void, Void> {
@@ -195,7 +188,7 @@ public class LinuxRouter extends Router {
                 success=true;
             } catch(Exception ex) {
                 success=false;
-                Log.e(TAG, "QuickScan:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
+                Log.e(TAG, "Initialize:"+ ex.getMessage()+TextUtils.join("\n", ex.getStackTrace()));
             }
             return null;
         }
@@ -306,20 +299,6 @@ public class LinuxRouter extends Router {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, ACTIVITY_STATUS_SUCCESS);
-        }
-    }
-
-    private class WifiTransfer extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... params) {
-            transferBytes(10000000);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            mListener.onRouterActivityComplete(ACTIVITY_TRANSFER_BYTES, ACTIVITY_STATUS_SUCCESS);
         }
     }
 

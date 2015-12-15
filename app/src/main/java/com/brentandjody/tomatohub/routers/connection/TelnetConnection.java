@@ -11,47 +11,58 @@ import java.util.Arrays;
 
 /**
  * Created by brentn on 13/12/15.
+ * Implement telnet connection to router using sockets
  */
 public class TelnetConnection implements IConnection {
     private static final String TAG = TelnetConnection.class.getName();
-    private OnLogonCompleteListener mListener;
+    private OnConnectionActionCompleteListener mListener;
 
     private String mIpAddress;
     private String mUser;
     private String mPassword;
     private TelnetSession mSession;
+    private float mSpeed=-1;
 
-    public TelnetConnection(OnLogonCompleteListener listener)  {
+    public TelnetConnection(OnConnectionActionCompleteListener listener)  {
         mListener=listener;
     }
 
     @Override
     public void connect(String ipAddress, String username, String password) {
-        mIpAddress=ipAddress;
-        mUser=username;
-        mPassword=password;
-        new BackgroundLogon().execute();
+        try {
+            mIpAddress=ipAddress;
+            mUser=username;
+            mPassword=password;
+            new BackgroundLogon().execute();
+        } catch (Exception ex) {
+            Log.e(TAG, "connect() "+ex.getMessage());
+        }
     }
 
     @Override
     public void disconnect() {
-        if (mSession != null) {
-            mSession.disconnect();
-            mSession=null;
+        try {
+            if (mSession != null) {
+                mSession.disconnect();
+                mSession=null;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "disconnect() "+ex.getMessage());
         }
     }
 
     @Override
-    public void transferBytes(int number_of_bytes) {
+    public void speedTest() {
         try {
-            mSession.sendCommand("scp -t /dev/null");
-            byte[] data = new byte[number_of_bytes];
-            Arrays.fill(data, (byte) 0);
-            mSession.out.write(data);
+        new Transfer10MbToRouter().execute();
         } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage()==null?"Error transferring bytes via telnet":ex.getMessage());
+            Log.e(TAG, "speedTest() "+ex.getMessage());
         }
+
     }
+
+    @Override
+    public float getSpeedTestResult() { return mSpeed; }
 
     @Override
     public String[] execute(String command) {
@@ -73,24 +84,78 @@ public class TelnetConnection implements IConnection {
         protected Void doInBackground(Void... params) {
             try {
                 Log.d(TAG, "Logging in via telnet");
+                resetSession();
                 mSession = new TelnetSession(mIpAddress, mUser, mPassword);
                 success = true;
                 Log.d(TAG, "Telnet logged in");
             } catch (Exception ex) {
                 success=false;
-                if (mSession!=null) {
-                    mSession.disconnect();
-                    mSession=null;
-                }
+                resetSession();
                 Log.e(TAG, ex.getMessage());
             }
             return null;
         }
 
         @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            success=false;
+            resetSession();
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onLogonComplete(success);
+            mListener.onActionComplete(IConnection.ACTION_LOGON, success);
+        }
+
+        private void resetSession() {
+            if (mSession!=null) {
+                mSession.disconnect();
+                mSession=null;
+            }
+        }
+    }
+
+    private class Transfer10MbToRouter extends AsyncTask<Void, Void, Void> {
+        int number_of_bytes = 10000000;
+        long startTime;
+        boolean success=false;
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                throw new NoSuchMethodException("Not working");
+//                startTime = System.currentTimeMillis();
+//                mSession.sendCommand("scp -t /dev/null");
+//                byte[] data = new byte[number_of_bytes];
+//                Arrays.fill(data, (byte) 0);
+//                mSession.out.write(data);
+//                success=true;
+            } catch (Exception ex) {
+                success=false;
+                Log.e(TAG, ex.getMessage()==null?"Error transferring bytes via telnet":ex.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            success=false;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mSpeed = -1;
+            if (success) {
+                long elapsedTime = System.currentTimeMillis()-startTime;
+                float Mbits = number_of_bytes*8/1000000; //convert from bytes to Megabits
+                if (elapsedTime>0)
+                    mSpeed = Mbits/elapsedTime * 1000; // convert from milliseconds to seconds
+            }
+            mListener.onActionComplete(IConnection.ACTION_SPEED_TEST, success);
         }
     }
 
@@ -117,7 +182,7 @@ public class TelnetConnection implements IConnection {
 
         public String readUntil(String pattern) throws Exception {
             char lastChar = pattern.charAt(pattern.length() - 1);
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             char ch = (char) in.read();
             while (true) {
                 sb.append(ch);

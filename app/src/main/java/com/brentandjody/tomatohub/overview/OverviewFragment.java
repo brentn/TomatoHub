@@ -53,6 +53,7 @@ public class OverviewFragment extends Fragment {
     private boolean mDetailViewVisible;
     private String mRouterId;
     private View mView;
+    private FloatingActionButton mSpeedTestFab;
     private LinearLayout mDetailView;
     private TextView mWifiMessage;
     private TextView mStatusMessage;
@@ -97,14 +98,16 @@ public class OverviewFragment extends Fragment {
         mDevicesList = new List[5];
 
         mView= inflater.inflate(R.layout.fragment_overview, container, false);
-        FloatingActionButton fab = (FloatingActionButton) mView.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mSpeedTestFab = (FloatingActionButton) mView.findViewById(R.id.fab);
+        mSpeedTestFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), SpeedTestActivity.class);
                 getActivity().startActivityForResult(intent, 0);
             }
-        });        mDetailView = (LinearLayout) mView.findViewById(R.id.detail_layout);
+        });
+        mSpeedTestFab.setVisibility(View.INVISIBLE);
+        mDetailView = (LinearLayout) mView.findViewById(R.id.detail_layout);
         mWifiMessage = (TextView)mView.findViewById(R.id.wifi_message);
         mStatusMessage = (TextView)mView.findViewById(R.id.status_message);
         mDevicesMessage = new TextView[] {(TextView)mView.findViewById(R.id.devices),
@@ -129,6 +132,7 @@ public class OverviewFragment extends Fragment {
         setStatusMessage("");
         setDevicesMessage("","");
         showRouter(false);
+        showSpeedTestButton(false);
         hideAllNetworkIcons();
         hideDetailView();
     }
@@ -146,6 +150,10 @@ public class OverviewFragment extends Fragment {
         if (visible) {
             addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
         }
+    }
+
+    public void showSpeedTestButton(boolean visible) {
+        mSpeedTestFab.setVisibility(visible?View.VISIBLE:View.INVISIBLE);
     }
 
     public void hideAllNetworkIcons() {

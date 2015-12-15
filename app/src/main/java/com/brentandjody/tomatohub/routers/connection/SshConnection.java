@@ -7,6 +7,8 @@ import com.jcraft.jsch.Session;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -20,53 +22,56 @@ import java.util.List;
  */
 public class SshConnection implements IConnection {
     private static final String TAG = SshConnection.class.getName();
-    private OnLogonCompleteListener mListener;
+    private OnConnectionActionCompleteListener mListener;
+
+    public SshConnection(OnConnectionActionCompleteListener listener) {
+        mListener = listener;
+    }
 
     private String mIpAddress;
     private String mUser;
     private String mPassword;
     private Session mSession;
+    private float mSpeed=-1;
 
-    public SshConnection(OnLogonCompleteListener listener) {
-        mListener = listener;
-    }
 
     @Override
-    public void connect(String ipAddress, String username, String password) {
-        mIpAddress=ipAddress;
-        mUser=username;
-        mPassword=password;
-        new BackgroundLogon().execute();
+    public void connect(String ipAddress, String username, String password){
+        try {
+            mIpAddress = ipAddress;
+            mUser = username;
+            mPassword = password;
+            new BackgroundLogon().execute();
+        } catch (Exception ex) {
+            Log.e(TAG, "connect() "+ex.getMessage());
+        }
     }
 
     @Override
     public void disconnect() {
-        if (mSession!=null) {
-            mSession.disconnect();
-            mSession=null;
+        try {
+            if (mSession!=null) {
+                mSession.disconnect();
+                mSession=null;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "disconnect() "+ex.getMessage());
         }
+
     }
 
     @Override
-    public void transferBytes(int number_of_bytes) {
-        if (mSession != null) {
-            try {
-                Channel channel = mSession.openChannel("exec");
-                ((ChannelExec) channel).setCommand("scp -t /dev/null");
-                OutputStream out = channel.getOutputStream();
-                InputStream in = channel.getInputStream();
-                channel.connect();
-                byte[] data = new byte[number_of_bytes];
-                Arrays.fill(data, (byte) 0);
-                out.write(data);
-                out.flush();
-                out.close();
-                channel.disconnect();
-            } catch (Exception ex) {
-                Log.e(TAG, (ex.getMessage()==null?"SSH transferBytes failed":ex.getMessage()));
-            }
+    public void speedTest() {
+        try {
+            new Transfer10MbToRouter().execute();
+        } catch (Exception ex) {
+            Log.e(TAG, "speedTest() "+ex.getMessage());
         }
+
     }
+
+    @Override
+    public float getSpeedTestResult() {return mSpeed;}
 
     @Override
     public String[] execute(String command) {
@@ -92,7 +97,7 @@ public class SshConnection implements IConnection {
                 Log.e(TAG, (ex.getMessage()==null?"SSH command failed: "+command:ex.getMessage()));
             }
         } else {
-            Log.d(TAG, "null ssh session");
+            Log.d(TAG, "command failed: null ssh session");
         }
         return result;
     }
@@ -105,7 +110,7 @@ public class SshConnection implements IConnection {
             try {
                 JSch ssh = new JSch();
                 Log.d(TAG, "Logging in via SSH");
-                if (mSession!=null) mSession.disconnect();
+                resetSession();
                 java.util.Properties config = new java.util.Properties();
                 config.put("StrictHostKeyChecking", "no");
                 mSession = ssh.getSession(mUser, mIpAddress, 22);
@@ -115,20 +120,84 @@ public class SshConnection implements IConnection {
                 success=true;
             } catch (Exception ex) {
                 success=false;
-                if (mSession!=null) {
-                    mSession.disconnect();
-                    mSession = null;
-                }
+                resetSession();
                 Log.e(TAG, ex.getMessage());
             }
             return null;
         }
 
         @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            success=false;
+            resetSession();
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            mListener.onLogonComplete(success);
+            mListener.onActionComplete(IConnection.ACTION_LOGON, success);
+        }
+
+        private void resetSession() {
+            if (mSession!=null) {
+                mSession.disconnect();
+                mSession = null;
+            }
         }
     }
 
+    private class Transfer10MbToRouter extends AsyncTask<Void, Void, Void> {
+        int number_of_bytes=10000000;
+        boolean success=false;
+        long startTime;
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                startTime = System.currentTimeMillis();
+                Channel channel = mSession.openChannel("exec");
+                try {
+                    ((ChannelExec) channel).setCommand("scp -t /dev/null");
+                    OutputStream out = channel.getOutputStream();
+                    try {
+                        channel.connect();
+                        byte[] data = new byte[number_of_bytes];
+                        Arrays.fill(data, (byte) 0);
+                        out.write(data);
+                    } finally {
+                        out.flush();
+                        out.close();
+                    }
+                } finally {
+                    channel.disconnect();
+                }
+                success=true;
+            } catch (Exception ex) {
+                success=false;
+                Log.e(TAG, (ex.getMessage()==null?"SSH transferBytes failed":ex.getMessage()));
+            }
+            return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            success=false;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            mSpeed = -1;
+            if (success) {
+                long elapsedTime = System.currentTimeMillis()-startTime;
+                float Mbits = number_of_bytes*8/1000000; //convert from bytes to Megabits
+                if (elapsedTime>0)
+                    mSpeed = Mbits/elapsedTime * 1000; // convert from milliseconds to seconds
+            }
+            mListener.onActionComplete(IConnection.ACTION_SPEED_TEST, success);
+        }
+
+    }
 }

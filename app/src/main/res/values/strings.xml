@@ -122,4 +122,6 @@
     <string name="sharedPreferences_name">wrtHub</string>
     <string name="internet_speed">Internet speed</string>
     <string name="wifi_speed">Wifi speed</string>
+    <string name="no_networks_found">Router has no networks defined</string>
+    <string name="test_failed">Test failed</string>
 </resources>
