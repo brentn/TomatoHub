@@ -16,7 +16,7 @@ import java.util.List;
  * Created by brent on 28/11/15.
  * Abstract router base class
  */
-public abstract class Router implements IConnection.OnConnectionActionCompleteListener {
+public abstract class Router implements IRouter, IConnection.OnConnectionActionCompleteListener {
 
     public static final int ACTIVITY_LOGON = 1;
     public static final int ACTIVITY_INTIALIZE = 2;
@@ -27,91 +27,109 @@ public abstract class Router implements IConnection.OnConnectionActionCompleteLi
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
 
+    private static final String TAG = Router.class.getName();
     protected OnRouterActivityCompleteListener mListener;
+    protected Context mContext;
     protected SharedPreferences mPrefs;
-    private IConnection mConnection;
     protected String mIpAddress;
     protected String mUser;
     protected String mPassword;
+    private IConnection mConnection;
     private float mSpeed=-1;
 
-    private static final String TAG = Router.class.getName();
-    protected Context mContext;
-    private String mWAN="";
-
     public Router(Context activity) {
-        if (activity instanceof OnRouterActivityCompleteListener) {
-            mListener = (OnRouterActivityCompleteListener) activity;
-        } else {
-            throw new RuntimeException(activity.toString()
-                    + " must implement OnRouterActivityCompleteListener");
-        }
-        mContext = activity;
-        mPrefs = activity.getSharedPreferences(activity.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
-
-        mIpAddress = mPrefs.getString(activity.getString(R.string.pref_key_ip_address), "0.0.0.0");
-        mUser = mPrefs.getString(activity.getString(R.string.pref_key_username), "root");
-        mPassword = mPrefs.getString(activity.getString(R.string.pref_key_password), "");
-        String protocol = mPrefs.getString(mContext.getString(R.string.pref_key_protocol), "ssh");
-        switch (protocol) {
-            case "ssh": mConnection = new SshConnection(this); break;
-            case "telnet": mConnection = new TelnetConnection(this); break;
-            default: Log.e(TAG, "Unrcognized protocol"); mConnection = null;
+        try {
+            if (activity instanceof OnRouterActivityCompleteListener) {
+                mListener = (OnRouterActivityCompleteListener) activity;
+            } else {
+                throw new RuntimeException(activity.toString()
+                        + " must implement OnRouterActivityCompleteListener");
+            }
+            mContext = activity;
+            mPrefs = activity.getSharedPreferences(activity.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
+            mIpAddress = mPrefs.getString(activity.getString(R.string.pref_key_ip_address), "0.0.0.0");
+            mUser = mPrefs.getString(activity.getString(R.string.pref_key_username), "root");
+            mPassword = mPrefs.getString(activity.getString(R.string.pref_key_password), "");
+            String protocol = mPrefs.getString(mContext.getString(R.string.pref_key_protocol), "ssh");
+            switch (protocol) {
+                case "ssh":
+                    mConnection = new SshConnection(this);
+                    break;
+                case "telnet":
+                    mConnection = new TelnetConnection(this);
+                    break;
+                default:
+                    Log.e(TAG, "Unrcognized protocol");
+                    mConnection = null;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "constructor error: "+ex.getMessage());
         }
     }
 
     public void connect() {
         Log.d(TAG, "Attempting to connect to: "+mIpAddress+" as: "+mUser);
-        if (mConnection != null) mConnection.connect(mIpAddress, mUser, mPassword);
+        try {
+            mConnection.connect(mIpAddress, mUser, mPassword);
+        } catch (Exception ex) {
+            Log.e(TAG, "connect(): "+ex.getMessage());
+        }
     }
 
     public void disconnect() {
-        if (mConnection != null) mConnection.disconnect();
+        Log.d(TAG, "Disconnecting from router");
+        try {
+            if (mConnection != null) mConnection.disconnect();
+        } catch (Exception ex) {
+            Log.e(TAG, "disconnect(): "+ex.getMessage());
+        }
     }
 
     public String[] command(String command) {
-        if (mConnection != null) return mConnection.execute(command);
-        else return new String[0];
+        Log.d(TAG, "executing command: "+command);
+        try {
+            if (mConnection != null) return mConnection.execute(command);
+            else {
+                Log.w(TAG, "Cannot execute command: null connection");
+                return new String[0];
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "command(): "+ex.getMessage());
+            return new String[0];
+        }
     }
 
     public void wifiSpeedTest() {
-        if (mConnection != null) mConnection.speedTest();
+        Log.d(TAG, "performing wifiSpeedTest");
+        try {
+            if (mConnection != null) mConnection.speedTest();
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage());
+        }
     }
 
     public float getSpeedTestResult() {return mSpeed;}
 
     @Override
     public void onActionComplete(int action, boolean success) {
-        switch (action) {
-            case IConnection.ACTION_LOGON:
-                mListener.onRouterActivityComplete(ACTIVITY_LOGON, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
-                break;
-            case IConnection.ACTION_SPEED_TEST:
-                mSpeed = mConnection.getSpeedTestResult();
-                mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
-                break;
+        try {
+            switch (action) {
+                case IConnection.ACTION_LOGON:
+                    mListener.onRouterActivityComplete(ACTIVITY_LOGON, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
+                    break;
+                case IConnection.ACTION_SPEED_TEST:
+                    mSpeed = mConnection.getSpeedTestResult();
+                    mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
+                    break;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "onActionComplete(): "+ex.getMessage());
         }
     }
-
-    // COMMANDS
-    public abstract void initialize();
-    public abstract long getBootTime();
-    public abstract String getExternalIP();
-    public abstract int getMemoryUsage();
-    public abstract int[] getCPUUsage();
-    public abstract void updateDevices();
-    public abstract void updateTrafficStats();
-    public abstract String getRouterId();
-    public abstract List<Wifi> getWifiList();
-    public abstract String[] getNetworkIds();
-    public abstract int getTotalDevices();
-    public abstract int getTotalDevicesOn(String network_id);
-    public abstract void internetSpeedTest();
 
     public interface OnRouterActivityCompleteListener {
         void onRouterActivityComplete(int activity_id, int status);
     }
-
 
 }
 
