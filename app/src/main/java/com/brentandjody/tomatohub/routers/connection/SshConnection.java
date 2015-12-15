@@ -6,16 +6,27 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * Created by brentn on 13/12/15.
@@ -156,7 +167,7 @@ public class SshConnection implements IConnection {
     }
 
     private class Transfer10MbToRouter extends AsyncTask<Void, Void, Void> {
-        int number_of_bytes=10000000;
+        int number_of_bytes=1000000;
         boolean success=false;
         long startTime;
 
@@ -173,23 +184,34 @@ public class SshConnection implements IConnection {
                 Channel channel = mSession.openChannel("exec");
                 try {
                     ((ChannelExec) channel).setCommand("scp -t /dev/null");
-                    OutputStream out = channel.getOutputStream();
-                    try {
-                        channel.connect();
-                        byte[] data = new byte[number_of_bytes];
-                        Arrays.fill(data, (byte) 0);
-                        out.write(data);
-                    } finally {
-                        out.flush();
-                        out.close();
+                    BufferedOutputStream out = new BufferedOutputStream(channel.getOutputStream());
+                    channel.connect();
+                    out.write(("C0644 "+number_of_bytes+" filename\n").getBytes());
+                    out.flush();
+                    byte[] buf=new byte[1024];
+                    RandomInputStream ris = new RandomInputStream();
+                    int remaining_bytes=number_of_bytes;
+                    while(remaining_bytes>0){
+                        int len;
+                        if (remaining_bytes > buf.length) {
+                            len = ris.read(buf, 0, buf.length);
+                            remaining_bytes -= buf.length;
+                        } else {
+                            len = ris.read(buf, 0, (remaining_bytes));
+                            remaining_bytes = 0;
+                        }
+                        out.write(buf, 0, len);
                     }
+                    ris.close();
+                    out.flush();
+                    out.close();
                 } finally {
                     channel.disconnect();
                 }
                 success=true;
             } catch (Exception ex) {
                 success=false;
-                Log.e(TAG, (ex.getMessage()==null?"SSH transferBytes failed":ex.getMessage()));
+                Log.e(TAG, (ex.getMessage()==null?"SSH transferBytes failed":"Transfer10MbToRouter: "+ex.getMessage()+ TextUtils.join("\n", ex.getStackTrace())));
             }
             return null;
         }
@@ -211,5 +233,12 @@ public class SshConnection implements IConnection {
             }
         }
 
+    }
+
+    private class RandomInputStream extends InputStream {
+        private Random rn = new Random(0);
+
+        @Override
+        public int read() { return rn.nextInt(); }
     }
 }

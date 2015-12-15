@@ -365,7 +365,7 @@ public class LinuxRouter extends Router {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                command("wget -qO /dev/null http://cachefly.cachefly.net/10mb.test");
+                command("wget -qO /dev/null http://cachefly.cachefly.net/10mb.test?id="+System.currentTimeMillis());
                 success=true;
             } catch (Exception ex) {
                 success=false;
