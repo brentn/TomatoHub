@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,21 +33,21 @@ import javax.xml.transform.stream.StreamSource;
  * Created by brentn on 13/12/15.
  * Implements SSH connection to router
  */
-public class SshConnection implements IConnection {
+public class SshConnection extends TestableConnection implements TestableConnection.SpeedTestCompleteListener {
     private static final String TAG = SshConnection.class.getName();
     private OnConnectionActionCompleteListener mListener;
-
-    public SshConnection(OnConnectionActionCompleteListener listener) {
-        mListener = listener;
-    }
 
     private String mIpAddress;
     private String mUser;
     private String mPassword;
     private Session mSession;
-    private float mSpeed=-1;
     private List<AsyncTask> mRunningTasks;
 
+    public SshConnection(OnConnectionActionCompleteListener listener) {
+        super();
+        mListener = listener;
+        super.mListener = this;
+    }
 
     @Override
     public void connect(String ipAddress, String username, String password){
@@ -64,6 +65,7 @@ public class SshConnection implements IConnection {
     @Override
     public void disconnect() {
         try {
+            super.disconnect();
             for(AsyncTask task : mRunningTasks) {
                 task.cancel(true);
             }
@@ -78,21 +80,18 @@ public class SshConnection implements IConnection {
     }
 
     @Override
-    public void speedTest() {
-        try {
-            new Transfer10MbToRouter().execute();
-        } catch (Exception ex) {
-            Log.e(TAG, "speedTest() "+ex.getMessage());
-        }
-
+    protected void setUpConnection(int port) {
+        execute("nc -l -p "+port+" | dd of=/dev/null");
     }
 
-    @Override
-    public float getSpeedTestResult() {return mSpeed;}
+    public void onSpeedTestComplete(boolean success) {
+        mListener.onActionComplete(ACTION_SPEED_TEST, success);
+    }
 
     @Override
     public String[] execute(String command) {
         String[] result = new String[0];
+        Log.v(TAG, "Ssh command: "+command);
         if (mSession!=null) {
             try {
                 Channel channel = mSession.openChannel("exec");
@@ -105,8 +104,7 @@ public class SshConnection implements IConnection {
                 }
                 channel.disconnect();
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
-                try {lines.removeAll(Arrays.asList("", null));}
-                catch (Exception ex) {}
+                if (lines.size()>0) { lines.removeAll(Arrays.asList("", null));}
                 result = lines.toArray(new String[lines.size()]);
                 Log.v("SSH result", sb.toString());
             } catch (Exception ex) {
@@ -166,79 +164,4 @@ public class SshConnection implements IConnection {
         }
     }
 
-    private class Transfer10MbToRouter extends AsyncTask<Void, Void, Void> {
-        int number_of_bytes=1000000;
-        boolean success=false;
-        long startTime;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mRunningTasks.add(this);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                startTime = System.currentTimeMillis();
-                Channel channel = mSession.openChannel("exec");
-                try {
-                    ((ChannelExec) channel).setCommand("scp -t /dev/null");
-                    BufferedOutputStream out = new BufferedOutputStream(channel.getOutputStream());
-                    channel.connect();
-                    out.write(("C0644 "+number_of_bytes+" filename\n").getBytes());
-                    out.flush();
-                    byte[] buf=new byte[1024];
-                    RandomInputStream ris = new RandomInputStream();
-                    int remaining_bytes=number_of_bytes;
-                    while(remaining_bytes>0){
-                        int len;
-                        if (remaining_bytes > buf.length) {
-                            len = ris.read(buf, 0, buf.length);
-                            remaining_bytes -= buf.length;
-                        } else {
-                            len = ris.read(buf, 0, (remaining_bytes));
-                            remaining_bytes = 0;
-                        }
-                        out.write(buf, 0, len);
-                    }
-                    ris.close();
-                    out.flush();
-                    out.close();
-                } finally {
-                    channel.disconnect();
-                }
-                success=true;
-            } catch (Exception ex) {
-                success=false;
-                Log.e(TAG, (ex.getMessage()==null?"SSH transferBytes failed":"Transfer10MbToRouter: "+ex.getMessage()+ TextUtils.join("\n", ex.getStackTrace())));
-            }
-            return null;
-        }
-
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            mRunningTasks.remove(this);
-            if (!isCancelled()) {
-                mSpeed = -1;
-                if (success) {
-                    long elapsedTime = System.currentTimeMillis() - startTime;
-                    float Mbits = number_of_bytes * 8 / 1000000; //convert from bytes to Megabits
-                    if (elapsedTime > 0)
-                        mSpeed = Mbits / elapsedTime * 1000; // convert from milliseconds to seconds
-                }
-                mListener.onActionComplete(IConnection.ACTION_SPEED_TEST, success);
-            }
-        }
-
-    }
-
-    private class RandomInputStream extends InputStream {
-        private Random rn = new Random(0);
-
-        @Override
-        public int read() { return rn.nextInt(); }
-    }
 }

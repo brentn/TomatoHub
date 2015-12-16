@@ -11,8 +11,6 @@ public interface IConnection {
     void connect(String ipAddress, String username, String password);
     void disconnect();
     String[] execute(String command);
-    void speedTest();
-    float getSpeedTestResult();
 
     interface OnConnectionActionCompleteListener {
         void onActionComplete(int action, boolean success);

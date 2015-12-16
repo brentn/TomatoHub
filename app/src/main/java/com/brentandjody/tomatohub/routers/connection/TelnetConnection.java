@@ -15,7 +15,7 @@ import java.util.List;
  * Created by brentn on 13/12/15.
  * Implement telnet connection to router using sockets
  */
-public class TelnetConnection implements IConnection {
+public class TelnetConnection extends TestableConnection implements TestableConnection.SpeedTestCompleteListener{
     private static final String TAG = TelnetConnection.class.getName();
     private OnConnectionActionCompleteListener mListener;
 
@@ -23,7 +23,6 @@ public class TelnetConnection implements IConnection {
     private String mUser;
     private String mPassword;
     private TelnetSession mSession;
-    private float mSpeed=-1;
     private List<AsyncTask> mRunningTasks;
 
     public TelnetConnection(OnConnectionActionCompleteListener listener)  {
@@ -59,17 +58,13 @@ public class TelnetConnection implements IConnection {
     }
 
     @Override
-    public void speedTest() {
-        try {
-        new Transfer10MbToRouter().execute();
-        } catch (Exception ex) {
-            Log.e(TAG, "speedTest() "+ex.getMessage());
-        }
-
+    protected void setUpConnection(int port) {
+        execute("nc -l -p "+port+" | dd of=/dev/null");
     }
 
-    @Override
-    public float getSpeedTestResult() { return mSpeed; }
+    public void onSpeedTestComplete(boolean success) {
+        mListener.onActionComplete(ACTION_SPEED_TEST, success);
+    }
 
     @Override
     public String[] execute(String command) {
@@ -121,51 +116,6 @@ public class TelnetConnection implements IConnection {
             if (mSession!=null) {
                 mSession.disconnect();
                 mSession=null;
-            }
-        }
-    }
-
-    private class Transfer10MbToRouter extends AsyncTask<Void, Void, Void> {
-        int number_of_bytes = 10000000;
-        long startTime;
-        boolean success=false;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mRunningTasks.add(this);
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                throw new NoSuchMethodException("Not working");
-//                startTime = System.currentTimeMillis();
-//                mSession.sendCommand("scp -t /dev/null");
-//                byte[] data = new byte[number_of_bytes];
-//                Arrays.fill(data, (byte) 0);
-//                mSession.out.write(data);
-//                success=true;
-            } catch (Exception ex) {
-                success=false;
-                Log.e(TAG, ex.getMessage()==null?"Error transferring bytes via telnet":ex.getMessage());
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            mRunningTasks.remove(this);
-            if (!isCancelled()) {
-                mSpeed = -1;
-                if (success) {
-                    long elapsedTime = System.currentTimeMillis() - startTime;
-                    float Mbits = number_of_bytes * 8 / 1000000; //convert from bytes to Megabits
-                    if (elapsedTime > 0)
-                        mSpeed = Mbits / elapsedTime * 1000; // convert from milliseconds to seconds
-                }
-                mListener.onActionComplete(IConnection.ACTION_SPEED_TEST, success);
             }
         }
     }

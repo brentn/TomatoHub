@@ -9,7 +9,14 @@ import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.routers.connection.IConnection;
 import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
+import com.brentandjody.tomatohub.routers.connection.TestableConnection;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.List;
 
 /**
@@ -34,8 +41,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     protected String mIpAddress;
     protected String mUser;
     protected String mPassword;
-    private IConnection mConnection;
-    private float mSpeed=-1;
+    private TestableConnection mConnection;
 
     public Router(Context activity) {
         try {
@@ -102,13 +108,13 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public void wifiSpeedTest() {
         Log.d(TAG, "performing wifiSpeedTest");
         try {
-            if (mConnection != null) mConnection.speedTest();
+            mConnection.speedTest(mIpAddress, 4321);
         } catch (Exception ex) {
             Log.e(TAG, ex.getMessage());
         }
     }
 
-    public float getSpeedTestResult() {return mSpeed;}
+    public float getSpeedTestResult() {return mConnection.getSpeedTestResult();}
 
     @Override
     public void onActionComplete(int action, boolean success) {
@@ -118,7 +124,6 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
                     mListener.onRouterActivityComplete(ACTIVITY_LOGON, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
                     break;
                 case IConnection.ACTION_SPEED_TEST:
-                    mSpeed = mConnection.getSpeedTestResult();
                     mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
                     break;
             }
