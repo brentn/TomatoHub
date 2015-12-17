@@ -33,7 +33,8 @@ public class Devices {
             DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP,
             DeviceEntry.COLUMN_TX_BYTES,
             DeviceEntry.COLUMN_RX_BYTES,
-            DeviceEntry.COLUMN_LAST_SPEED
+            DeviceEntry.COLUMN_LAST_SPEED,
+            DeviceEntry.COLUMN_BLOCKED
     };
 
     public Devices(Context context){
@@ -115,6 +116,7 @@ public class Devices {
             values.put(DeviceEntry.COLUMN_TX_BYTES, device.txTraffic());
             values.put(DeviceEntry.COLUMN_RX_BYTES, device.rxTraffic());
             values.put(DeviceEntry.COLUMN_LAST_SPEED, device.lastSpeed());
+            values.put(DeviceEntry.COLUMN_BLOCKED, device.isActive());
 
             result = db.insertWithOnConflict(DeviceEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         } finally {
@@ -146,6 +148,7 @@ public class Devices {
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_NETWORK_ID)),
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_IP)),
                 c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_ACTIVE))==1,
+                c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_BLOCKED))==1,
                 c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_TX_BYTES)),
                 c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_RX_BYTES)),
                 c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP)),

@@ -4,6 +4,7 @@ import android.provider.BaseColumns;
 
 /**
  * Created by brent on 28/11/15.
+ * Authoritative definition for database columns
  */
 public final class DBContract {
     public DBContract() {}
@@ -38,6 +39,7 @@ public final class DBContract {
         public static final String COLUMN_RX_BYTES = "rx_bytes";
         public static final String COLUMN_TRAFFIC_TIMESTAMP = "timestamp";
         public static final String COLUMN_LAST_SPEED = "last_speed";
+        public static final String COLUMN_BLOCKED = "blocked";
     }
 
 }

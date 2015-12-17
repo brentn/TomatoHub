@@ -7,9 +7,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.brentandjody.tomatohub.database.DBContract.*;
 /**
  * Created by brent on 28/11/15.
+ * Manages database creation and upgrades
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "tomatohub.db";
 
     private static final String CREATE_DEVICES_TABLE =
@@ -25,7 +26,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP + " INTEGER," +
                     DeviceEntry.COLUMN_TX_BYTES + " INTEGER," +
                     DeviceEntry.COLUMN_RX_BYTES + " INTEGER," +
-                    DeviceEntry.COLUMN_LAST_SPEED + " REAL)";
+                    DeviceEntry.COLUMN_LAST_SPEED + " REAL," +
+                    DeviceEntry.COLUMN_BLOCKED + " INTEGER)";
 
     private static final String CREATE_NETWORKS_TABLE =
             "CREATE TABLE " + NetworkEntry.TABLE_NAME + " (" +
@@ -40,12 +42,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     " UNIQUE ("+NetworkEntry.COLUMN_ROUTER_ID+","+
                     NetworkEntry.COLUMN_NETWORK_ID+") ON CONFLICT REPLACE)";
 
-    private static final String DROP_DEVICES_TABLE = "" +
-            "DROP TABLE IF EXISTS " + DeviceEntry.TABLE_NAME;
-
-    private static final String DROP_NETWORKS_TABLE = "" +
-            "DROP TABLE IF EXISTS " + NetworkEntry.TABLE_NAME;
-
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -54,8 +50,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_NETWORKS_TABLE);
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(DROP_DEVICES_TABLE);
-        db.execSQL(DROP_NETWORKS_TABLE);
-        onCreate(db);
+        switch (oldVersion) {
+            case 1: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_BLOCKED + " INTEGER DEFAULT 0");
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.util.Log;
 
 /**
  * Created by brent on 28/11/15.
+ * Definition for Device object
  */
 public class Device {
 
@@ -19,6 +20,7 @@ public class Device {
     private String _ip;
     private String _last_network;
     private boolean _active;
+    private boolean _blocked;
     private long _tx_bytes =0;
     private long _rx_bytes=0;
     private long _timestamp=-1; //unix time in seconds
@@ -44,12 +46,14 @@ public class Device {
     public void setCurrentIP(String ip) { _ip=ip; }
     public void setCurrentNetwork(String network_name) {_last_network=network_name;}
     public void setActive(boolean active) {_active=active;}
-    public void setDetails(String name, String custom_name, String network, String ip, boolean active, long tx, long rx, long timestamp, float last_speed) {
+    public void setBlocked(boolean active) {_blocked=active;}
+    public void setDetails(String name, String custom_name, String network, String ip, boolean active, boolean blocked, long tx, long rx, long timestamp, float last_speed) {
         _name=name;
         _custom_name=custom_name;
         _last_network=network;
         _ip=ip;
         _active=active;
+        _blocked=blocked;
         _tx_bytes =tx;
         _rx_bytes=rx;
         _timestamp=timestamp;
@@ -92,6 +96,7 @@ public class Device {
     public boolean isActive() {
         return _active;
     }
+    public boolean isBlocked() {return _blocked; }
     public long txTraffic() {
         return _tx_bytes;
     }

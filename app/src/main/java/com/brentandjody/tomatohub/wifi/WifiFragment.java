@@ -87,7 +87,7 @@ public class WifiFragment extends Fragment {
     }
 
     public interface OnSignalListener {
-        void onSignal(int signal);
+        void onSignal(int signal, String parameter);
     }
 
     public class WifiListAdapter extends ArrayAdapter<Wifi> {
@@ -102,7 +102,7 @@ public class WifiFragment extends Fragment {
             mContext = context;
             mWifiList = items;
             mListener = listener;
-            mPrefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), context.MODE_PRIVATE);
+            mPrefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
         }
 
         @Override
@@ -118,7 +118,8 @@ public class WifiFragment extends Fragment {
             background.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
             ((TextView)convertView.findViewById(R.id.ssid)).setText(wifi.SSID());
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(true);
-            convertView.findViewById(R.id.enabled_switch).setVisibility(mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false)?View.VISIBLE:View.GONE);
+            boolean allow_changes = mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false);
+            convertView.findViewById(R.id.enabled_switch).setVisibility(View.GONE); //hide this permanently, until implemented
             convertView.findViewById(R.id.share_button).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

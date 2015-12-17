@@ -59,7 +59,6 @@ public class TelnetConnection extends TestableConnection implements TestableConn
 
     @Override
     protected void setUpConnection(int port) {
-        execute("nc -l -p "+port+" | dd of=/dev/null");
     }
 
     public void onSpeedTestComplete(boolean success) {

@@ -5,16 +5,20 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +33,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.SpeedTestActivity;
@@ -44,6 +49,8 @@ public class OverviewFragment extends Fragment {
 
     public static final int SIGNAL_LOADED = 1;
     public static final int SIGNAL_REFRESH = 2;
+    public static final int SIGNAL_BLOCK = 3;
+    public static final int SIGNAL_UNBLOCK = 4;
     
     private static final String TAG = OverviewFragment.class.getName();
     private OnSignalListener mListener;
@@ -62,6 +69,7 @@ public class OverviewFragment extends Fragment {
     private View[] mNetworkLines;
     private List<TextView> mNetworkLabels;
     private List<Device>[] mDevicesList;
+    private String myMacAddress;
 
     public OverviewFragment() {
         // Required empty public constructor
@@ -123,7 +131,7 @@ public class OverviewFragment extends Fragment {
                 mView.findViewById(R.id.lan_3_l),
                 mView.findViewById(R.id.lan_4_l)};
         initialize();
-        mListener.onSignal(SIGNAL_LOADED);
+        mListener.onSignal(SIGNAL_LOADED, null);
         return mView;
     }
 
@@ -137,6 +145,7 @@ public class OverviewFragment extends Fragment {
         hideDetailView();
     }
     public void setRouterId(String router_id) {mRouterId = router_id;}
+    public void setMyMac(String mac) {myMacAddress = mac.toUpperCase();}
     public void setDatabases(Networks networks, Devices devices) {mDevices = devices; mNetworks = networks;}
     public void setWifiMessage(String message) { mWifiMessage.setText(message);}
     public void setStatusMessage(String message) {mStatusMessage.setText(message);}
@@ -211,7 +220,7 @@ public class OverviewFragment extends Fragment {
                 mView.findViewById(R.id.internet).setOnClickListener(null);
                 initialize();
                 setStatusMessage(getString(R.string.rescannng_network));
-                mListener.onSignal(SIGNAL_REFRESH);
+                mListener.onSignal(SIGNAL_REFRESH, null);
             }
         });
     }
@@ -221,7 +230,7 @@ public class OverviewFragment extends Fragment {
         mView.findViewById(R.id.router).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                 View routerView =  getLayoutInflater(null).inflate(R.layout.router_details, null);
+                 View routerView =  getLayoutInflater(null).inflate(R.layout.dialog_router_details, null);
                 ((TextView)routerView.findViewById(R.id.router_type)).setText(router_type);
                 ((TextView)routerView.findViewById(R.id.external_ip)).setText(external_ip);
                 ((TextView)routerView.findViewById(R.id.uptime)).setText(uptimeSince(bootTime));
@@ -263,32 +272,79 @@ public class OverviewFragment extends Fragment {
                         alert.show();
                     }
                 });
-                DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[index]);
-                ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
-                detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                        final EditText editText = new EditText(getActivity());
-                        final Device device = mDevicesList[index].get(position);
-                        editText.setHint(device.originalName());
-                        editText.setText(device.customName());
-                        editText.setSingleLine();
-                        alert.setTitle(getString(R.string.modify_device_name));
-                        alert.setView(editText);
-                        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                            updateDeviceName(device, editText.getText().toString(), index);
-                            }
-                        });
-                        alert.show();
-                    }
-                });
-                detailList.setAdapter(adapter);
+                // setupDeviceClickListeners
+                setupDeviceClickListeners(index);
                 showDetailView(network.name());
             }
         });
+    }
+
+    private void setupDeviceClickListeners(final int device_list_index) {
+        DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[device_list_index]);
+        ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
+        detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Context context = getActivity();
+                final Device device = mDevicesList[device_list_index].get(position);
+                View deviceView =  getLayoutInflater(null).inflate(R.layout.dialog_device_details, null);
+                final EditText deviceName = (EditText) deviceView.findViewById(R.id.device_name);
+                deviceName.setHint(device.originalName());
+                deviceName.setText(device.customName());
+                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                alert.setTitle(getActivity().getString(R.string.manage_device));
+                alert.setView(deviceView);
+                SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name),Context.MODE_PRIVATE);
+                if (prefs.getBoolean(context.getString(R.string.pref_key_allow_changes), false)) {
+//                    alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
+//                        }
+//                    });
+                    if (device.isBlocked()) {
+                        alert.setNegativeButton(context.getString(R.string.unblock), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                device.setBlocked(false);
+                                mListener.onSignal(SIGNAL_BLOCK, device.mac());
+                                ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+                                Toast.makeText(getActivity(), getActivity().getString(R.string.unblocking)+" "+ device.mac(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+
+                    } else if (! device.mac().toUpperCase().equals(myMacAddress)) { //prevent blocking own device
+                        alert.setNegativeButton(context.getString(R.string.block), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Context context = getActivity();
+                                new AlertDialog.Builder(context)
+                                        .setMessage(context.getString(R.string.block_confirm))
+                                        .setCancelable(false)
+                                        .setPositiveButton(context.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                device.setBlocked(true);
+                                                mListener.onSignal(SIGNAL_BLOCK, device.mac());
+                                                ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+                                                Toast.makeText(getActivity(), getActivity().getString(R.string.blocking)+" " + device.mac(), Toast.LENGTH_LONG).show();
+                                            }
+                                        })
+                                        .setNegativeButton(context.getString(R.string.no), null)
+                                        .show();
+                            }
+                        });
+                    }
+                }
+                alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        updateDeviceName(device, deviceName.getText().toString(), device_list_index);
+                    }
+                });
+                alert.show();
+            }
+        });
+        detailList.setAdapter(adapter);
     }
 
 
@@ -330,7 +386,7 @@ public class OverviewFragment extends Fragment {
     }
 
     public interface OnSignalListener {
-        void onSignal(int signal);
+        void onSignal(int signal, String parameter);
     }
 
     private String uptimeSince(long bootTime) {

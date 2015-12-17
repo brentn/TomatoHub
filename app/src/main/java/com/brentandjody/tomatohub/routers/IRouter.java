@@ -6,6 +6,7 @@ import java.util.List;
 
 /**
  * Created by brentn on 15/12/15.
+ * Interface for all router types
  */
 interface IRouter {
 
@@ -25,6 +26,7 @@ interface IRouter {
     void updateTrafficStats();
     String getRouterId();
     String getRouterType();
+    String getMacForIp(String ip);
     List<Wifi> getWifiList();
     String[] getNetworkIds();
     int getTotalDevices();

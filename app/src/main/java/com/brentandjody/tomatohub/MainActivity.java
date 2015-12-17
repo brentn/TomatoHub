@@ -1,5 +1,6 @@
 package com.brentandjody.tomatohub;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +14,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,15 +73,33 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSignal(int signal) {
+    public void onSignal(int signal, String parameter) {
         switch (signal) {
             case OverviewFragment.SIGNAL_LOADED: {
-                if (mOverviewFragment!=null)
+                if (mOverviewFragment!=null) {
                     mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
+                }
                 break;
             }
             case OverviewFragment.SIGNAL_REFRESH: {
                 refresh();
+                break;
+            }
+            case OverviewFragment.SIGNAL_BLOCK: {
+                if (parameter!=null && parameter.length()==17) {
+                    mRouter.command("if ! lsmod|grep mac; then insmod xt_mac; insmod ipt_mac; fi");
+                    mRouter.command("iptables -I FORWARD -m mac --mac-source "+parameter + " -j DROP");
+                    mRouter.command("iptables -I INPUT   -m mac --mac-source "+parameter + " -j DROP");
+                    mRouter.updateDevices();
+                }
+                break;
+            }
+            case OverviewFragment.SIGNAL_UNBLOCK: {
+                if (parameter!=null && parameter.length()==17) {
+                    mRouter.command("iptables -D FORWARD -m mac --mac-source " + parameter + " -j DROP");
+                    mRouter.command("iptables -D INPUT   -m mac --mac-source " + parameter + " -j DROP");
+                    mRouter.updateDevices();
+                }
                 break;
             }
         }
@@ -118,6 +138,9 @@ public class MainActivity extends AppCompatActivity
             case Router.ACTIVITY_INTIALIZE: {
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
+                        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                        String myIp = intToIp(wifi.getConnectionInfo().getIpAddress());
+                        mOverviewFragment.setMyMac(mRouter.getMacForIp(myIp));
                         mOverviewFragment.setRouterId(mRouter.getRouterId());
                         if (mRouter.getNetworkIds().length < 1) {
                             mOverviewFragment.setStatusMessage(getString(R.string.no_networks_found));
@@ -127,8 +150,8 @@ public class MainActivity extends AppCompatActivity
                             mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
                         }
                         String wifiMessage = "";
-                        for (Wifi wifi : mRouter.getWifiList()) {
-                            wifiMessage += "'"+wifi.SSID()+"'"+getString(R.string.is_on) + ", ";
+                        for (Wifi w : mRouter.getWifiList()) {
+                            wifiMessage += "'"+w.SSID()+"'"+getString(R.string.is_on) + ", ";
                         }
                         wifiMessage = wifiMessage.replaceAll(", $", "");
                         mOverviewFragment.setWifiMessage(wifiMessage);

@@ -125,4 +125,14 @@
     <string name="no_networks_found">Router has no networks defined</string>
     <string name="test_failed">Test failed</string>
     <string name="unknown_linux_router">unknown linux router</string>
+    <string name="manage_device">Manage Device</string>
+    <string name="rename">rename:</string>
+    <string name="block_confirm">BLOCK this device from your network?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="block">Block</string>
+    <string name="unblock">Unblock</string>
+    <string name="blocking">"blocking "</string>
+    <string name="unblocking">"unblocking "</string>
+    <string name="prioritize">Prioritize</string>
 </resources>

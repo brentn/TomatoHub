@@ -80,9 +80,7 @@ public class SshConnection extends TestableConnection implements TestableConnect
     }
 
     @Override
-    protected void setUpConnection(int port) {
-        execute("nc -l -p "+port+" | dd of=/dev/null");
-    }
+    protected void setUpConnection(int port) {}
 
     public void onSpeedTestComplete(boolean success) {
         mListener.onActionComplete(ACTION_SPEED_TEST, success);
@@ -104,7 +102,8 @@ public class SshConnection extends TestableConnection implements TestableConnect
                 }
                 channel.disconnect();
                 List<String> lines = Arrays.asList(sb.toString().split("\n"));
-                if (lines.size()>0) { lines.removeAll(Arrays.asList("", null));}
+                try { lines.removeAll(Arrays.asList("", null));}
+                catch (Exception ex) {}
                 result = lines.toArray(new String[lines.size()]);
                 Log.v("SSH result", sb.toString());
             } catch (Exception ex) {

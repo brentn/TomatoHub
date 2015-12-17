@@ -18,8 +18,8 @@ public abstract class TestableConnection implements IConnection {
     private static final String TAG = TestableConnection.class.getName();
 
     protected SpeedTestCompleteListener mListener;
-    private List<AsyncTask> mRunningTests;
     private float mSpeed;
+    private List<AsyncTask> mRunningTests;
     private String mIPAddress;
     private int mPort;
 
@@ -27,15 +27,13 @@ public abstract class TestableConnection implements IConnection {
         mRunningTests = new ArrayList<>();
     }
 
+    protected abstract void setUpConnection(int port);
     public void speedTest(String to_ip, int to_port) {
         mIPAddress=to_ip;
         mPort = to_port;
         new SpeedTester().execute();
     }
-
-    protected abstract void setUpConnection(int port);
     public float getSpeedTestResult() {return mSpeed;}
-
     @Override
     public void disconnect() {
         for(AsyncTask task : mRunningTests)

@@ -39,6 +39,7 @@ public class LinuxRouter extends Router {
     private String[] cacheBrctl;
     private String[] cacheWf;
     private String[] cacheMotd;
+    private String[] cacheIptables;
     private List<AsyncTask> mRunningTasks;
 
     public LinuxRouter(Context context, Devices devices, Networks networks) {
@@ -65,6 +66,7 @@ public class LinuxRouter extends Router {
         cacheBrctl=null;
         cacheWf=null;
         cacheMotd=null;
+        cacheIptables=null;
         new Initializer().execute();
     }
 
@@ -95,6 +97,12 @@ public class LinuxRouter extends Router {
         if (grep(cacheMotd, "DD-WRT").length > 0) return RouterType.name(RouterType.DDWRT);
         if (grep(cacheMotd, "Tomato").length > 0) return RouterType.name(RouterType.TOMATO);
         else return mContext.getString(R.string.unknown_linux_router);
+    }
+
+    @Override
+    public String getMacForIp(String ip) {
+        try { return grep(cacheArp, "("+ip+")")[0].split(" ")[3]; }
+        catch (Exception ex) {return null;}
     }
 
     @Override
@@ -207,6 +215,7 @@ public class LinuxRouter extends Router {
     }
 
     private String[] grep(String[] lines, String pattern) {
+        // will not return null
         if (lines==null || lines.length==0) return new String[0];
         try {
             List<String> result = new ArrayList<>();
@@ -238,6 +247,7 @@ public class LinuxRouter extends Router {
                 cacheBrctl = command("brctl show");
                 cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
                 cacheMotd = command("cat /etc/motd");
+                cacheIptables = command("iptables -t filter -nL");
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
                 catch (Exception ex){mBootTime = -1;}
                 refreshLoadAverages();
@@ -274,6 +284,7 @@ public class LinuxRouter extends Router {
         protected Void doInBackground(Void... params) {
             try {
                 mDevicesDB.inactivateAll();
+                cacheIptables = command("iptables -t filter -nL");
                 for (String network : getNetworkIds()) {
                     for (String line : grep(cacheArp, network)) {
                         String[] fields = line.split(" ");
@@ -286,6 +297,7 @@ public class LinuxRouter extends Router {
                             device.setCurrentNetwork(network);
                             device.setCurrentIP(ip);
                             device.setActive(true);
+                            device.setBlocked(grep(cacheIptables, mac).length > 0);
                             mDevicesDB.insertOrUpdate(device);
                         }
                     }
