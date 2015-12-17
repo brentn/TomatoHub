@@ -92,6 +92,12 @@ public class LinuxRouter extends Router {
     }
 
     @Override
+    public String getUrlToTest() { return "http://"+mIpAddress+"?id="+System.currentTimeMillis(); }
+
+    @Override
+    public void cleanUpAfterTest() {}
+
+    @Override
     public String getRouterType() {
         if (grep(cacheMotd, "DD-WRT").length > 0) return RouterType.name(RouterType.DDWRT);
         if (grep(cacheMotd, "Tomato").length > 0) return RouterType.name(RouterType.TOMATO);
@@ -211,12 +217,6 @@ public class LinuxRouter extends Router {
     @Override
     public void internetSpeedTest() {
         new InternetDownloader().execute();
-    }
-
-    @Override
-    public String getUrlToTest() {
-        command("dd if=/dev/zero of=/www/user/test.txt bs=1048576 count=10");
-        return "http://"+mIpAddress+"/user/test.txt?id="+System.currentTimeMillis();
     }
 
     private String[] grep(String[] lines, String pattern) {

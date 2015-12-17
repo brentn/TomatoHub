@@ -93,8 +93,10 @@ public abstract class TestableConnection implements IConnection {
                         while ((bytes = is.read(buffer)) >= 0) {
                             size += bytes;
                         }
-                        float seconds = (float) (System.currentTimeMillis() - startTime) / 1000;
+                        long endTime = System.currentTimeMillis();
+                        float seconds = (float) (endTime - startTime) / 1000;
                         float Mbits = (float) size * 8 / 1000000;
+                        Log.v(TAG, "bytes: "+size+"=Mbits: "+Mbits+" / milliseconds: "+(endTime-startTime) + "=Seconds: "+seconds);
                         speed = Mbits / seconds;
                         success=true;
                     } finally {

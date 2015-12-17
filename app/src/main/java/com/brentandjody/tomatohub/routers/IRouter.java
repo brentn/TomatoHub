@@ -14,6 +14,7 @@ interface IRouter {
     void disconnect();
     String[] command(String command);
     String getUrlToTest();
+    void cleanUpAfterTest();
     void wifiSpeedTest(String url_on_router);
     float getSpeedTestResult();
 

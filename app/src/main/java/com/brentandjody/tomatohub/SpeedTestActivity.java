@@ -37,7 +37,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         mWifiSpeed.setText("");
         mWifiTesting.setVisibility(View.VISIBLE);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
         int router_type = RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
         switch (router_type) {
             case RouterType.TOMATO: mRouter = new TomatoRouter(this, null, null); break;
@@ -62,14 +62,23 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
     }
 
     private void runDownloadTest() {
+        mInternetTesting.setVisibility(View.VISIBLE);
         mStartTime = System.currentTimeMillis();
         if (mRouter!=null)
             mRouter.internetSpeedTest();
     }
 
     private void runWifiTest() {
-        if (mRouter!=null)
-            mRouter.wifiSpeedTest(mRouter.getUrlToTest());
+        if (mRouter!=null) {
+            String url = mRouter.getUrlToTest();
+            if (url.isEmpty()) {
+                mWifiTesting.setVisibility(View.INVISIBLE);
+                mWifiSpeed.setText(R.string.low_memory);
+                runDownloadTest();
+            } else {
+                mRouter.wifiSpeedTest(url);
+            }
+        }
     }
 
     @Override
@@ -89,8 +98,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                 } else {
                     mWifiSpeed.setText(R.string.test_failed);
                 }
-                mRouter.command("rm /www/user/test.txt");
-                mInternetTesting.setVisibility(View.VISIBLE);
+                mRouter.command("rm /www/user/speedtest.txt");
                 runDownloadTest();
                 break;
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
