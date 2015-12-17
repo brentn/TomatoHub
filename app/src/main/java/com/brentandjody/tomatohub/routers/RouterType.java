@@ -4,10 +4,11 @@ package com.brentandjody.tomatohub.routers;
  * Created by brentn on 12/12/15.
  */
 public class RouterType {
-    public static final int COUNT=2;
+    public static final int COUNT=3;
 
     public static final int TOMATO=0;
     public static final int DDWRT=1;
+    public static final int FAKE=2;
 
     public static String defaultValue="0";
 
@@ -15,6 +16,7 @@ public class RouterType {
         switch (type) {
             case TOMATO:return "Tomato";
             case DDWRT:return "DD-Wrt";
+            case FAKE:return "Dummy Router";
             default: return "<unknown>";
         }
     }

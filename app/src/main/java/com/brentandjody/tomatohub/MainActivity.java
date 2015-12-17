@@ -1,20 +1,17 @@
 package com.brentandjody.tomatohub;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,8 +22,8 @@ import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.DDWrtRouter;
+import com.brentandjody.tomatohub.routers.FakeRouter;
 import com.brentandjody.tomatohub.routers.Router;
-import com.brentandjody.tomatohub.routers.LinuxRouter;
 import com.brentandjody.tomatohub.routers.RouterType;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
 import com.brentandjody.tomatohub.wifi.WifiFragment;
@@ -68,7 +65,8 @@ public class MainActivity extends AppCompatActivity
         switch (getRouterType()) {
             case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
             case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
-            default: mRouter = new LinuxRouter(this, mDevices, mNetworks);
+            case RouterType.FAKE: mRouter = new FakeRouter(this); break;
+            default: mRouter = new FakeRouter(this);
         }
     }
 
@@ -108,7 +106,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRouterActivityComplete(int activity_id, int status) {
         switch (activity_id) {
-            case Router.ACTIVITY_LOGON: {
+            case Router.ACTIVITY_CONNECTED: {
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
                         mOverviewFragment.showRouter(true);

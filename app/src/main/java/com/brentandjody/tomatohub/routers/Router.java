@@ -5,19 +5,10 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.R;
-import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.routers.connection.IConnection;
 import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
 import com.brentandjody.tomatohub.routers.connection.TestableConnection;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.List;
 
 /**
  * Created by brent on 28/11/15.
@@ -25,7 +16,7 @@ import java.util.List;
  */
 public abstract class Router implements IRouter, IConnection.OnConnectionActionCompleteListener {
 
-    public static final int ACTIVITY_LOGON = 1;
+    public static final int ACTIVITY_CONNECTED = 1;
     public static final int ACTIVITY_INTIALIZE = 2;
     public static final int ACTIVITY_DEVICES_UPDATED = 3;
     public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
@@ -121,7 +112,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         try {
             switch (action) {
                 case IConnection.ACTION_LOGON:
-                    mListener.onRouterActivityComplete(ACTIVITY_LOGON, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
+                    mListener.onRouterActivityComplete(ACTIVITY_CONNECTED, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
                     break;
                 case IConnection.ACTION_SPEED_TEST:
                     mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);

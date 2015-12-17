@@ -1,7 +1,6 @@
 package com.brentandjody.tomatohub;
 
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,7 +8,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.brentandjody.tomatohub.routers.DDWrtRouter;
-import com.brentandjody.tomatohub.routers.LinuxRouter;
+import com.brentandjody.tomatohub.routers.FakeRouter;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.RouterType;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
@@ -42,7 +41,8 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         switch (router_type) {
             case RouterType.TOMATO: mRouter = new TomatoRouter(this, null, null); break;
             case RouterType.DDWRT: mRouter = new DDWrtRouter(this, null, null); break;
-            default: mRouter = new LinuxRouter(this, null, null);
+            case RouterType.FAKE: mRouter = new FakeRouter(this); break;
+            default: mRouter = new FakeRouter(this);
         }
     }
 
@@ -87,7 +87,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         float fileSize;
         float Mbps;
         switch(activity_id) {
-            case Router.ACTIVITY_LOGON:
+            case Router.ACTIVITY_CONNECTED:
                 runWifiTest();
                 break;
             case Router.ACTIVITY_WIFI_SPEED_TEST:

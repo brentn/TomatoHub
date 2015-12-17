@@ -139,6 +139,20 @@ public class Devices {
         }
     }
 
+    public void removeFakeDevices(String fakeRouterId) {
+        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        try {
+            Cursor c = db.rawQuery("DELETE FROM "+DeviceEntry.TABLE_NAME + " WHERE "+DeviceEntry.COLUMN_ROUTER_ID + "=?",
+                    new String[] {fakeRouterId});
+            c.moveToFirst();
+            c.close();
+        } catch (Exception ex) {
+
+        } finally {
+            db.close();
+        }
+    }
+
     private Device getDeviceFromCursor(String router_id, Cursor c) {
         String mac = c.getString(c.getColumnIndex(DeviceEntry.COLUMN_MAC));
         Device device = new Device(router_id, mac, "unknown");
