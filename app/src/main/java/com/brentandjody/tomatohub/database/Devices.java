@@ -116,7 +116,7 @@ public class Devices {
             values.put(DeviceEntry.COLUMN_TX_BYTES, device.txTraffic());
             values.put(DeviceEntry.COLUMN_RX_BYTES, device.rxTraffic());
             values.put(DeviceEntry.COLUMN_LAST_SPEED, device.lastSpeed());
-            values.put(DeviceEntry.COLUMN_BLOCKED, device.isActive());
+            values.put(DeviceEntry.COLUMN_BLOCKED, device.isBlocked());
 
             result = db.insertWithOnConflict(DeviceEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         } finally {

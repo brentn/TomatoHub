@@ -195,7 +195,6 @@ public class MainActivity extends AppCompatActivity
                     for (int i = 0; i < network_ids.length; i++) {
                         mOverviewFragment.setupNetworkClickListener(i);
                     }
-                    mOverviewFragment.setupRefreshListener();
                     if (status == Router.ACTIVITY_STATUS_SUCCESS) {
                         if (network_ids.length > 1) {
                             float total_traffic = 0;
@@ -249,11 +248,13 @@ public class MainActivity extends AppCompatActivity
 
     private void refresh() {
         if (mOverviewFragment!=null) {
+            mOverviewFragment.setWifiMessage("");
+            mOverviewFragment.setDevicesMessage("","");
             mOverviewFragment.hideAllNetworkIcons();
             mOverviewFragment.showRouter(true);
-            mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
+            mOverviewFragment.setStatusMessage(getString(R.string.rescannng_network));
         }
-        mRouter.updateDevices();
+        mRouter.initialize();
     }
 
     @Override
@@ -273,6 +274,9 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivityForResult(new Intent(MainActivity.this, SettingsActivity.class), SETTINGS_REQUEST_CODE);
+            return true;
+        } else if (id == R.id.action_refresh) {
+            refresh();
             return true;
         }
 

@@ -200,151 +200,156 @@ public class OverviewFragment extends Fragment {
     }
 
     private void addNetworkLabel(View icon, String label) {
-        TextView tvLabel = new TextView(getActivity());
-        mNetworkLabels.add(tvLabel);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.ALIGN_TOP, icon.getId());
-        params.addRule(RelativeLayout.RIGHT_OF, icon.getId());
-        tvLabel.setLayoutParams(params);
-        tvLabel.setTextSize(14);
-        tvLabel.setTextColor(Color.parseColor("White"));
-        tvLabel.setText(label);
-        ((ViewGroup)mView).addView(tvLabel, 1); //add before detail_layout
-    }
-
-    public void setupRefreshListener() {
-        mView.findViewById(R.id.internet).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mView.findViewById(R.id.internet).setOnClickListener(null);
-                initialize();
-                setStatusMessage(getString(R.string.rescannng_network));
-                mListener.onSignal(SIGNAL_REFRESH, null);
-            }
-        });
+        try {
+            TextView tvLabel = new TextView(getActivity());
+            mNetworkLabels.add(tvLabel);
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.addRule(RelativeLayout.ALIGN_TOP, icon.getId());
+            params.addRule(RelativeLayout.RIGHT_OF, icon.getId());
+            tvLabel.setLayoutParams(params);
+            tvLabel.setTextSize(14);
+            tvLabel.setTextColor(Color.parseColor("White"));
+            tvLabel.setText(label);
+            ((ViewGroup) mView).addView(tvLabel, 1); //add before detail_layout
+        } catch (Exception ex) {
+            Log.e(TAG, "addNetworkLabel: "+ex.getMessage());
+        }
     }
 
     public void setupRouterClickListener(final String router_type, final String external_ip, final long bootTime, final int memory, final int[] cpu) {
-
-        mView.findViewById(R.id.router).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                 View routerView =  getLayoutInflater(null).inflate(R.layout.dialog_router_details, null);
-                ((TextView)routerView.findViewById(R.id.router_type)).setText(router_type);
-                ((TextView)routerView.findViewById(R.id.external_ip)).setText(external_ip);
-                ((TextView)routerView.findViewById(R.id.uptime)).setText(uptimeSince(bootTime));
-                ((ProgressBar)routerView.findViewById(R.id.memory_usage)).setProgress(memory);
-                ((ProgressBar)routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
-                ((ProgressBar)routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
-                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                alert.setTitle(getString(R.string.router_details));
-                alert.setView(routerView);
-                alert.show();
-            }
-        });
+        try {
+            mView.findViewById(R.id.router).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    View routerView = getLayoutInflater(null).inflate(R.layout.dialog_router_details, null);
+                    ((TextView) routerView.findViewById(R.id.router_type)).setText(router_type);
+                    ((TextView) routerView.findViewById(R.id.external_ip)).setText(external_ip);
+                    ((TextView) routerView.findViewById(R.id.uptime)).setText(uptimeSince(bootTime));
+                    ((ProgressBar) routerView.findViewById(R.id.memory_usage)).setProgress(memory);
+                    ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
+                    ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
+                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                    alert.setTitle(getString(R.string.router_details));
+                    alert.setView(routerView);
+                    alert.show();
+                }
+            });
+        } catch (Exception ex) {
+            Log.e(TAG, "setupRouterClickListener: "+ex.getMessage());
+        }
     }
 
     public void setupNetworkClickListener(final int index) {
-        final View icon = mNetworkIcons[index];
-        final String network_id = (String)icon.getTag();
-        mDevicesList[index] = mDevices.getDevicesOnNetwork(mRouterId, network_id);
-        icon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final Network network = mNetworks.get(mRouterId, network_id);
-                mDetailView.findViewById(R.id.network_name).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                        final EditText editText = new EditText(getActivity());
-                        editText.setHint(network.networkId());
-                        editText.setText(network.customName());
-                        editText.setSingleLine();
-                        alert.setTitle(getString(R.string.modify_network_name));
-                        alert.setView(editText);
-                        alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                            updateNetworkName(network, editText.getText().toString());
-                            }
-                        });
-                        alert.show();
-                    }
-                });
-                // setupDeviceClickListeners
-                setupDeviceClickListeners(index);
-                showDetailView(network.name());
-            }
-        });
+        try {
+            final View icon = mNetworkIcons[index];
+            final String network_id = (String)icon.getTag();
+            mDevicesList[index] = mDevices.getDevicesOnNetwork(mRouterId, network_id);
+            icon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final Network network = mNetworks.get(mRouterId, network_id);
+                    mDetailView.findViewById(R.id.network_name).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                            final EditText editText = new EditText(getActivity());
+                            editText.setHint(network.networkId());
+                            editText.setText(network.customName());
+                            editText.setSingleLine();
+                            alert.setTitle(getString(R.string.modify_network_name));
+                            alert.setView(editText);
+                            alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    updateNetworkName(network, editText.getText().toString());
+                                }
+                            });
+                            alert.show();
+                        }
+                    });
+                    // setupDeviceClickListeners
+                    setupDeviceClickListeners(index);
+                    showDetailView(network.name());
+                }
+            });
+        } catch (Exception ex) {
+            Log.e(TAG, "setupNetworkClickListener: "+ex.getMessage());
+        }
     }
 
     private void setupDeviceClickListeners(final int device_list_index) {
-        DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[device_list_index]);
-        ListView detailList = (ListView)mDetailView.findViewById(R.id.network_device_list);
-        detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Context context = getActivity();
-                final Device device = mDevicesList[device_list_index].get(position);
-                View deviceView =  getLayoutInflater(null).inflate(R.layout.dialog_device_details, null);
-                final EditText deviceName = (EditText) deviceView.findViewById(R.id.device_name);
-                deviceName.setHint(device.originalName());
-                deviceName.setText(device.customName());
-                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                alert.setTitle(getActivity().getString(R.string.manage_device));
-                alert.setView(deviceView);
-                SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name),Context.MODE_PRIVATE);
-                if (prefs.getBoolean(context.getString(R.string.pref_key_allow_changes), false)) {
+        try {
+            DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[device_list_index]);
+            ListView detailList = (ListView) mDetailView.findViewById(R.id.network_device_list);
+            detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Context context = getActivity();
+                    final Device device = mDevicesList[device_list_index].get(position);
+                    View deviceView = getLayoutInflater(null).inflate(R.layout.dialog_device_details, null);
+                    final EditText deviceName = (EditText) deviceView.findViewById(R.id.device_name);
+                    deviceName.setHint(device.originalName());
+                    deviceName.setText(device.customName());
+                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                    alert.setTitle(getActivity().getString(R.string.manage_device));
+                    alert.setView(deviceView);
+                    SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
+                    if (prefs.getBoolean(context.getString(R.string.pref_key_allow_changes), false)) {
 //                    alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
 //                        @Override
 //                        public void onClick(DialogInterface dialog, int which) {
 //                            Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
 //                        }
 //                    });
-                    if (device.isBlocked()) {
-                        alert.setNegativeButton(context.getString(R.string.unblock), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                device.setBlocked(false);
-                                mListener.onSignal(SIGNAL_BLOCK, device.mac());
-                                ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
-                                Toast.makeText(getActivity(), getActivity().getString(R.string.unblocking)+" "+ device.mac(), Toast.LENGTH_LONG).show();
-                            }
-                        });
+                        if (device.isBlocked()) {
+                            alert.setNegativeButton(context.getString(R.string.unblock), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    device.setBlocked(false);
+                                    mDevices.insertOrUpdate(device);
+                                    ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+                                    mListener.onSignal(SIGNAL_UNBLOCK, device.mac());
+                                    Toast.makeText(getActivity(), getActivity().getString(R.string.unblocking) + " " + device.mac(), Toast.LENGTH_LONG).show();
+                                }
+                            });
 
-                    } else if (! device.mac().toUpperCase().equals(myMacAddress)) { //prevent blocking own device
-                        alert.setNegativeButton(context.getString(R.string.block), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Context context = getActivity();
-                                new AlertDialog.Builder(context)
-                                        .setMessage(context.getString(R.string.block_confirm))
-                                        .setCancelable(false)
-                                        .setPositiveButton(context.getString(R.string.yes), new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                device.setBlocked(true);
-                                                mListener.onSignal(SIGNAL_BLOCK, device.mac());
-                                                ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
-                                                Toast.makeText(getActivity(), getActivity().getString(R.string.blocking)+" " + device.mac(), Toast.LENGTH_LONG).show();
-                                            }
-                                        })
-                                        .setNegativeButton(context.getString(R.string.no), null)
-                                        .show();
-                            }
-                        });
+                        } else if (!device.mac().toUpperCase().equals(myMacAddress)) { //prevent blocking own device
+                            alert.setNegativeButton(context.getString(R.string.block), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Context context = getActivity();
+                                    new AlertDialog.Builder(context)
+                                            .setMessage(context.getString(R.string.block_confirm))
+                                            .setCancelable(false)
+                                            .setPositiveButton(context.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    device.setBlocked(true);
+                                                    mDevices.insertOrUpdate(device);
+                                                    ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+                                                    mListener.onSignal(SIGNAL_BLOCK, device.mac());
+                                                    Toast.makeText(getActivity(), getActivity().getString(R.string.blocking) + " " + device.mac(), Toast.LENGTH_LONG).show();
+                                                }
+                                            })
+                                            .setNegativeButton(context.getString(R.string.no), null)
+                                            .show();
+                                }
+                            });
+                        }
                     }
+                    alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            updateDeviceName(device, deviceName.getText().toString(), device_list_index);
+                        }
+                    });
+                    alert.show();
                 }
-                alert.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        updateDeviceName(device, deviceName.getText().toString(), device_list_index);
-                    }
-                });
-                alert.show();
-            }
-        });
-        detailList.setAdapter(adapter);
+            });
+            detailList.setAdapter(adapter);
+        } catch (Exception ex) {
+            Log.e(TAG, "setupDeviceClickListener: "+ex.getMessage());
+        }
     }
 
 
@@ -418,9 +423,11 @@ public class OverviewFragment extends Fragment {
             TextView tvName = (TextView)convertView.findViewById(R.id.device_name);
             TextView tvIP = (TextView)convertView.findViewById(R.id.device_ip);
             TextView tvTraffic = (TextView)convertView.findViewById(R.id.device_traffic);
+            View imgBlocked = convertView.findViewById(R.id.blocked);
             ProgressBar pbTrafficBar = (ProgressBar)convertView.findViewById(R.id.traffic_bar);
             tvName.setText(device.name());
             tvIP.setText(device.lastIP());
+            imgBlocked.setVisibility(device.isBlocked()?View.VISIBLE:View.GONE);
             if (device.isActive()) {
                 pbTrafficBar.setVisibility(View.VISIBLE);
                 tvName.setTextColor(Color.BLACK);

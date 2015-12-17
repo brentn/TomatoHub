@@ -31,13 +31,14 @@ public class Device {
         _mac = mac;
         _name = name;
     }
-    public Device(String router_id, String mac, String last_network, String ip, String name, boolean active) {
+    public Device(String router_id, String mac, String last_network, String ip, String name, boolean active, boolean blocked) {
         _router_id =router_id;
         _mac=mac;
         _last_network=last_network;
         _ip=ip;
         _name=name;
         _active=active;
+        _blocked=blocked;
     }
 
     // Setters
@@ -46,7 +47,7 @@ public class Device {
     public void setCurrentIP(String ip) { _ip=ip; }
     public void setCurrentNetwork(String network_name) {_last_network=network_name;}
     public void setActive(boolean active) {_active=active;}
-    public void setBlocked(boolean active) {_blocked=active;}
+    public void setBlocked(boolean blocked) {_blocked=blocked;}
     public void setDetails(String name, String custom_name, String network, String ip, boolean active, boolean blocked, long tx, long rx, long timestamp, float last_speed) {
         _name=name;
         _custom_name=custom_name;
