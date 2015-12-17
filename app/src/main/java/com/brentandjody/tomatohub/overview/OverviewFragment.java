@@ -145,7 +145,7 @@ public class OverviewFragment extends Fragment {
         hideDetailView();
     }
     public void setRouterId(String router_id) {mRouterId = router_id;}
-    public void setMyMac(String mac) {myMacAddress = mac.toUpperCase();}
+    public void setMyMac(String mac) {if (mac!=null) myMacAddress = mac.toUpperCase();}
     public void setDatabases(Networks networks, Devices devices) {mDevices = devices; mNetworks = networks;}
     public void setWifiMessage(String message) { mWifiMessage.setText(message);}
     public void setStatusMessage(String message) {mStatusMessage.setText(message);}

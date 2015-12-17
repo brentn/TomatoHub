@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public int getRouterType() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
         return RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
     }
 

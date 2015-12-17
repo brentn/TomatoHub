@@ -105,10 +105,10 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         }
     }
 
-    public void wifiSpeedTest() {
-        Log.d(TAG, "performing wifiSpeedTest");
+    public void wifiSpeedTest(String url_on_router) {
+        Log.d(TAG, "performing wifiSpeedTest to "+url_on_router);
         try {
-            mConnection.speedTest(mIpAddress, 4321);
+            mConnection.speedTest(mContext, url_on_router);
         } catch (Exception ex) {
             Log.e(TAG, ex.getMessage());
         }

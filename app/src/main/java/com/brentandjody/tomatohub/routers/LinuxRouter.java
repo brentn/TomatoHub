@@ -2,7 +2,6 @@ package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.R;
@@ -212,6 +211,12 @@ public class LinuxRouter extends Router {
     @Override
     public void internetSpeedTest() {
         new InternetDownloader().execute();
+    }
+
+    @Override
+    public String getUrlToTest() {
+        command("dd if=/dev/zero of=/www/user/test.txt bs=1048576 count=10");
+        return "http://"+mIpAddress+"/user/test.txt?id="+System.currentTimeMillis();
     }
 
     private String[] grep(String[] lines, String pattern) {

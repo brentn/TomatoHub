@@ -33,7 +33,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         mWifiTesting = (ProgressBar)findViewById(R.id.pb_wifi);
 
         mInternetSpeed.setText("");
-        mInternetTesting.setVisibility(View.VISIBLE);
+        mInternetTesting.setVisibility(View.INVISIBLE);
         mWifiSpeed.setText("");
         mWifiTesting.setVisibility(View.VISIBLE);
 
@@ -69,7 +69,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
 
     private void runWifiTest() {
         if (mRouter!=null)
-            mRouter.wifiSpeedTest();
+            mRouter.wifiSpeedTest(mRouter.getUrlToTest());
     }
 
     @Override
@@ -79,6 +79,18 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         float Mbps;
         switch(activity_id) {
             case Router.ACTIVITY_LOGON:
+                runWifiTest();
+                break;
+            case Router.ACTIVITY_WIFI_SPEED_TEST:
+                mWifiTesting.setVisibility(View.INVISIBLE);
+                if (status==Router.ACTIVITY_STATUS_SUCCESS) {
+                    String speed = String.format("%.2f", mRouter.getSpeedTestResult());
+                    mWifiSpeed.setText(speed + " Mbps");
+                } else {
+                    mWifiSpeed.setText(R.string.test_failed);
+                }
+                mRouter.command("rm /www/user/test.txt");
+                mInternetTesting.setVisibility(View.VISIBLE);
                 runDownloadTest();
                 break;
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
@@ -91,18 +103,6 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                 } else {
                     mInternetSpeed.setText(R.string.test_failed);
                 }
-                runWifiTest();
-                break;
-            case Router.ACTIVITY_WIFI_SPEED_TEST:
-                mWifiTesting.setVisibility(View.INVISIBLE);
-                if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    String speed = String.format("%.2f", mRouter.getSpeedTestResult());
-                    mWifiSpeed.setText(speed + " Mbps");
-                } else {
-                    mWifiSpeed.setText(R.string.test_failed);
-                }
-                if (mRouter !=null)
-                    mRouter.disconnect();
                 break;
         }
     }

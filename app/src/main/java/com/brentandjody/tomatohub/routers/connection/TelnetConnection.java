@@ -1,5 +1,6 @@
 package com.brentandjody.tomatohub.routers.connection;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -23,10 +24,13 @@ public class TelnetConnection extends TestableConnection implements TestableConn
     private String mUser;
     private String mPassword;
     private TelnetSession mSession;
+    private Context mContext;
     private List<AsyncTask> mRunningTasks;
 
     public TelnetConnection(OnConnectionActionCompleteListener listener)  {
+        super();
         mListener=listener;
+        super.mListener=this;
     }
 
     @Override
@@ -55,10 +59,6 @@ public class TelnetConnection extends TestableConnection implements TestableConn
         } catch (Exception ex) {
             Log.e(TAG, "disconnect() "+ex.getMessage());
         }
-    }
-
-    @Override
-    protected void setUpConnection(int port) {
     }
 
     public void onSpeedTestComplete(boolean success) {

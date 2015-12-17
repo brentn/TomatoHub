@@ -1,11 +1,22 @@
 package com.brentandjody.tomatohub.routers.connection;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
 
+import com.brentandjody.tomatohub.R;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -20,18 +31,20 @@ public abstract class TestableConnection implements IConnection {
     protected SpeedTestCompleteListener mListener;
     private float mSpeed;
     private List<AsyncTask> mRunningTests;
-    private String mIPAddress;
-    private int mPort;
+    private String mUser;
+    private String mPass;
+    private Context mContext;
 
     public TestableConnection() {
         mRunningTests = new ArrayList<>();
     }
 
-    protected abstract void setUpConnection(int port);
-    public void speedTest(String to_ip, int to_port) {
-        mIPAddress=to_ip;
-        mPort = to_port;
-        new SpeedTester().execute();
+    public void speedTest(Context context, String url) {
+        mContext = context;
+        SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name),Context.MODE_PRIVATE);
+        mUser = prefs.getString(context.getString(R.string.pref_key_username), "root");
+        mPass = prefs.getString(context.getString(R.string.pref_key_password), "");
+        new SpeedTester().execute(url);
     }
     public float getSpeedTestResult() {return mSpeed;}
     @Override
@@ -40,56 +53,62 @@ public abstract class TestableConnection implements IConnection {
             task.cancel(true);
     }
 
-    private class SpeedTester extends AsyncTask<Void, Void, Void> {
-        static final int NUMBER_OF_BYTES=100000;
-        long startTime;
-        long stopTime;
+    private class SpeedTester extends AsyncTask<String, Void, Void> {
+        float speed;
         boolean success;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            setUpConnection(mPort);
             mRunningTests.add(this);
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
-            Socket socket=null;
+        protected Void doInBackground(String... urls) {
+            ConnectivityManager connMgr = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
             try {
-                OutputStream out=null;
-                try {
-                    socket = new Socket(mIPAddress, mPort);
-                    out = socket.getOutputStream();
-                    byte[] buf = new byte[1024];
-                    RandomInputStream ris = new RandomInputStream();
-                    int remaining_bytes = NUMBER_OF_BYTES;
-                    startTime = System.currentTimeMillis();
-                    while (remaining_bytes > 0) {
-                        int len;
-                        if (remaining_bytes > buf.length) {
-                            len = ris.read(buf, 0, buf.length);
-                            remaining_bytes -= buf.length;
-                        } else {
-                            len = ris.read(buf, 0, (remaining_bytes));
-                            remaining_bytes = 0;
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    InputStream is = null;
+                    try {
+                        URL url = new URL(urls[0]);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        String userpass = mUser + ":" + mPass;
+                        String basicAuth = "Basic " + Base64.encodeToString(userpass.getBytes(), Base64.DEFAULT);
+                        conn.setRequestProperty ("Authorization", basicAuth);
+                        conn.setReadTimeout(10000 /* milliseconds */);
+                        conn.setConnectTimeout(15000 /* milliseconds */);
+                        conn.setRequestMethod("GET");
+                        conn.setDoInput(true);
+                        // Starts the query
+                        conn.connect();
+                        int response = conn.getResponseCode();
+                        Log.d(TAG, "The response is: " + response);
+                        is = conn.getInputStream();
+                        BufferedInputStream br = new BufferedInputStream(is);
+                        byte[] buffer = new byte[1024];
+                        int bytes;
+                        int size = 0;
+                        long startTime = System.currentTimeMillis();
+                        while ((bytes = is.read(buffer)) >= 0) {
+                            size += bytes;
                         }
-                        out.write(buf, 0, len);
+                        float seconds = (float) (System.currentTimeMillis() - startTime) / 1000;
+                        float Mbits = (float) size * 8 / 1000000;
+                        speed = Mbits / seconds;
+                        success=true;
+                    } finally {
+                        if (is != null) {
+                            is.close();
+                        }
                     }
-                    ris.close();
-                    stopTime=System.currentTimeMillis();
-                    success=true;
-                } finally {
-                    if (out!=null) {
-                        out.flush();
-                        out.close();
-                    }
-                    if (socket!=null)
-                        socket.close();
+                } else {
+                    success=false;
+                    Log.w(TAG, "No network connectivity");
                 }
-            } catch (Exception ex) {
+            } catch (Exception ex){
                 success=false;
-                Log.e(TAG, ex.getMessage());
+                Log.e(TAG, "Error running speedTester: " + ex.getMessage());
             }
             return null;
         }
@@ -100,9 +119,7 @@ public abstract class TestableConnection implements IConnection {
             mRunningTests.remove(this);
             if (!isCancelled()) {
                 if (success) {
-                    int Mbits = NUMBER_OF_BYTES * 8 / 1000000;
-                    long elapsedTime = stopTime = startTime;
-                    mSpeed = Mbits / (float) elapsedTime * 1000;
+                    mSpeed = speed;
                 } else {
                     mSpeed = -1;
                 }

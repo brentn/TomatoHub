@@ -1,33 +1,18 @@
 package com.brentandjody.tomatohub.routers.connection;
 
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-import android.os.AsyncTask;
-import android.text.TextUtils;
-import android.util.Log;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-
-import javax.xml.transform.stream.StreamSource;
 
 /**
  * Created by brentn on 13/12/15.
@@ -78,9 +63,6 @@ public class SshConnection extends TestableConnection implements TestableConnect
         }
 
     }
-
-    @Override
-    protected void setUpConnection(int port) {}
 
     public void onSpeedTestComplete(boolean success) {
         mListener.onActionComplete(ACTION_SPEED_TEST, success);
