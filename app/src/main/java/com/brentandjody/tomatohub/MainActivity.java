@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Network;
@@ -62,12 +63,6 @@ public class MainActivity extends AppCompatActivity
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        switch (getRouterType()) {
-            case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
-            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
-            case RouterType.FAKE: mRouter = new FakeRouter(this); break;
-            default: mRouter = new FakeRouter(this);
-        }
     }
 
     @Override
@@ -119,17 +114,17 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.showSpeedTestButton(false);
                         mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
                     }
-                    if (!mSentToSettings) {
-                        mSentToSettings=true;
-                        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                        DhcpInfo dhcp = wifi.getDhcpInfo();
-                        String gateway = intToIp(dhcp.gateway);
-                        Log.i(TAG, "Redirecting to Settings screen");
-                        Intent intent = new Intent(this, SettingsActivity.class);
-                        Log.i(TAG, "Resetting ip address to: "+gateway);
-                        intent.putExtra(getString(R.string.pref_key_ip_address), gateway);
-                        this.startActivity(intent);
-                    }
+//                    if (!mSentToSettings) {
+//                        mSentToSettings=true;
+//                        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+//                        DhcpInfo dhcp = wifi.getDhcpInfo();
+//                        String gateway = intToIp(dhcp.gateway);
+//                        Log.i(TAG, "Redirecting to Settings screen");
+//                        Intent intent = new Intent(this, SettingsActivity.class);
+//                        Log.i(TAG, "Resetting ip address to: "+gateway);
+//                        intent.putExtra(getString(R.string.pref_key_ip_address), gateway);
+//                        this.startActivity(intent);
+//                    }
                 }
                 break;
             }
@@ -231,6 +226,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "Instantiating router...");
+        switch (getRouterType()) {
+            case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
+            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
+            case RouterType.FAKE: mRouter = new FakeRouter(this);
+                Toast.makeText(this, R.string.running_in_demo_mode, Toast.LENGTH_LONG).show();
+                break;
+            default: mRouter = new FakeRouter(this);
+        }
         mConnecting=true;
         Log.d(TAG, "Connecting...");
         mRouter.connect();

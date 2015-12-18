@@ -2,6 +2,7 @@ package com.brentandjody.tomatohub.routers;
 
 /**
  * Created by brentn on 12/12/15.
+ * Define the various router types supported by the app
  */
 public class RouterType {
     public static final int COUNT=3;
@@ -10,7 +11,7 @@ public class RouterType {
     public static final int DDWRT=1;
     public static final int FAKE=2;
 
-    public static String defaultValue="0";
+    public static String defaultValue="2";
 
     public static String name(int type) {
         switch (type) {

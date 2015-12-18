@@ -8,13 +8,13 @@ import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Wifi;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 /**
  * Created by brentn on 17/12/15.
+ * A fake router, to demo the app, or test
  */
 public class FakeRouter extends Router {
     private static final String TAG = FakeRouter.class.getName();
@@ -22,8 +22,10 @@ public class FakeRouter extends Router {
     final Random rnd = new Random();
     final Handler handler = new Handler();
 
+    private List<Wifi> mWifis=null;
     private String[] mNetworkIds=null;
     private Devices mDevices;
+    private long mTimestamp;
 
     public FakeRouter(Context context) {
         super(context);
@@ -53,10 +55,10 @@ public class FakeRouter extends Router {
 
     @Override
     public long getBootTime() {
-        final long LONGEST_TIME = 30*24*60*60*1000;
-        long now = System.currentTimeMillis();
+        final long LONGEST_TIME = 30*24*60*60;
+        long now = System.currentTimeMillis()/1000;
         long ago = rnd.nextLong()%LONGEST_TIME;
-        long result = (now-ago)/1000;
+        long result = (now-ago);
         Log.d(TAG, "Boot time:"+result);
         return result;
     }
@@ -77,15 +79,17 @@ public class FakeRouter extends Router {
 
     @Override
     public List<Wifi> getWifiList() {
-        final int MAX_WIFIS=4;
-        List<Wifi> result = new ArrayList();
-        for (int i=0; i<rnd.nextInt(MAX_WIFIS); i++) {
-            String ssid = randomString(15);
-            Wifi wifi = new Wifi(ssid);
-            wifi.setPassword("MyWifiPassword");
-            result.add(wifi);
+        if (mWifis==null) {
+            final int MAX_WIFIS = 4;
+            mWifis = new ArrayList();
+            for (int i = 0; i < rnd.nextInt(MAX_WIFIS); i++) {
+                String ssid = randomString(15);
+                Wifi wifi = new Wifi(ssid);
+                wifi.setPassword("MyWifiPassword");
+                mWifis.add(wifi);
+            }
         }
-        return result;
+        return mWifis;
     }
 
     @Override
@@ -114,7 +118,11 @@ public class FakeRouter extends Router {
 
     @Override
     public int getTotalDevicesOn(String network_id) {
-        return mDevices.getDevicesOnNetwork(getRouterId(), network_id).size();
+        int total=0;
+        for (Device d : mDevices.getDevicesOnNetwork(getRouterId(), network_id)) {
+            if (d.isActive()) total++;
+        }
+        return total;
     }
 
     @Override
@@ -146,6 +154,18 @@ public class FakeRouter extends Router {
     }
     @Override
     public void updateTrafficStats() {
+        long now = System.currentTimeMillis();
+        for (String networkId:mNetworkIds) {
+            for (Device d : mDevices.getDevicesOnNetwork(getRouterId(), networkId)) {
+                if (d.isActive()) {
+                    long elapsed_time = (now - mTimestamp)/1000;
+                    int traffic = Math.round((float) rnd.nextInt(100000000) / elapsed_time);
+                    d.setTrafficStats(traffic,traffic,now);
+                    mDevices.insertOrUpdate(d);
+                }
+            }
+        }
+        mTimestamp=now;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -175,6 +195,7 @@ public class FakeRouter extends Router {
     private void setupFakeDevices() {
         mDevices = new Devices(mContext);
         mDevices.removeFakeDevices(getRouterId());
+        mTimestamp = System.currentTimeMillis();
         getNetworkIds();
         int total_devices = rnd.nextInt(40)+3;
         Log.d(TAG, "Generating "+total_devices+" fake devices");
@@ -183,6 +204,7 @@ public class FakeRouter extends Router {
             device.setCurrentIP("192.168.1."+(rnd.nextInt(253)+1));
             device.setCurrentNetwork(mNetworkIds[rnd.nextInt(mNetworkIds.length)]);
             device.setActive(rnd.nextInt(100)<70);
+            device.setTrafficStats(0,0,mTimestamp-60000); //1 min ago
             mDevices.insertOrUpdate(device);
         }
     }

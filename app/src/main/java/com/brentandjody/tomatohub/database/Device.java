@@ -61,7 +61,7 @@ public class Device {
         _last_speed=last_speed;
     }
     public void setTrafficStats(long tx, long rx, long timestamp) {
-        if (tx>0 && rx>0 && timestamp>_timestamp) { //ensure valid values
+        if (tx>=0 && rx>=0 && timestamp>_timestamp) { //ensure valid values
             if ((timestamp - _timestamp) > SPEED_THRESHOLD) {
                 if (tx >=_tx_bytes && rx >= _rx_bytes) {  //if traffic stats were reset, don't calculate speed
                     long traffic = (tx - _tx_bytes) + (rx - _rx_bytes);
