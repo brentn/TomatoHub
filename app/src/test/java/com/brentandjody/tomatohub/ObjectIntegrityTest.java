@@ -1,19 +1,16 @@
 package com.brentandjody.tomatohub;
 
 import com.brentandjody.tomatohub.database.Device;
-import com.brentandjody.tomatohub.routers.LinuxRouter;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Created by brentn on 08/12/15.
  * Test various database objects
  */
-public class ObjectIntegrityTests {
+public class ObjectIntegrityTest {
 
     @Test
     public void device_constructors_set_appropriate_fields() {

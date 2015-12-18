@@ -55,9 +55,9 @@ public class FakeRouter extends Router {
 
     @Override
     public long getBootTime() {
-        final long LONGEST_TIME = 30*24*60*60;
+        int LONGEST_TIME = 30*24*60*60;
         long now = System.currentTimeMillis()/1000;
-        long ago = rnd.nextLong()%LONGEST_TIME;
+        long ago = rnd.nextInt(LONGEST_TIME);
         long result = (now-ago);
         Log.d(TAG, "Boot time:"+result);
         return result;

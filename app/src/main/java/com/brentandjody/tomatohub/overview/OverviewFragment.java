@@ -67,7 +67,7 @@ public class OverviewFragment extends Fragment {
     private TextView[] mDevicesMessage;
     private TextView[] mNetworkIcons;
     private View[] mNetworkLines;
-    private List<TextView> mNetworkLabels;
+    private ArrayList<View> mNetworkLabels;
     private List<Device>[] mDevicesList;
     private String myMacAddress;
 
@@ -158,6 +158,8 @@ public class OverviewFragment extends Fragment {
         mView.findViewById(R.id.router_l).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
         if (visible) {
             addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
+        } else {
+            mView.findViewsWithText(mNetworkLabels, getString(R.string.router), 0);
         }
     }
 

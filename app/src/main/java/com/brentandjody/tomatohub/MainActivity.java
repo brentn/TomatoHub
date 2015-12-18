@@ -147,6 +147,9 @@ public class MainActivity extends AppCompatActivity
                             wifiMessage += "'"+w.SSID()+"'"+getString(R.string.is_on) + ", ";
                         }
                         wifiMessage = wifiMessage.replaceAll(", $", "");
+                        if (wifiMessage.isEmpty()) {
+                            wifiMessage=getString(R.string.wifi_not_enabled);
+                        }
                         mOverviewFragment.setWifiMessage(wifiMessage);
                         mOverviewFragment.setupRouterClickListener(
                                 mRouter.getRouterType(),

@@ -137,5 +137,6 @@
     <string name="prioritize">Prioritize</string>
     <string name="refresh">Refresh</string>
     <string name="low_memory">Unable to test, low memory</string>
-    <string name="running_in_demo_mode">Running in DEMO mode.  Change router type in settings.</string>
+    <string name="running_in_demo_mode">DEMO mode.  Set router type in settings.</string>
+    <string name="wifi_not_enabled">WiFi not enabled</string>
 </resources>
