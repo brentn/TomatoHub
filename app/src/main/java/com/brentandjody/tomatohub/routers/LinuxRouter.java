@@ -92,12 +92,6 @@ public class LinuxRouter extends Router {
     }
 
     @Override
-    public String getUrlToTest() { return "http://"+mIpAddress+"?id="+System.currentTimeMillis(); }
-
-    @Override
-    public void cleanUpAfterTest() {}
-
-    @Override
     public String getRouterType() {
         if (grep(cacheMotd, "DD-WRT").length > 0) return RouterType.name(RouterType.DDWRT);
         if (grep(cacheMotd, "Tomato").length > 0) return RouterType.name(RouterType.TOMATO);

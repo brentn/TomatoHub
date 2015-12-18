@@ -13,10 +13,8 @@ interface IRouter {
     void connect();
     void disconnect();
     String[] command(String command);
-    String getUrlToTest();
-    void cleanUpAfterTest();
-    void wifiSpeedTest(String url_on_router);
-    float getSpeedTestResult();
+    void wifiSpeedTest(int port);
+    float getConnectionSpeed();
 
     // COMMANDS
     void initialize();

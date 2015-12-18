@@ -2,6 +2,7 @@ package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.R;
@@ -82,6 +83,11 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         }
     }
 
+    @Override
+    public float getConnectionSpeed() {
+        return mConnection.getLastTestedSpeed();
+    }
+
     public String[] command(String command) {
         Log.d(TAG, "executing command: "+command);
         try {
@@ -96,16 +102,18 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         }
     }
 
-    public void wifiSpeedTest(String url_on_router) {
-        Log.d(TAG, "performing wifiSpeedTest to "+url_on_router);
+    @Override
+    public void wifiSpeedTest(int port) {
+        Log.d(TAG, "performing wifiSpeedTest");
         try {
-            mConnection.speedTest(mContext, url_on_router);
+            WifiManager wifi = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            String myIp = intToIp(wifi.getConnectionInfo().getIpAddress());
+            mConnection.listenForBytes(port);
+            mConnection.execute("dd if=/dev/zero bs=1K count=1K | nc "+myIp+" "+port );
         } catch (Exception ex) {
             Log.e(TAG, ex.getMessage());
         }
     }
-
-    public float getSpeedTestResult() {return mConnection.getSpeedTestResult();}
 
     @Override
     public void onActionComplete(int action, boolean success) {
@@ -125,6 +133,14 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
 
     public interface OnRouterActivityCompleteListener {
         void onRouterActivityComplete(int activity_id, int status);
+    }
+
+    public static String intToIp(int i) {
+
+        return (i & 0xFF ) + "." +
+                ((i >> 8 ) & 0xFF) + "." +
+                ((i >> 16 ) & 0xFF) + "." +
+                ( (i >> 24 ) & 0xFF) ;
     }
 
 }

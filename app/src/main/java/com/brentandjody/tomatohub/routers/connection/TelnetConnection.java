@@ -16,7 +16,7 @@ import java.util.List;
  * Created by brentn on 13/12/15.
  * Implement telnet connection to router using sockets
  */
-public class TelnetConnection extends TestableConnection implements TestableConnection.SpeedTestCompleteListener{
+public class TelnetConnection extends TestableConnection implements TestableConnection.OnSpeedTestCompleteListener {
     private static final String TAG = TelnetConnection.class.getName();
     private OnConnectionActionCompleteListener mListener;
 
@@ -24,13 +24,11 @@ public class TelnetConnection extends TestableConnection implements TestableConn
     private String mUser;
     private String mPassword;
     private TelnetSession mSession;
-    private Context mContext;
     private List<AsyncTask> mRunningTasks;
 
     public TelnetConnection(OnConnectionActionCompleteListener listener)  {
         super();
         mListener=listener;
-        super.mListener=this;
     }
 
     @Override
@@ -61,10 +59,6 @@ public class TelnetConnection extends TestableConnection implements TestableConn
         }
     }
 
-    public void onSpeedTestComplete(boolean success) {
-        mListener.onActionComplete(ACTION_SPEED_TEST, success);
-    }
-
     @Override
     public String[] execute(String command) {
         String[] result = new String[0];
@@ -76,6 +70,16 @@ public class TelnetConnection extends TestableConnection implements TestableConn
             Log.e(TAG, (ex.getMessage()==null?"Telnet command failed: "+command:ex.getMessage()));
         }
         return result;
+    }
+
+    @Override
+    public void executeInBackground(String command) {
+        new BackgroundCommand().execute(command);
+    }
+
+    @Override
+    public void onSpeedTestComplete(boolean success) {
+        mListener.onActionComplete(ACTION_SPEED_TEST, success);
     }
 
     protected class BackgroundLogon extends AsyncTask<Void, Void, Void> {
@@ -116,6 +120,21 @@ public class TelnetConnection extends TestableConnection implements TestableConn
                 mSession.disconnect();
                 mSession=null;
             }
+        }
+    }
+
+    private class BackgroundCommand extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... params) {
+            String command = params[0];
+            Log.d(TAG, "Background Telnet command:"+command);
+            try {
+                mSession.sendCommand(command);
+                Log.d(TAG, "Background Telnet command complete");
+            } catch (Exception ex) {
+                Log.e(TAG, (ex.getMessage()==null?"Background Telnet command failed: "+command:ex.getMessage()));
+            }
+            return null;
         }
     }
 

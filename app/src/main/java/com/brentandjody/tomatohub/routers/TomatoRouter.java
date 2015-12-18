@@ -17,27 +17,4 @@ public class TomatoRouter extends LinuxRouter {
         super(context, devices, networks);
     }
 
-    @Override
-    public String getUrlToTest() {
-        try {
-            int freemem = Integer.parseInt(command("free|grep Mem|awk '{print $4}'")[0]) / 1000;
-            if (freemem > 11) {
-                command("dd if=/dev/zero of=/www/user/speedtest.txt bs=1048576 count=10");
-                return "http://" + mIpAddress + "/user/speedtest.txt?id=" + System.currentTimeMillis();
-            } else if (freemem > 2) {
-                command("dd if=/dev/zero of=/www/user/speedtest.txt bs=1048576 count=" + (freemem - 1)); //  don't overflow available memory
-                return "http://" + mIpAddress + "/user/speedtest.txt?id=" + System.currentTimeMillis();
-            } else {
-                return "";
-            }
-        } catch (Exception ex) {
-            Log.e(TAG, "internetSpeedTest: "+ex.getMessage() );
-            return "";
-        }
-    }
-
-    @Override
-    public void cleanUpAfterTest() {
-        command("rm /www/user/speedtest.txt");
-    }
 }

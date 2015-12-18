@@ -34,23 +34,19 @@ public class FakeRouter extends Router {
 
     @Override
     public void disconnect() { }
-    @Override
-    public String getUrlToTest() {return "http://google.com";}
-    @Override
-    public void cleanUpAfterTest() {}
 
     @Override
     public String[] command(String command) {
         return new String[0];
     }
 
-    @Override
-    public float getSpeedTestResult() {
-        final float MAX_ROUTER_SPEED=54.4F;
-        float result = rnd.nextFloat()*MAX_ROUTER_SPEED;
-        Log.d(TAG, "Speed:"+result);
-        return result;
-    }
+//    @Override
+//    public float getSpeedTestResult() {
+//        final float MAX_ROUTER_SPEED=54.4F;
+//        float result = rnd.nextFloat()*MAX_ROUTER_SPEED;
+//        Log.d(TAG, "Speed:"+result);
+//        return result;
+//    }
 
 
     @Override
@@ -183,7 +179,7 @@ public class FakeRouter extends Router {
         }, 7000);
     }
     @Override
-    public void wifiSpeedTest(String url_on_router) {
+    public void wifiSpeedTest(int port) {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {

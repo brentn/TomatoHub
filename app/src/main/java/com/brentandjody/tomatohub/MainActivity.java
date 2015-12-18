@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
                         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                        String myIp = intToIp(wifi.getConnectionInfo().getIpAddress());
+                        String myIp = Router.intToIp(wifi.getConnectionInfo().getIpAddress());
                         mOverviewFragment.setMyMac(mRouter.getMacForIp(myIp));
                         mOverviewFragment.setRouterId(mRouter.getRouterId());
                         if (mRouter.getNetworkIds().length < 1) {
@@ -315,13 +315,7 @@ public class MainActivity extends AppCompatActivity
         return RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
     }
 
-    private String intToIp(int i) {
 
-        return (i & 0xFF ) + "." +
-                ((i >> 8 ) & 0xFF) + "." +
-                ((i >> 16 ) & 0xFF) + "." +
-                ( (i >> 24 ) & 0xFF) ;
-    }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 

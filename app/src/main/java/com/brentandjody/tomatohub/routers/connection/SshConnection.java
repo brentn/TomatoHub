@@ -18,7 +18,7 @@ import java.util.List;
  * Created by brentn on 13/12/15.
  * Implements SSH connection to router
  */
-public class SshConnection extends TestableConnection implements TestableConnection.SpeedTestCompleteListener {
+public class SshConnection extends TestableConnection  implements TestableConnection.OnSpeedTestCompleteListener{
     private static final String TAG = SshConnection.class.getName();
     private OnConnectionActionCompleteListener mListener;
 
@@ -31,7 +31,6 @@ public class SshConnection extends TestableConnection implements TestableConnect
     public SshConnection(OnConnectionActionCompleteListener listener) {
         super();
         mListener = listener;
-        super.mListener = this;
     }
 
     @Override
@@ -64,10 +63,6 @@ public class SshConnection extends TestableConnection implements TestableConnect
 
     }
 
-    public void onSpeedTestComplete(boolean success) {
-        mListener.onActionComplete(ACTION_SPEED_TEST, success);
-    }
-
     @Override
     public String[] execute(String command) {
         String[] result = new String[0];
@@ -96,6 +91,17 @@ public class SshConnection extends TestableConnection implements TestableConnect
             Log.d(TAG, "command failed: null ssh session");
         }
         return result;
+    }
+
+    @Override
+    public void executeInBackground(String command) {
+        new BackgroundCommand().execute(command);
+    }
+
+    @Override
+    public void onSpeedTestComplete(boolean success) {
+        Log.d(TAG, "Speed test complete");
+        mListener.onActionComplete(ACTION_SPEED_TEST, success);
     }
 
     private class BackgroundLogon extends AsyncTask<Void,Void,Void>
@@ -145,4 +151,30 @@ public class SshConnection extends TestableConnection implements TestableConnect
         }
     }
 
+    private class BackgroundCommand extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... params) {
+            String command = params[0];
+            Log.v(TAG, "Background ssh command: "+command);
+            if (mSession!=null) {
+                try {
+                    Channel channel = mSession.openChannel("exec");
+                    ((ChannelExec) channel).setCommand(command);
+                    ByteArrayOutputStream sb = new ByteArrayOutputStream();
+                    channel.setOutputStream(sb);
+                    channel.connect();
+                    while (!channel.isClosed()) {
+                        Thread.sleep(10);
+                    }
+                    channel.disconnect();
+                    Log.d(TAG, "Background ssh command complete");
+                } catch (Exception ex) {
+                    Log.e(TAG, (ex.getMessage()==null?"Background ssh command failed: "+command:ex.getMessage()));
+                }
+            } else {
+                Log.d(TAG, "command failed: null ssh session");
+            }
+            return null;
+        }
+    }
 }

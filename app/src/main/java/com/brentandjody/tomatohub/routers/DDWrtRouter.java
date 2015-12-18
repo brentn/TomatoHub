@@ -16,7 +16,4 @@ public class DDWrtRouter extends LinuxRouter {
     public DDWrtRouter(Context context, Devices devices, Networks networks) {
         super(context, devices, networks);
     }
-
-    @Override
-    public String getUrlToTest() { return "http://"+mIpAddress+"/Info.htm"; }
 }

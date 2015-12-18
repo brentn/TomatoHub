@@ -15,6 +15,8 @@ import com.brentandjody.tomatohub.routers.TomatoRouter;
 
 public class SpeedTestActivity extends AppCompatActivity implements Router.OnRouterActivityCompleteListener {
 
+    private static final int TEST_PORT = 4343;
+
     Router mRouter;
     TextView mInternetSpeed;
     TextView mWifiSpeed;
@@ -36,14 +38,6 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         mWifiSpeed.setText("");
         mWifiTesting.setVisibility(View.VISIBLE);
 
-        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-        int router_type = RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
-        switch (router_type) {
-            case RouterType.TOMATO: mRouter = new TomatoRouter(this, null, null); break;
-            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, null, null); break;
-            case RouterType.FAKE: mRouter = new FakeRouter(this); break;
-            default: mRouter = new FakeRouter(this);
-        }
     }
 
     @Override
@@ -52,6 +46,19 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         if (mRouter != null) {
             mRouter.disconnect();
             mRouter=null;
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
+        int router_type = RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
+        switch (router_type) {
+            case RouterType.TOMATO: mRouter = new TomatoRouter(this, null, null); break;
+            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, null, null); break;
+            case RouterType.FAKE: mRouter = new FakeRouter(this); break;
+            default: mRouter = new FakeRouter(this);
         }
     }
 
@@ -70,14 +77,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
 
     private void runWifiTest() {
         if (mRouter!=null) {
-            String url = mRouter.getUrlToTest();
-            if (url.isEmpty()) {
-                mWifiTesting.setVisibility(View.INVISIBLE);
-                mWifiSpeed.setText(R.string.low_memory);
-                runDownloadTest();
-            } else {
-                mRouter.wifiSpeedTest(url);
-            }
+            mRouter.wifiSpeedTest(TEST_PORT);
         }
     }
 
@@ -93,12 +93,11 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
             case Router.ACTIVITY_WIFI_SPEED_TEST:
                 mWifiTesting.setVisibility(View.INVISIBLE);
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    String speed = String.format("%.2f", mRouter.getSpeedTestResult());
+                    String speed = String.format("%.2f", mRouter.getConnectionSpeed());
                     mWifiSpeed.setText(speed + " Mbps");
                 } else {
                     mWifiSpeed.setText(R.string.test_failed);
                 }
-                mRouter.command("rm /www/user/speedtest.txt");
                 runDownloadTest();
                 break;
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
