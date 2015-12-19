@@ -26,7 +26,6 @@ public class LinuxRouter extends Router {
 
     private Devices mDevicesDB = null;
     private Networks mNetworksDB = null;
-    private Boolean mQOS = null;
     private String mRouterId;
     private long mBootTime;
     private int[] mCPUUsage;
@@ -34,7 +33,7 @@ public class LinuxRouter extends Router {
     private String mExternalIP;
     private String[] mNetworkIds;
     private String[] mWifiIds;
-    private String[] cacheNVRam;
+    protected String[] cacheNVRam;
     private String[] cacheArp;
     private String[] cacheBrctl;
     private String[] cacheWf;
@@ -118,6 +117,11 @@ public class LinuxRouter extends Router {
     @Override
     public int[] getCPUUsage() {
         return mCPUUsage;
+    }
+
+    @Override
+    public boolean isQOSEnabled() {
+        return false;
     }
 
     @Override
@@ -214,7 +218,7 @@ public class LinuxRouter extends Router {
         new InternetDownloader().execute();
     }
 
-    private String[] grep(String[] lines, String pattern) {
+    protected String[] grep(String[] lines, String pattern) {
         // will not return null
         if (lines==null || lines.length==0) return new String[0];
         try {
@@ -227,22 +231,6 @@ public class LinuxRouter extends Router {
             Log.e(TAG, "internetSpeedTest():"+ex.getMessage());
             return new String[0];
         }
-    }
-
-    @Override
-    public boolean isQOSEnabled() {
-        // returns true only if wshaper is enabled, and uplink/downlink values have been set
-        if (mQOS==null) {
-            if (grep(cacheNVRam, "wshaper_enable=1").length == 0) mQOS = false;
-            String[] uplink = grep(cacheNVRam, "wshaper_uplink=");
-            if (uplink.length == 0 || uplink[0].equals("wshaper_uplink=") || uplink[0].equals("wshaper_uplink=0"))
-                mQOS = false;
-            String[] downlink = grep(cacheNVRam, "wshaper_downlink=");
-            if (downlink.length == 0 || downlink[0].equals("wshaper_uplink=") || downlink[0].equals("wshaper_uplink=0"))
-                mQOS = false;
-            mQOS = true;
-        }
-        return mQOS;
     }
 
     private class Initializer extends AsyncTask<Void, Void, Void> {
