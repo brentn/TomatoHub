@@ -69,6 +69,8 @@ public class FakeRouter extends Router {
     public String getRouterId() { return "FakeRouter";  }
     @Override
     public String getRouterType() { return "Fake Router"; }
+    @Override
+    public boolean isQOSEnabled() { return true; }
 
     @Override
     public String getMacForIp(String ip) { return "00:00:00:00:00:00"; }

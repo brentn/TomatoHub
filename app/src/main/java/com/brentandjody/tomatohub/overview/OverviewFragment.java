@@ -57,6 +57,7 @@ public class OverviewFragment extends Fragment {
 
     private Networks mNetworks;
     private Devices mDevices;
+    private boolean mQOSEnabled;
     private boolean mDetailViewVisible;
     private String mRouterId;
     private View mView;
@@ -136,6 +137,7 @@ public class OverviewFragment extends Fragment {
     }
 
     public void initialize() {
+        mQOSEnabled=false;
         setWifiMessage("");
         setStatusMessage("");
         setDevicesMessage("","");
@@ -145,6 +147,7 @@ public class OverviewFragment extends Fragment {
         hideDetailView();
     }
     public void setRouterId(String router_id) {mRouterId = router_id;}
+    public void setQOSEnabled(boolean enabled) {mQOSEnabled=enabled;}
     public void setMyMac(String mac) {if (mac!=null) myMacAddress = mac.toUpperCase();}
     public void setDatabases(Networks networks, Devices devices) {mDevices = devices; mNetworks = networks;}
     public void setWifiMessage(String message) { mWifiMessage.setText(message);}
@@ -298,12 +301,14 @@ public class OverviewFragment extends Fragment {
                     alert.setView(deviceView);
                     SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
                     if (prefs.getBoolean(context.getString(R.string.pref_key_allow_changes), false)) {
-//                    alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
+                        if (mQOSEnabled) {
+                            alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                         if (device.isBlocked()) {
                             alert.setNegativeButton(context.getString(R.string.unblock), new DialogInterface.OnClickListener() {
                                 @Override

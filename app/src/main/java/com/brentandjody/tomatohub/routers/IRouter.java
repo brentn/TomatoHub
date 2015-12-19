@@ -13,8 +13,6 @@ interface IRouter {
     void connect();
     void disconnect();
     String[] command(String command);
-    void wifiSpeedTest(int port);
-    float getConnectionSpeed();
 
     // COMMANDS
     void initialize();
@@ -31,5 +29,8 @@ interface IRouter {
     String[] getNetworkIds();
     int getTotalDevices();
     int getTotalDevicesOn(String network_id);
+    void wifiSpeedTest(int port);
+    float getConnectionSpeed();
     void internetSpeedTest();
+    boolean isQOSEnabled();
 }

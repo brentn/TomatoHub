@@ -114,17 +114,6 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.showSpeedTestButton(false);
                         mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
                     }
-//                    if (!mSentToSettings) {
-//                        mSentToSettings=true;
-//                        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-//                        DhcpInfo dhcp = wifi.getDhcpInfo();
-//                        String gateway = intToIp(dhcp.gateway);
-//                        Log.i(TAG, "Redirecting to Settings screen");
-//                        Intent intent = new Intent(this, SettingsActivity.class);
-//                        Log.i(TAG, "Resetting ip address to: "+gateway);
-//                        intent.putExtra(getString(R.string.pref_key_ip_address), gateway);
-//                        this.startActivity(intent);
-//                    }
                 }
                 break;
             }
@@ -135,6 +124,7 @@ public class MainActivity extends AppCompatActivity
                         String myIp = Router.intToIp(wifi.getConnectionInfo().getIpAddress());
                         mOverviewFragment.setMyMac(mRouter.getMacForIp(myIp));
                         mOverviewFragment.setRouterId(mRouter.getRouterId());
+                        mOverviewFragment.setQOSEnabled(mRouter.isQOSEnabled());
                         if (mRouter.getNetworkIds().length < 1) {
                             mOverviewFragment.setStatusMessage(getString(R.string.no_networks_found));
                             mOverviewFragment.setDevicesMessage("","");
