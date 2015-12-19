@@ -81,7 +81,7 @@ public class Device {
         return _mac;
     }
     public String name() {  //returns custom name if possible, else name.  Trims to 20 chars.
-        if (TextUtils.isEmpty(_custom_name)) return _name.substring(0, Math.min(_name.length(), 20));
+        if (_custom_name==null || _custom_name.length()<=0) return _name.substring(0, Math.min(_name.length(), 20));
         else return _custom_name.substring(0, Math.min(_custom_name.length(), 20));
     }
     public String customName() {
