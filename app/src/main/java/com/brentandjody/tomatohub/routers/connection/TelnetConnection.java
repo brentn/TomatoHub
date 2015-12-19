@@ -73,11 +73,6 @@ public class TelnetConnection extends TestableConnection implements TestableConn
     }
 
     @Override
-    public void executeInBackground(String command) {
-        new BackgroundCommand().execute(command);
-    }
-
-    @Override
     public void onSpeedTestComplete(boolean success) {
         mListener.onActionComplete(ACTION_SPEED_TEST, success);
     }
@@ -123,20 +118,6 @@ public class TelnetConnection extends TestableConnection implements TestableConn
         }
     }
 
-    private class BackgroundCommand extends AsyncTask<String, Void, Void> {
-        @Override
-        protected Void doInBackground(String... params) {
-            String command = params[0];
-            Log.d(TAG, "Background Telnet command:"+command);
-            try {
-                mSession.sendCommand(command);
-                Log.d(TAG, "Background Telnet command complete");
-            } catch (Exception ex) {
-                Log.e(TAG, (ex.getMessage()==null?"Background Telnet command failed: "+command:ex.getMessage()));
-            }
-            return null;
-        }
-    }
 
     private class TelnetSession {
 

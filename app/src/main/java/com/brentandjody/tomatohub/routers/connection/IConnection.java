@@ -11,7 +11,6 @@ public interface IConnection {
     void connect(String ipAddress, String username, String password);
     void disconnect();
     String[] execute(String command);
-    void executeInBackground(String command);
 
     interface OnConnectionActionCompleteListener {
         void onActionComplete(int action, boolean success);

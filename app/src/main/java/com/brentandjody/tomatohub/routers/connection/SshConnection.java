@@ -94,11 +94,6 @@ public class SshConnection extends TestableConnection  implements TestableConnec
     }
 
     @Override
-    public void executeInBackground(String command) {
-        new BackgroundCommand().execute(command);
-    }
-
-    @Override
     public void onSpeedTestComplete(boolean success) {
         Log.d(TAG, "Speed test complete");
         mListener.onActionComplete(ACTION_SPEED_TEST, success);
@@ -151,30 +146,5 @@ public class SshConnection extends TestableConnection  implements TestableConnec
         }
     }
 
-    private class BackgroundCommand extends AsyncTask<String, Void, Void> {
-        @Override
-        protected Void doInBackground(String... params) {
-            String command = params[0];
-            Log.v(TAG, "Background ssh command: "+command);
-            if (mSession!=null) {
-                try {
-                    Channel channel = mSession.openChannel("exec");
-                    ((ChannelExec) channel).setCommand(command);
-                    ByteArrayOutputStream sb = new ByteArrayOutputStream();
-                    channel.setOutputStream(sb);
-                    channel.connect();
-                    while (!channel.isClosed()) {
-                        Thread.sleep(10);
-                    }
-                    channel.disconnect();
-                    Log.d(TAG, "Background ssh command complete");
-                } catch (Exception ex) {
-                    Log.e(TAG, (ex.getMessage()==null?"Background ssh command failed: "+command:ex.getMessage()));
-                }
-            } else {
-                Log.d(TAG, "command failed: null ssh session");
-            }
-            return null;
-        }
-    }
+
 }

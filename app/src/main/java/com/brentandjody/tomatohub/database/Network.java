@@ -1,9 +1,9 @@
 package com.brentandjody.tomatohub.database;
 
-import android.text.TextUtils;
 
 /**
  * Created by brent on 05/12/15.
+ *Network object
  */
 public class Network {
     private static final long SPEED_THRESHOLD=300;
@@ -51,7 +51,7 @@ public class Network {
     public String routerId() {return _routerId;}
     public String networkId() {return _networkId;}
     public String name() {
-        if (TextUtils.isEmpty(_customName))
+        if (_customName==null || _customName.length()<=0)
             return _networkId;
         else
             return _customName;

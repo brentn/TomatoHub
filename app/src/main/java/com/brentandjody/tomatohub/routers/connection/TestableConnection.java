@@ -22,20 +22,20 @@ public abstract class TestableConnection implements IConnection {
     public abstract void onSpeedTestComplete(boolean success);
     public float getLastTestedSpeed() {return mSpeed;}
 
-    public void listenForBytes(int port) {
+    public void listen(int port) {
         Log.d(TAG, "Listening for bytes to be sent on port "+port);
         mByteListener = new ByteListener();
         mByteListener.execute(port);
     }
 
-    public void stopListeningForBytes() {
+    public void stopListening() {
         Log.d(TAG, "Stop listening");
         if (mByteListener !=null) mByteListener.cancel(true);
     };
 
     @Override
     public void disconnect() {
-        stopListeningForBytes();
+        stopListening();
     }
 
     private class ByteListener extends AsyncTask<Integer, Void, Void> {

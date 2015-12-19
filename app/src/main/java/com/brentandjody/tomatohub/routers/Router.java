@@ -34,6 +34,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     protected String mUser;
     protected String mPassword;
     private TestableConnection mConnection;
+    private Boolean mTestFileSent =null;
 
     public Router(Context activity) {
         try {
@@ -106,12 +107,14 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public void wifiSpeedTest(int port) {
         Log.d(TAG, "performing wifiSpeedTest");
         try {
+            mTestFileSent =null;
             WifiManager wifi = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
             String myIp = intToIp(wifi.getConnectionInfo().getIpAddress());
-            mConnection.listenForBytes(port);
-            mConnection.execute("dd if=/dev/zero bs=1K count=1K | nc "+myIp+" "+port );
+            mConnection.listen(port);
+            String[] output = (mConnection.execute("dd if=/dev/zero bs=1K count=1K | nc "+myIp+" "+port +"; echo $?"));
+            mTestFileSent = output[output.length-1].equals("0"); //grab the last line of the output only
         } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
+            Log.e(TAG, "wifiSpeedTest: "+ex.getMessage());
         }
     }
 
@@ -123,7 +126,16 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
                     mListener.onRouterActivityComplete(ACTIVITY_CONNECTED, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
                     break;
                 case IConnection.ACTION_SPEED_TEST:
-                    mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, success ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
+                    while (mTestFileSent==null) {
+                        Thread.sleep(10);
+                    }
+                    if (!mTestFileSent) {
+                        Log.w(TAG, "Test file not sent successfully from router");
+                    }
+                    if (!success) {
+                        Log.w(TAG, "Test file not received successfully from router");
+                    }
+                    mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, (success && mTestFileSent) ? ACTIVITY_STATUS_SUCCESS : ACTIVITY_STATUS_FAILURE);
                     break;
             }
         } catch (Exception ex) {
