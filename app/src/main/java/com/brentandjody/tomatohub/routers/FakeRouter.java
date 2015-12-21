@@ -96,7 +96,7 @@ public class FakeRouter extends Router {
     @Override
     public String[] getNetworkIds() {
         if (mNetworkIds==null) {
-            final int MAX_NETWORKS = 6;
+            final int MAX_NETWORKS = 3;
             int num_networks = rnd.nextInt(MAX_NETWORKS - 1) + 1;
             String[] result = new String[num_networks];
             for (int i = 0; i < num_networks; i++) {
@@ -191,6 +191,11 @@ public class FakeRouter extends Router {
                 mListener.onRouterActivityComplete(ACTIVITY_WIFI_SPEED_TEST, ACTIVITY_STATUS_SUCCESS);
             }
         }, 1500);
+    }
+
+    @Override
+    public float getConnectionSpeed() {
+        return rnd.nextFloat()*54;
     }
 
     private void setupFakeDevices() {
