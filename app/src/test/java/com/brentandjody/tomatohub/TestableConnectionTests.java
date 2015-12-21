@@ -1,32 +1,36 @@
 package com.brentandjody.tomatohub;
 
+import android.os.Handler;
+import android.test.InstrumentationTestCase;
+import android.util.Log;
+
 import com.brentandjody.tomatohub.routers.connection.TestableConnection;
 
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.Socket;
-
-import static org.junit.Assert.*;
 
 /**
  * To work on unit tests, switch the Test Artifact in the Build Variants view.
  */
-public class TestableConnectionTests {
+public class TestableConnectionTests extends InstrumentationTestCase {
 
     @Test
     public void listen_sets_up_listener() {
-        int PORT=4902;
-        Connection connection = new Connection();
-        connection.listen(PORT);
+        final int PORT = 8989;
         try {
-            Thread.sleep(1000);
-            Socket socket = new Socket("127.0.0.1", PORT);
-        } catch (IOException ex) {
+            runTestOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Connection connection = new Connection();
+                    connection.listen(PORT);
+                    System.out.println("TEST");
+                    assertTrue(true);
+                }
+            });
+        } catch (Throwable ex) {
             throw new AssertionError(ex.getMessage());
-        } catch (InterruptedException ex) {
-
         }
     }
 
@@ -48,10 +52,17 @@ public class TestableConnectionTests {
 }
 
 class Connection extends TestableConnection {
+    boolean _complete;
+
+    public Connection() {
+        _complete =false;
+    }
+
+    public boolean is_complete() {return _complete; }
 
     @Override
     public void onSpeedTestComplete(boolean success) {
-
+        _complete =true;
     }
 
     @Override
@@ -64,8 +75,7 @@ class Connection extends TestableConnection {
         return new String[0];
     }
 
-    @Override
-    public void executeInBackground(String command) {
 
-    }
+
+
 }

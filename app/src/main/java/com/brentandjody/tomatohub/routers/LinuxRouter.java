@@ -218,6 +218,9 @@ public class LinuxRouter extends Router {
         new InternetDownloader().execute();
     }
 
+    @Override
+    public void prioritize(String ip, long until) {} //must implement in specific firmware types
+
     protected String[] grep(String[] lines, String pattern) {
         // will not return null
         if (lines==null || lines.length==0) return new String[0];
@@ -233,7 +236,7 @@ public class LinuxRouter extends Router {
         }
     }
 
-    private class Initializer extends AsyncTask<Void, Void, Void> {
+    protected class Initializer extends AsyncTask<Void, Void, Void> {
         // Initialize Caches
         boolean success;
 

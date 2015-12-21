@@ -32,6 +32,16 @@
         <item>ssh</item>
         <item>telnet</item>
     </string-array>
+    <string-array name="prioritize_times">
+        <item>20 minites</item>
+        <item>2 hours</item>
+        <item>1 day</item>
+    </string-array>
+    <string-array name="prioritize_times_values">
+        <item>1200000</item>
+        <item>7200000</item>
+        <item>86400000</item>
+    </string-array>
 
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
@@ -139,4 +149,6 @@
     <string name="low_memory">Unable to test, low memory</string>
     <string name="running_in_demo_mode">DEMO mode.  Set router type in settings.</string>
     <string name="wifi_not_enabled">WiFi not enabled</string>
+    <string name="prioritize_device">Prioritize Device</string>
+    <string name="prioritize_device_time">Length of time to prioritize device for:</string>
 </resources>

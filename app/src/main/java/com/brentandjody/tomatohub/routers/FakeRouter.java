@@ -34,6 +34,8 @@ public class FakeRouter extends Router {
 
     @Override
     public void disconnect() { }
+    @Override
+    public void prioritize(String ip, long until) {}
 
     @Override
     public String[] command(String command) {
@@ -58,6 +60,7 @@ public class FakeRouter extends Router {
         Log.d(TAG, "Boot time:"+result);
         return result;
     }
+
 
     @Override
     public String getExternalIP() { return "8.8.8.7"; }

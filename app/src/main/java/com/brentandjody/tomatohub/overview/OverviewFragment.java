@@ -31,7 +31,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +53,7 @@ public class OverviewFragment extends Fragment {
     public static final int SIGNAL_REFRESH = 2;
     public static final int SIGNAL_BLOCK = 3;
     public static final int SIGNAL_UNBLOCK = 4;
+    public static final int SIGNAL_PRIORITIZE = 5;
     
     private static final String TAG = OverviewFragment.class.getName();
     private OnSignalListener mListener;
@@ -158,11 +161,10 @@ public class OverviewFragment extends Fragment {
     }
     public void showRouter(boolean visible) {
         mView.findViewById(R.id.router).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
+        mView.findViewById(R.id.router_label).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
         mView.findViewById(R.id.router_l).setVisibility(visible?View.VISIBLE:View.INVISIBLE);
-        if (visible) {
-            addNetworkLabel(mView.findViewById(R.id.router), getString(R.string.router));
-        } else {
-            mView.findViewsWithText(mNetworkLabels, getString(R.string.router), 0);
+        if (! visible) {
+            hideAllNetworkIcons();
         }
     }
 
@@ -305,7 +307,26 @@ public class OverviewFragment extends Fragment {
                             alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
+                                    final Context context = getActivity();
+                                    View view = LayoutInflater.from(context).inflate(R.layout.dialog_time_selector, null, false);
+                                    RadioGroup timePicker = (RadioGroup)view.findViewById(R.id.time_choice);
+                                    for (int i=0; i<timePicker.getChildCount(); i++) {
+                                        final int index = i;
+                                        timePicker.getChildAt(i).setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                String milliseconds = context.getResources().getStringArray(R.array.prioritize_times_values)[index];
+                                                mListener.onSignal(SIGNAL_PRIORITIZE, device.lastIP()+":"+milliseconds);
+                                                Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                    new AlertDialog.Builder(context)
+                                            .setTitle(context.getString(R.string.prioritize_device))
+                                            .setMessage(context.getString(R.string.prioritize_device_time))
+                                            .setView(view)
+                                            .setNegativeButton("Cancel", null)
+                                            .show();
                                 }
                             });
                         }

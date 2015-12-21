@@ -95,6 +95,18 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             }
+            case OverviewFragment.SIGNAL_PRIORITIZE: {
+                if (parameter!=null && parameter.contains(":")) {
+                    String[] fields = parameter.split(":");
+                    String ip = fields[0];
+                    try {
+                        long until = System.currentTimeMillis() + Long.parseLong(fields[1]);
+                        mRouter.prioritize(ip, until);
+                    } catch (Exception ex) {
+                        Log.e(TAG, "couldn't parse time value");
+                    }
+                }
+            }
         }
     }
 

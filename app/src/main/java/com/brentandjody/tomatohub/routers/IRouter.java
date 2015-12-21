@@ -33,4 +33,5 @@ interface IRouter {
     float getConnectionSpeed();
     void internetSpeedTest();
     boolean isQOSEnabled();
+    void prioritize(String ip, long until);
 }

@@ -9,6 +9,7 @@ import com.brentandjody.tomatohub.database.Networks;
 
 /**
  * Created by brentn on 11/12/15.
+ * Implenet DD-wrt router firmware
  */
 public class DDWrtRouter extends LinuxRouter {
     private static final String TAG = DDWrtRouter.class.getName();
@@ -22,17 +23,19 @@ public class DDWrtRouter extends LinuxRouter {
     @Override
     public boolean isQOSEnabled() {
         // returns true only if wshaper is enabled, and uplink/downlink values have been set
-        if (mQOS==null) {
-            mQOS = true;
-            if (grep(cacheNVRam, "wshaper_enable=1").length == 0)
-                mQOS = false;
-            String[] uplink = grep(cacheNVRam, "wshaper_uplink=");
-            if (uplink.length == 0 || uplink[0].equals("wshaper_uplink=") || uplink[0].equals("wshaper_uplink=0"))
-                mQOS = false;
-            String[] downlink = grep(cacheNVRam, "wshaper_downlink=");
-            if (downlink.length == 0 || downlink[0].equals("wshaper_downlink=") || downlink[0].equals("wshaper_downlink=0"))
-                mQOS = false;
-        }
-        return mQOS;
+        return false;
+//        if (mQOS==null) {
+//            mQOS = true;
+//            if (grep(cacheNVRam, "wshaper_enable=1").length == 0)
+//                mQOS = false;
+//            String[] uplink = grep(cacheNVRam, "wshaper_uplink=");
+//            if (uplink.length == 0 || uplink[0].equals("wshaper_uplink=") || uplink[0].equals("wshaper_uplink=0"))
+//                mQOS = false;
+//            String[] downlink = grep(cacheNVRam, "wshaper_downlink=");
+//            if (downlink.length == 0 || downlink[0].equals("wshaper_downlink=") || downlink[0].equals("wshaper_downlink=0"))
+//                mQOS = false;
+//        }
+//        return mQOS;
     }
+
 }
