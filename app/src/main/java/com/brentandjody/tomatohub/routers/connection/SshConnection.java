@@ -9,7 +9,11 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,10 +74,35 @@ public class SshConnection extends TestableConnection  implements TestableConnec
         if (mSession!=null) {
             try {
                 Channel channel = mSession.openChannel("exec");
+
+//                ((ChannelExec) channel).setCommand("$1");
+//                InputStream in = channel.getInputStream();
+//                OutputStream out = channel.getOutputStream();
+//                StringBuilder sb = new StringBuilder();
+//                channel.connect();
+//                out.write(command.getBytes());
+//                out.flush();
+//                byte[] buffer = new byte[1024];
+//                while(true){
+//                    while(in.available()>0){
+//                        int i=in.read(buffer, 0, 1024);
+//                        if(i<0)break;
+//                        sb.append(new String(buffer, 0, i));
+//                        System.out.print(new String(buffer, 0, i));
+//                    }
+//                    if(channel.isClosed()){
+//                        System.out.println("exit-status: "+channel.getExitStatus());
+//                        break;
+//                    }
+//                    try{Thread.sleep(10);}catch(Exception ee){}
+//                }
+
                 ((ChannelExec) channel).setCommand(command);
                 ByteArrayOutputStream sb = new ByteArrayOutputStream();
                 channel.setOutputStream(sb);
                 channel.connect();
+                sb.write(command.getBytes());
+                sb.flush();
                 while (!channel.isClosed()) {
                     Thread.sleep(10);
                 }
@@ -120,6 +149,7 @@ public class SshConnection extends TestableConnection  implements TestableConnec
                 mSession = ssh.getSession(mUser, mIpAddress, 22);
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
+                mSession.setServerAliveInterval(3000);
                 mSession.connect(10000);
                 success=true;
             } catch (Exception ex) {

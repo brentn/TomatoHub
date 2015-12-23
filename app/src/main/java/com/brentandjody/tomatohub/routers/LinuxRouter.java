@@ -1,8 +1,10 @@
 package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
@@ -12,6 +14,7 @@ import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +26,7 @@ import java.util.regex.Pattern;
 public class LinuxRouter extends Router {
 
     private static final String TAG = LinuxRouter.class.getName();
+    protected static final String PREFIX = "wrtHub";
 
     private Devices mDevicesDB = null;
     private Networks mNetworksDB = null;
@@ -39,6 +43,7 @@ public class LinuxRouter extends Router {
     private String[] cacheWf;
     private String[] cacheMotd;
     private String[] cacheIptables;
+    protected String[] cacheCrond;
     private List<AsyncTask> mRunningTasks;
 
     public LinuxRouter(Context context, Devices devices, Networks networks) {
@@ -66,6 +71,7 @@ public class LinuxRouter extends Router {
         cacheWf=null;
         cacheMotd=null;
         cacheIptables=null;
+        cacheCrond=null;
         new Initializer().execute();
     }
 
@@ -219,8 +225,49 @@ public class LinuxRouter extends Router {
     }
 
     @Override
-    public void prioritize(String ip, long until) {} //must implement in specific firmware types
+    public void prioritize(String ip, long until) {
+        try {
+            SharedPreferences prefs = mContext.getSharedPreferences(mContext.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
+            if (prefs.getBoolean(mContext.getString(R.string.pref_key_allow_changes), false)) {
+                Calendar timeToRevert = Calendar.getInstance();
+                timeToRevert.setTimeInMillis(until);
+                String time = timeToRevert.get(Calendar.HOUR)+":"+String.format("%02d", timeToRevert.get(Calendar.MINUTE));
+                Log.d(TAG, "Prioritizing "+ip+" until "+time);
+                if (addQOSRule(ip)) {
+                    scheduleUndoQOSRule(ip, timeToRevert);
+                }
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "prioritize: "+ex.getMessage());
+        }
+    }
 
+    protected boolean addQOSRule(String ip) {
+        Toast.makeText(mContext, R.string.prioritize_not_implemented_for_router_type, Toast.LENGTH_SHORT);
+        return false;
+    }
+
+    protected void scheduleUndoQOSRule(String ip, Calendar timeToRevert) {}
+
+    @Override
+    public long isPrioritizedUntil(String ip) {
+        String[] lines = grep(cacheCrond, PREFIX+ip);
+        if (lines.length==0) return Device.NOT_PRIORITIZED;
+        String[] fields = lines[0].split(" ");
+        try {
+            Calendar timeToRevert = Calendar.getInstance();
+            int year = Integer.parseInt(fields[5]);
+            int month = Integer.parseInt(fields[3])-1; //zero based
+            int day = Integer.parseInt(fields[2]);
+            int hour = Integer.parseInt(fields[1]);
+            int minute = Integer.parseInt(fields[0]);
+            timeToRevert.set(year, month, day, hour, minute);
+            return timeToRevert.getTimeInMillis();
+        } catch (Exception ex) {
+            Log.e(TAG, "isPrioritizedUntil() "+ex.getMessage());
+            return Device.NOT_PRIORITIZED;
+        }
+    }
     protected String[] grep(String[] lines, String pattern) {
         // will not return null
         if (lines==null || lines.length==0) return new String[0];
@@ -255,6 +302,7 @@ public class LinuxRouter extends Router {
                 cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
                 cacheMotd = command("cat /etc/motd");
                 cacheIptables = command("iptables -t filter -nL");
+                cacheCrond = new String[0];
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
                 catch (Exception ex){mBootTime = -1;}
                 refreshLoadAverages();

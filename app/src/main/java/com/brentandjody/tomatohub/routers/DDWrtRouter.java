@@ -1,11 +1,11 @@
 package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
-import android.util.Log;
 
-import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
+
+import java.util.Calendar;
 
 /**
  * Created by brentn on 11/12/15.
@@ -21,12 +21,16 @@ public class DDWrtRouter extends LinuxRouter {
     }
 
     @Override
+    public void initialize() {
+        super.initialize();
+        refreshCronCache();
+    }
+
+    @Override
     public boolean isQOSEnabled() {
         // returns true only if wshaper is enabled, and uplink/downlink values have been set
         if (mQOS==null) {
-            mQOS = true;
-            if (grep(cacheNVRam, "wshaper_enable=1").length == 0)
-                mQOS = false;
+            mQOS = grep(cacheNVRam, "wshaper_enable=1").length != 0;
             String[] uplink = grep(cacheNVRam, "wshaper_uplink=");
             if (uplink.length == 0 || uplink[0].equals("wshaper_uplink=") || uplink[0].equals("wshaper_uplink=0"))
                 mQOS = false;
@@ -37,9 +41,19 @@ public class DDWrtRouter extends LinuxRouter {
         return false;  //TODO: return mQOS when this feature is ready
     }
 
+
     @Override
-    public void prioritize(String ip, long until) {
-        //TODO:Not yet implemented
-        super.prioritize(ip, until);
+    protected boolean addQOSRule(String ip) {
+        return super.addQOSRule(ip);
     }
+
+    @Override
+    protected void scheduleUndoQOSRule(String ip, Calendar timeToRevert) {
+        super.scheduleUndoQOSRule(ip, timeToRevert);
+    }
+
+    private void refreshCronCache() {
+        cacheCrond = command("cat /tmp/crontab/wrtHub");
+    }
+
 }

@@ -152,4 +152,5 @@
     <string name="prioritize_device">Prioritize Device</string>
     <string name="prioritize_device_time">Length of time to prioritize device for:</string>
     <string name="priority_access_until">Priority access until</string>
+    <string name="prioritize_not_implemented_for_router_type">Prioritize is not implemented for this router type</string>
 </resources>
