@@ -10,7 +10,7 @@ import android.util.Log;
 public class Device {
 
     private static final String TAG = Device.class.getName();
-
+    public static final long NOT_PRIORITIZED = -1;
     private static final int SPEED_THRESHOLD = 60; //seconds below which speed won't be updated
 
     private String _router_id;
@@ -21,6 +21,7 @@ public class Device {
     private String _last_network;
     private boolean _active;
     private boolean _blocked;
+    private long _prioritized_until;
     private long _tx_bytes =0;
     private long _rx_bytes=0;
     private long _timestamp=-1; //unix time in seconds
@@ -30,8 +31,9 @@ public class Device {
         _router_id = router_id;
         _mac = mac;
         _name = name;
+        _prioritized_until=NOT_PRIORITIZED;
     }
-    public Device(String router_id, String mac, String last_network, String ip, String name, boolean active, boolean blocked) {
+    public Device(String router_id, String mac, String last_network, String ip, String name, boolean active, boolean blocked, long prioritized_until) {
         _router_id =router_id;
         _mac=mac;
         _last_network=last_network;
@@ -39,6 +41,7 @@ public class Device {
         _name=name;
         _active=active;
         _blocked=blocked;
+        _prioritized_until=prioritized_until;
     }
 
     // Setters
@@ -48,13 +51,15 @@ public class Device {
     public void setCurrentNetwork(String network_name) {_last_network=network_name;}
     public void setActive(boolean active) {_active=active;}
     public void setBlocked(boolean blocked) {_blocked=blocked;}
-    public void setDetails(String name, String custom_name, String network, String ip, boolean active, boolean blocked, long tx, long rx, long timestamp, float last_speed) {
+    public void setPrioritizedUntil(long until) {_prioritized_until=until;}
+    public void setDetails(String name, String custom_name, String network, String ip, boolean active, boolean blocked, long prioritized_until, long tx, long rx, long timestamp, float last_speed) {
         _name=name;
         _custom_name=custom_name;
         _last_network=network;
         _ip=ip;
         _active=active;
         _blocked=blocked;
+        _prioritized_until=prioritized_until;
         _tx_bytes =tx;
         _rx_bytes=rx;
         _timestamp=timestamp;
@@ -98,6 +103,7 @@ public class Device {
         return _active;
     }
     public boolean isBlocked() {return _blocked; }
+    public long prioritizedUntil() {return _prioritized_until;}
     public long txTraffic() {
         return _tx_bytes;
     }

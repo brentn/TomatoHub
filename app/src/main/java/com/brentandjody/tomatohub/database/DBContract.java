@@ -40,6 +40,7 @@ public final class DBContract {
         public static final String COLUMN_TRAFFIC_TIMESTAMP = "timestamp";
         public static final String COLUMN_LAST_SPEED = "last_speed";
         public static final String COLUMN_BLOCKED = "blocked";
+        public static final String COLUMN_PRIORITIZED = "prioritized";
     }
 
 }

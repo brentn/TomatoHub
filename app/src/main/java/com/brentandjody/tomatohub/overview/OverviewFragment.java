@@ -10,15 +10,12 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +30,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +41,7 @@ import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Networks;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class OverviewFragment extends Fragment {
@@ -305,6 +302,7 @@ public class OverviewFragment extends Fragment {
                     if (prefs.getBoolean(context.getString(R.string.pref_key_allow_changes), false)) {
                         if (mQOSEnabled) {
                             alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
+                                AlertDialog popup;
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     final Context context = getActivity();
@@ -317,16 +315,24 @@ public class OverviewFragment extends Fragment {
                                             public void onClick(View v) {
                                                 String milliseconds = context.getResources().getStringArray(R.array.prioritize_times_values)[index];
                                                 mListener.onSignal(SIGNAL_PRIORITIZE, device.lastIP()+":"+milliseconds);
-                                                Toast.makeText(getActivity(), "not yet implemented", Toast.LENGTH_SHORT).show();
+                                                long ms = 0;
+                                                try { ms = Long.parseLong(milliseconds); }
+                                                catch(Exception ex) {}
+                                                device.setPrioritizedUntil(System.currentTimeMillis()+ms);
+                                                mDevices.insertOrUpdate(device);
+                                                ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
+                                                String time = context.getResources().getStringArray(R.array.prioritize_times)[index];
+                                                Toast.makeText(getActivity(), device.lastIP()+" prioritized for "+time, Toast.LENGTH_LONG).show();
+                                                popup.dismiss();
                                             }
                                         });
                                     }
-                                    new AlertDialog.Builder(context)
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(context)
                                             .setTitle(context.getString(R.string.prioritize_device))
                                             .setMessage(context.getString(R.string.prioritize_device_time))
                                             .setView(view)
-                                            .setNegativeButton("Cancel", null)
-                                            .show();
+                                            .setNegativeButton("Cancel", null);
+                                    popup = builder.show();
                                 }
                             });
                         }
@@ -464,10 +470,25 @@ public class OverviewFragment extends Fragment {
                     pbTrafficBar.setProgress(Math.round(device.lastSpeed()/mTotalTraffic*100));
                 else
                     pbTrafficBar.setProgress(0);
+                if (device.prioritizedUntil()==Device.NOT_PRIORITIZED) {
+                    convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
+                } else {
+                    long now = System.currentTimeMillis();
+                    if (device.prioritizedUntil()<now) {
+                        convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
+                    } else {
+                        convertView.findViewById(R.id.priority).setVisibility(View.VISIBLE);
+                        Calendar undoTime = Calendar.getInstance();
+                        undoTime.setTimeInMillis(device.prioritizedUntil());
+                        String time = undoTime.get(Calendar.HOUR)+":"+String.format("%02d",undoTime.get(Calendar.MINUTE));
+                        ((TextView)convertView.findViewById(R.id.until)).setText(time);
+                    }
+                }
             } else {
                 tvName.setTextColor(Color.GRAY);
                 pbTrafficBar.setVisibility(View.GONE);
                 tvTraffic.setText("");
+                convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
             }
             return convertView;
         }

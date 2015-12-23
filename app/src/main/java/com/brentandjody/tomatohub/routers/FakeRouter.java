@@ -9,6 +9,8 @@ import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -26,6 +28,7 @@ public class FakeRouter extends Router {
     private String[] mNetworkIds=null;
     private Devices mDevices;
     private long mTimestamp;
+    private Collection<Priority> priorities =new HashSet<>(30);
 
     public FakeRouter(Context context) {
         super(context);
@@ -35,20 +38,23 @@ public class FakeRouter extends Router {
     @Override
     public void disconnect() { }
     @Override
-    public void prioritize(String ip, long until) {}
+    public void prioritize(String ip, long until) {
+        priorities.add(new Priority(ip, until));
+    }
+
+    @Override
+    public long isPrioritizedUntil(String ip) {
+        for (Priority p : priorities) {
+            if (p._ip.equals(ip))
+                return p._until;
+        }
+        return Device.NOT_PRIORITIZED;
+    }
 
     @Override
     public String[] command(String command) {
         return new String[0];
     }
-
-//    @Override
-//    public float getSpeedTestResult() {
-//        final float MAX_ROUTER_SPEED=54.4F;
-//        float result = rnd.nextFloat()*MAX_ROUTER_SPEED;
-//        Log.d(TAG, "Speed:"+result);
-//        return result;
-//    }
 
 
     @Override
@@ -241,5 +247,14 @@ public class FakeRouter extends Router {
         for( int i = 0; i < len; i++ )
             sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
         return sb.toString();
+    }
+
+    class Priority {
+        String _ip;
+        long _until;
+        public Priority(String ip, long until) {
+            _ip=ip;
+            _until=until;
+        }
     }
 }

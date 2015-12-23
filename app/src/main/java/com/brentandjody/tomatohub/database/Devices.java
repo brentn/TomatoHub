@@ -34,18 +34,21 @@ public class Devices {
             DeviceEntry.COLUMN_TX_BYTES,
             DeviceEntry.COLUMN_RX_BYTES,
             DeviceEntry.COLUMN_LAST_SPEED,
-            DeviceEntry.COLUMN_BLOCKED
+            DeviceEntry.COLUMN_BLOCKED,
+            DeviceEntry.COLUMN_PRIORITIZED
     };
 
     public Devices(Context context){
         mDatabaseHelper = new DatabaseHelper(context);
     }
 
-    public void inactivateAll() {
+    public void resetAll() {
         SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         try {
             ContentValues values = new ContentValues();
             values.put(DeviceEntry.COLUMN_ACTIVE, 0);
+            values.put(DeviceEntry.COLUMN_BLOCKED, 0);
+            values.put(DeviceEntry.COLUMN_PRIORITIZED, Device.NOT_PRIORITIZED);
             db.update(DeviceEntry.TABLE_NAME, values, null, null);
         } finally {
             db.close();
@@ -117,6 +120,7 @@ public class Devices {
             values.put(DeviceEntry.COLUMN_RX_BYTES, device.rxTraffic());
             values.put(DeviceEntry.COLUMN_LAST_SPEED, device.lastSpeed());
             values.put(DeviceEntry.COLUMN_BLOCKED, device.isBlocked());
+            values.put(DeviceEntry.COLUMN_PRIORITIZED, device.prioritizedUntil());
 
             result = db.insertWithOnConflict(DeviceEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         } finally {
@@ -163,6 +167,7 @@ public class Devices {
                 c.getString(c.getColumnIndex(DeviceEntry.COLUMN_LAST_IP)),
                 c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_ACTIVE))==1,
                 c.getInt(c.getColumnIndex(DeviceEntry.COLUMN_BLOCKED))==1,
+                c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_PRIORITIZED)),
                 c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_TX_BYTES)),
                 c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_RX_BYTES)),
                 c.getLong(c.getColumnIndex(DeviceEntry.COLUMN_TRAFFIC_TIMESTAMP)),

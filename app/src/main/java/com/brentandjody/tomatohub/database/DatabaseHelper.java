@@ -10,7 +10,7 @@ import com.brentandjody.tomatohub.database.DBContract.*;
  * Manages database creation and upgrades
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "tomatohub.db";
 
     private static final String CREATE_DEVICES_TABLE =
@@ -27,7 +27,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DeviceEntry.COLUMN_TX_BYTES + " INTEGER," +
                     DeviceEntry.COLUMN_RX_BYTES + " INTEGER," +
                     DeviceEntry.COLUMN_LAST_SPEED + " REAL," +
-                    DeviceEntry.COLUMN_BLOCKED + " INTEGER)";
+                    DeviceEntry.COLUMN_BLOCKED + " INTEGER," +
+                    DeviceEntry.COLUMN_PRIORITIZED + " INTEGER)";
 
     private static final String CREATE_NETWORKS_TABLE =
             "CREATE TABLE " + NetworkEntry.TABLE_NAME + " (" +
@@ -52,6 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         switch (oldVersion) {
             case 1: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_BLOCKED + " INTEGER DEFAULT 0");
+            case 2: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_PRIORITIZED + " INTEGER DEFAULT 0");
         }
     }
 }

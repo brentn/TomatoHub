@@ -21,6 +21,7 @@ public class ObjectIntegrityTest {
         String ROUTERID = "RouterID";
         String MAC = "MacAddress";
         String NAME = "DeviceName";
+        long UNTIL = 209384092;
         Device device = new Device(ROUTERID, MAC, NAME);
         assertTrue(device.router_id().equals(ROUTERID));
         assertTrue(device.mac().equals(MAC));
@@ -30,7 +31,7 @@ public class ObjectIntegrityTest {
         String IP = "20.20.200.1";
         boolean ACTIVE = true;
         boolean BLOCKED = false;
-        device = new Device(ROUTERID, MAC, NETWORK, IP, NAME, ACTIVE, BLOCKED);
+        device = new Device(ROUTERID, MAC, NETWORK, IP, NAME, ACTIVE, BLOCKED, UNTIL);
         assertTrue(device.router_id().equals(ROUTERID));
         assertTrue(device.mac().equals(MAC));
         assertTrue(device.originalName().equals(NAME));
@@ -38,6 +39,7 @@ public class ObjectIntegrityTest {
         assertTrue(device.lastIP().equals(IP));
         assertTrue(device.isActive() == ACTIVE);
         assertTrue(device.isBlocked() == BLOCKED);
+        assertTrue(device.prioritizedUntil() == UNTIL);
     }
 
     @Test
@@ -67,6 +69,7 @@ public class ObjectIntegrityTest {
     public void device_getters_and_setters() {
         String IP = "123.123.123.213";
         String NETWORK = "abc";
+        long UNTIL = 2093280;
         Device device = new Device("", "", "");
         device.setCurrentIP(IP);
         assertTrue(device.lastIP().equals(IP));
@@ -80,6 +83,9 @@ public class ObjectIntegrityTest {
         assertTrue(device.isBlocked() == false);
         device.setBlocked(true);
         assertTrue(device.isBlocked() == true);
+        assertTrue(device.prioritizedUntil() == Device.NOT_PRIORITIZED);
+        device.setPrioritizedUntil(UNTIL);
+        assertEquals(device.prioritizedUntil(), UNTIL);
     }
 
     @Test

@@ -6,27 +6,68 @@
     android:id="@+id/device_item"
     android:background="#daffffff">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/device_area"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true">
+        android:id="@+id/device_area">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:id="@+id/device_name" />
+            android:id="@+id/device_name"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:id="@+id/device_ip"
-            android:textColor="#757575" />
-    </LinearLayout>
+            android:textColor="#757575"
+            android:text="0.0.0.0"
+            android:layout_below="@+id/device_name" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/priority"
+            android:visibility="visible"
+            android:background="#169e26"
+            android:layout_marginLeft="12dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:paddingLeft="6dp"
+            android:paddingTop="2dp"
+            android:paddingRight="6dp"
+            android:paddingBottom="4dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="Priority access until"
+                android:id="@+id/priority_until"
+                android:layout_toRightOf="@+id/device_area"
+                android:layout_alignBottom="@+id/device_area"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/until"
+                android:layout_toRightOf="@+id/device_area"
+                android:layout_alignBottom="@+id/device_area"
+                android:textColor="#ffffff"
+                android:layout_marginLeft="4dp"
+                android:textStyle="bold"
+                android:text="00:00" />
+        </LinearLayout>
+    </RelativeLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -35,7 +76,7 @@
         android:id="@+id/device_traffic"
         android:layout_alignParentTop="false"
         android:layout_alignParentRight="true"
-        android:layout_centerVertical="true" />
+        android:layout_alignBottom="@+id/device_area" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"

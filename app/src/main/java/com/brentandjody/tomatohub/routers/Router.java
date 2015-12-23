@@ -6,6 +6,7 @@ import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.R;
+import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.routers.connection.IConnection;
 import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
@@ -116,6 +117,11 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         } catch (Exception ex) {
             Log.e(TAG, "wifiSpeedTest: "+ex.getMessage());
         }
+    }
+
+    @Override
+    public long isPrioritizedUntil(String ip) {
+        return Device.NOT_PRIORITIZED;
     }
 
     @Override

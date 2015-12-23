@@ -290,7 +290,7 @@ public class LinuxRouter extends Router {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                mDevicesDB.inactivateAll();
+                mDevicesDB.resetAll();
                 cacheIptables = command("iptables -t filter -nL");
                 for (String network : getNetworkIds()) {
                     for (String line : grep(cacheArp, network)) {
@@ -305,6 +305,7 @@ public class LinuxRouter extends Router {
                             device.setCurrentIP(ip);
                             device.setActive(true);
                             device.setBlocked(grep(cacheIptables, mac).length > 0);
+                            device.setPrioritizedUntil(isPrioritizedUntil(ip));
                             mDevicesDB.insertOrUpdate(device);
                         }
                     }
