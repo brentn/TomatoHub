@@ -313,17 +313,17 @@ public class OverviewFragment extends Fragment {
                                         timePicker.getChildAt(i).setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
+                                                // give feedback
+                                                popup.dismiss();
+                                                String time = context.getResources().getStringArray(R.array.prioritize_times)[index];
+                                                Toast.makeText(getActivity(), "Prioritizing "+device.lastIP()+" for "+time, Toast.LENGTH_LONG).show();
+                                                //
                                                 String milliseconds = context.getResources().getStringArray(R.array.prioritize_times_values)[index];
-                                                mListener.onSignal(SIGNAL_PRIORITIZE, device.lastIP()+":"+milliseconds);
-                                                long ms = 0;
-                                                try { ms = Long.parseLong(milliseconds); }
-                                                catch(Exception ex) {}
+                                                long ms = 0; try { ms = Long.parseLong(milliseconds); } catch(Exception ex) {}
                                                 device.setPrioritizedUntil(System.currentTimeMillis()+ms);
                                                 mDevices.insertOrUpdate(device);
                                                 ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
-                                                String time = context.getResources().getStringArray(R.array.prioritize_times)[index];
-                                                Toast.makeText(getActivity(), device.lastIP()+" prioritized for "+time, Toast.LENGTH_LONG).show();
-                                                popup.dismiss();
+                                                mListener.onSignal(SIGNAL_PRIORITIZE, device.lastIP()+":"+milliseconds);
                                             }
                                         });
                                     }
@@ -473,7 +473,7 @@ public class OverviewFragment extends Fragment {
                 if (device.prioritizedUntil()==Device.NOT_PRIORITIZED) {
                     convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
                 } else {
-                    long now = System.currentTimeMillis();
+                    long now = System.currentTimeMillis()/1000;
                     if (device.prioritizedUntil()<now) {
                         convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
                     } else {

@@ -42,8 +42,8 @@ public class TomatoRouter extends LinuxRouter {
 
     @Override
     public void initialize() {
-        super.initialize();
         refreshCronCache();
+        super.initialize();
     }
 
     @Override
@@ -77,24 +77,15 @@ public class TomatoRouter extends LinuxRouter {
                 Log.e(TAG, "Error in original rule string: " + ex.getMessage());
                 return false;
             }
-            rules.add(outgoingRule(ip));
-            rules.add(incomingRule(ip));
-            String new_orules = TextUtils.join(">", rules);
-            if (!new_orules.contains(qos_orules)) {
-                Log.e(TAG, "Error in new rule string");
-                return false;
-            }
-            String[] result = command("nvram set qos_orules=\"" + new_orules + "\"; echo $?");
-            Log.i(TAG, Arrays.toString(result));
+            // add new rules
+            //TODO: prevent adding duplicate rule
+            String[] result = command("nvram set qos_orules=\"`nvram get qos_orules`>"+incomingRule(ip)+">"+outgoingRule(ip)+"\"; echo $?");
             if (result[result.length - 1].equals("0")) {
-                if (result[result.length - 1].equals("0")) {
-                    result = command("service qos restart; echo $0");
-                    if (result[result.length - 1].equals("0")) {
-                        new Initializer().execute(); //re-read nvram, etc.
-                        Log.i(TAG, "nvram successfully updated with new rules");
-                        return true;
-                    }
-                }
+                cacheCrond = command("cru l");
+                cacheNVRam = command("nvram show");
+                runInBackground("service qos restart; echo $?");
+                Log.i(TAG, "nvram successfully updated with new rules");
+                return true;
             }
             Log.e(TAG, "ERROR SETTING NVRAM QOS_ORULES");
         } catch (Exception ex) {
@@ -107,9 +98,7 @@ public class TomatoRouter extends LinuxRouter {
     protected void scheduleUndoQOSRule(String ip, Calendar when) {
         final String DELETE_SELF = ";cru d "+PREFIX+ip;
         try {
-            String undo = "x=`nvram get qos_orules`;y=`echo ${x/>" + incomingRule(ip) + "/}`;" +
-                    "z=`echo ${y/>" + outgoingRule(ip) + "/}`;nvram set qos_orules=$z;" +
-                    "service qos restart";
+            String undo = "/bin/nvram set qos_orules=\\\"\\`/bin/nvram get qos_orules|sed 's|>"+incomingRule(ip)+"||'|sed 's|>"+outgoingRule(ip)+"||'\\`\\\"; service qos restart";
             if (when.before(new Date())) return;
             Log.d(TAG, "Scheduling prioritization of " + ip + " to end at " + when);
             int min = when.get(Calendar.MINUTE);
@@ -121,7 +110,7 @@ public class TomatoRouter extends LinuxRouter {
             Log.w(TAG, "schedule: " + output[0]);
             output = command("cru a " + PREFIX + ip + " \"" + min + " " + hour + " " + day + " " + month + " * " + year + " " + undo + DELETE_SELF + "\"");
             Log.w(TAG, "schedule: " + output[0]);
-            command("service crond restart");
+            runInBackground("service crond restart");
             refreshCronCache();
         } catch (Exception ex) {
             Log.e(TAG, "scheduleNewQOSRule() "+ex.getMessage());

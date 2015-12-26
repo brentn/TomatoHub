@@ -74,34 +74,10 @@ public class SshConnection extends TestableConnection  implements TestableConnec
         if (mSession!=null) {
             try {
                 Channel channel = mSession.openChannel("exec");
-
-//                ((ChannelExec) channel).setCommand("$1");
-//                InputStream in = channel.getInputStream();
-//                OutputStream out = channel.getOutputStream();
-//                StringBuilder sb = new StringBuilder();
-//                channel.connect();
-//                out.write(command.getBytes());
-//                out.flush();
-//                byte[] buffer = new byte[1024];
-//                while(true){
-//                    while(in.available()>0){
-//                        int i=in.read(buffer, 0, 1024);
-//                        if(i<0)break;
-//                        sb.append(new String(buffer, 0, i));
-//                        System.out.print(new String(buffer, 0, i));
-//                    }
-//                    if(channel.isClosed()){
-//                        System.out.println("exit-status: "+channel.getExitStatus());
-//                        break;
-//                    }
-//                    try{Thread.sleep(10);}catch(Exception ee){}
-//                }
-
                 ((ChannelExec) channel).setCommand(command);
                 ByteArrayOutputStream sb = new ByteArrayOutputStream();
                 channel.setOutputStream(sb);
                 channel.connect();
-                sb.write(command.getBytes());
                 sb.flush();
                 while (!channel.isClosed()) {
                     Thread.sleep(10);

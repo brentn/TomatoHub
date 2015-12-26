@@ -49,6 +49,7 @@ public class LinuxRouter extends Router {
     public LinuxRouter(Context context, Devices devices, Networks networks) {
         super(context);
         mRunningTasks = new ArrayList<>();
+        cacheCrond=null;
         mDevicesDB=devices;
         mNetworksDB=networks;
     }
@@ -71,7 +72,6 @@ public class LinuxRouter extends Router {
         cacheWf=null;
         cacheMotd=null;
         cacheIptables=null;
-        cacheCrond=null;
         new Initializer().execute();
     }
 
@@ -302,7 +302,6 @@ public class LinuxRouter extends Router {
                 cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
                 cacheMotd = command("cat /etc/motd");
                 cacheIptables = command("iptables -t filter -nL");
-                cacheCrond = new String[0];
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
                 catch (Exception ex){mBootTime = -1;}
                 refreshLoadAverages();

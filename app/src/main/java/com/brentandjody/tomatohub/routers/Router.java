@@ -3,6 +3,7 @@ package com.brentandjody.tomatohub.routers;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.brentandjody.tomatohub.R;
@@ -11,6 +12,8 @@ import com.brentandjody.tomatohub.routers.connection.IConnection;
 import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
 import com.brentandjody.tomatohub.routers.connection.TestableConnection;
+
+import java.util.Arrays;
 
 /**
  * Created by brent on 28/11/15.
@@ -105,6 +108,12 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     }
 
     @Override
+    public void runInBackground(String command) {
+        Log.d(TAG, "executing command in background: "+command);
+        new BackgroundRunner().execute(command);
+    }
+
+    @Override
     public void wifiSpeedTest(int port) {
         Log.d(TAG, "performing wifiSpeedTest");
         try {
@@ -159,6 +168,15 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
                 ((i >> 8 ) & 0xFF) + "." +
                 ((i >> 16 ) & 0xFF) + "." +
                 ( (i >> 24 ) & 0xFF) ;
+    }
+
+    class BackgroundRunner extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... command) {
+            String[] output =  mConnection.execute(command[0]);
+            Log.d(TAG, "runInBackground result: "+ Arrays.toString(output));
+            return null;
+        }
     }
 
 }

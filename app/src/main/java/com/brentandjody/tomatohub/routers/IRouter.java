@@ -13,6 +13,7 @@ interface IRouter {
     void connect();
     void disconnect();
     String[] command(String command);
+    void runInBackground(String command);
 
     // COMMANDS
     void initialize();
