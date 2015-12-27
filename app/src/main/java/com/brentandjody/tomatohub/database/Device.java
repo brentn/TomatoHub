@@ -11,6 +11,7 @@ public class Device {
 
     private static final String TAG = Device.class.getName();
     public static final long NOT_PRIORITIZED = -1;
+    public static final long INDETERMINATE_PRIORITY = -2;
     private static final int SPEED_THRESHOLD = 60; //seconds below which speed won't be updated
 
     private String _router_id;

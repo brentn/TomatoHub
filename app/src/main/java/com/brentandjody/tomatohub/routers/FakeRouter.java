@@ -43,6 +43,15 @@ public class FakeRouter extends Router {
     }
 
     @Override
+    public boolean isPrioritized(String ip) {
+        for (Priority p : priorities) {
+            if (p._ip.equals(ip))
+                return true;
+        }
+        return false;
+    }
+
+    @Override
     public long isPrioritizedUntil(String ip) {
         for (Priority p : priorities) {
             if (p._ip.equals(ip))

@@ -13,6 +13,13 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="2 Mins"
+            android:id="@+id/radioButton"
+            android:paddingRight="10dp" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="20 Mins"
             android:id="@+id/short_time"
             android:paddingRight="10dp" />

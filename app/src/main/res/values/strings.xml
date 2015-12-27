@@ -33,11 +33,13 @@
         <item>telnet</item>
     </string-array>
     <string-array name="prioritize_times">
+        <item>2 mins</item>
         <item>20 minites</item>
         <item>2 hours</item>
         <item>1 day</item>
     </string-array>
     <string-array name="prioritize_times_values">
+        <item>120000</item>
         <item>1200000</item>
         <item>7200000</item>
         <item>86400000</item>

@@ -47,6 +47,10 @@ public class DDWrtRouter extends LinuxRouter {
         return mQOS;
     }
 
+    @Override
+    public boolean isPrioritized(String ip) {
+        return grep(cacheNVRam, ip+"/32 10").length > 0;
+    }
 
     @Override
     protected boolean addQOSRule(String ip) {

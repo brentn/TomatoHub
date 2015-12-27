@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getName();
     private static final int SETTINGS_REQUEST_CODE = 38;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private boolean mSentToSettings=false;
     private boolean mConnecting=false;
     private ViewPager mViewPager;
     private Router mRouter;

@@ -15,7 +15,9 @@ import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -250,24 +252,38 @@ public class LinuxRouter extends Router {
     protected void scheduleUndoQOSRule(String ip, Calendar timeToRevert) {}
 
     @Override
+    public boolean isPrioritized(String ip) {
+        return false;
+    }
+
+    @Override
     public long isPrioritizedUntil(String ip) {
-        String[] lines = grep(cacheCrond, PREFIX+ip);
-        if (lines.length==0) return Device.NOT_PRIORITIZED;
-        String[] fields = lines[0].split(" ");
-        try {
-            Calendar timeToRevert = Calendar.getInstance();
-            int year = Integer.parseInt(fields[5]);
-            int month = Integer.parseInt(fields[3])-1; //zero based
-            int day = Integer.parseInt(fields[2]);
-            int hour = Integer.parseInt(fields[1]);
-            int minute = Integer.parseInt(fields[0]);
-            timeToRevert.set(year, month, day, hour, minute);
-            return timeToRevert.getTimeInMillis();
-        } catch (Exception ex) {
-            Log.e(TAG, "isPrioritizedUntil() "+ex.getMessage());
+        if (isPrioritized(ip)) {
+            String[] undo = grep(cacheCrond, PREFIX+ip);
+            if (undo.length>0) {
+                String[] fields = undo[0].split(" ");
+                if (fields.length > 6) {
+                    Calendar until = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    try {
+                        int month = Integer.parseInt(fields[3]) - 1; //zero based
+                        int day = Integer.parseInt(fields[2]);
+                        int hour = Integer.parseInt(fields[1]);
+                        int mins = Integer.parseInt(fields[0]);
+                        int year = until.get(Calendar.YEAR);
+                        until.set(year, month, day, hour, mins);
+                        return until.getTimeInMillis();
+                    } catch (Exception ex) {
+                        Log.e(TAG, "isPrioritizedUntil() "+ex.getMessage());
+                        return Device.INDETERMINATE_PRIORITY;
+                    }
+                }
+            }
+            return Device.INDETERMINATE_PRIORITY;
+        } else {
             return Device.NOT_PRIORITIZED;
         }
     }
+
     protected String[] grep(String[] lines, String pattern) {
         // will not return null
         if (lines==null || lines.length==0) return new String[0];

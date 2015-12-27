@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.zip.DataFormatException;
 
 /**
@@ -62,6 +63,40 @@ public class TomatoRouter extends LinuxRouter {
     }
 
     @Override
+    public boolean isPrioritized(String ip) {
+        try { return grep(cacheNVRam, incomingRule(ip).toString()).length>0; }
+        catch (Exception ex) {return false;}
+    }
+
+    @Override
+    public long isPrioritizedUntil(String ip) {
+        if (isPrioritized(ip)) {
+            String[] undo = grep(cacheCrond, PREFIX+ip);
+            if (undo.length>0) {
+                String[] fields = undo[0].split(" ");
+                if (fields.length > 6) {
+                    Calendar until = Calendar.getInstance();
+                    try {
+                        int month = Integer.parseInt(fields[3]) - 1; //zero based
+                        int day = Integer.parseInt(fields[2]);
+                        int hour = Integer.parseInt(fields[1]);
+                        int mins = Integer.parseInt(fields[0]);
+                        int year = until.get(Calendar.YEAR);
+                        until.set(year, month, day, hour, mins);
+                        return until.getTimeInMillis();
+                    } catch (Exception ex) {
+                        Log.e(TAG, "isPrioritizedUntil() "+ex.getMessage());
+                        return Device.INDETERMINATE_PRIORITY;
+                    }
+                }
+            }
+            return Device.INDETERMINATE_PRIORITY;
+        } else {
+            return Device.NOT_PRIORITIZED;
+        }
+    }
+
+    @Override
     protected boolean addQOSRule(String ip) {
         try {
             List<QOSRule> rules = new LinkedList<>();
@@ -105,10 +140,9 @@ public class TomatoRouter extends LinuxRouter {
             int hour = when.get(Calendar.HOUR_OF_DAY);
             int day = when.get(Calendar.DAY_OF_MONTH);
             int month = when.get(Calendar.MONTH) + 1;
-            int year = when.get(Calendar.YEAR);
             String[] output = command("cru d " + PREFIX + ip);
             Log.w(TAG, "schedule: " + output[0]);
-            output = command("cru a " + PREFIX + ip + " \"" + min + " " + hour + " " + day + " " + month + " * " + year + " " + undo + DELETE_SELF + "\"");
+            output = command("cru a " + PREFIX + ip + " \"" + min + " " + hour + " " + day + " " + month + " * " + undo + DELETE_SELF + "\"");
             Log.w(TAG, "schedule: " + output[0]);
             runInBackground("service crond restart");
             refreshCronCache();
