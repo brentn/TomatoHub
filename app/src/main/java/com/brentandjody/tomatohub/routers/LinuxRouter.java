@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.annotation.UiThread;
 import android.test.UiThreadTest;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -44,7 +46,6 @@ public class LinuxRouter extends Router {
     protected String[] cacheNVRam;
     private String[] cacheArp;
     private String[] cacheBrctl;
-    private String[] cacheWf;
     private String[] cacheMotd;
     private String[] cacheIptables;
     protected String[] cacheCrond;
@@ -66,7 +67,6 @@ public class LinuxRouter extends Router {
     public String[] getCacheArp() {return cacheArp;}
     public String[] getCacheNVRam() {return cacheNVRam;}
     public String[] getCacheBrctl() {return cacheBrctl;}
-    public String[] getCacheWf() {return cacheWf;}
     public String[] getCacheMotd() {return cacheMotd;}
     public String[] getCacheIptables() {return cacheIptables;}
 
@@ -88,7 +88,6 @@ public class LinuxRouter extends Router {
         cacheArp=null;
         cacheNVRam=null;
         cacheBrctl=null;
-        cacheWf=null;
         cacheMotd=null;
         cacheIptables=null;
         new Initializer().execute();
@@ -171,14 +170,32 @@ public class LinuxRouter extends Router {
     @Override
     public List<Wifi> getWifiList() {
         if (mWifiIds==null) {
+            mWifiIds = new String[0];
+            List<String> wifis = new ArrayList();
             try {
-                mWifiIds = new String[cacheWf.length];
-                Pattern p = Pattern.compile("\"([^\"]*)\"");
-                for (int i = 0; i < cacheWf.length; i++) {
-                    Matcher m = p.matcher(cacheWf[i]);
-                    if (m.find()) mWifiIds[i] = m.group(1);
-                    else mWifiIds[i] = "<unknown>";
+                for (String wireless : grep(cacheNVRam, "net_mode=")) {
+                    if (! wireless.contains("disabled")) {
+                        String prefix = wireless.substring(0, wireless.indexOf("_"));
+                        if (grep(cacheNVRam, prefix+"_radio=1").length>0) {
+                            List<String> interfaces = new ArrayList();
+                            interfaces.add(prefix);
+                            for (String key : grep(cacheNVRam, prefix + "_vifs=")) {
+                                if (! key.endsWith("="))
+                                    for (String iface : key.split("=")[1].split(" ")) {
+                                        interfaces.add(iface);
+                                    }
+                            }
+                            for (String iface : interfaces) {
+                                for (String key : grep(cacheNVRam, iface + "_ssid=")) {
+                                    String ssid = key.split("=")[1];
+                                    if (! grep(cacheNVRam, iface+"_hwaddr=")[0].endsWith("="))
+                                        if (! wifis.contains(ssid)) wifis.add(ssid);
+                                }
+                            }
+                        }
+                    }
                 }
+                mWifiIds = wifis.toArray(new String[wifis.size()]);
             } catch (Exception ex) {
                 Log.e(TAG, "getWifiList():"+ex.getMessage());
             }
@@ -309,7 +326,6 @@ public class LinuxRouter extends Router {
                 cacheNVRam = command("nvram show");
                 cacheArp = command("arp");
                 cacheBrctl = command("brctl show");
-                cacheWf = command("for x in 0 1 2 3 4 5 6 7; do wl ssid -C $x 2>/dev/null; done");
                 cacheMotd = command("cat /etc/motd");
                 cacheIptables = command("iptables -t filter -nL");
                 try {mBootTime = Long.parseLong(command("cat /proc/stat | grep btime | awk '{ print $2 }'")[0]); }
