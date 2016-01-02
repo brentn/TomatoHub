@@ -13,6 +13,7 @@ import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
 import com.brentandjody.tomatohub.routers.connection.TestableConnection;
 
+import java.sql.Connection;
 import java.util.Arrays;
 
 /**
@@ -41,13 +42,13 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     private Boolean mTestFileSent =null;
 
     public Router(Context activity) {
+        if (activity instanceof OnRouterActivityCompleteListener) {
+            mListener = (OnRouterActivityCompleteListener) activity;
+        } else {
+            throw new RuntimeException(activity.toString()
+                    + " must implement OnRouterActivityCompleteListener");
+        }
         try {
-            if (activity instanceof OnRouterActivityCompleteListener) {
-                mListener = (OnRouterActivityCompleteListener) activity;
-            } else {
-                throw new RuntimeException(activity.toString()
-                        + " must implement OnRouterActivityCompleteListener");
-            }
             mContext = activity;
             mPrefs = activity.getSharedPreferences(activity.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
             mIpAddress = mPrefs.getString(activity.getString(R.string.pref_key_ip_address), "0.0.0.0");
@@ -69,6 +70,13 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
             Log.e(TAG, "constructor error: "+ex.getMessage());
         }
     }
+
+    public String getmIpAddress() {return mIpAddress;}
+    public String getmUser() {return mUser;}
+    public String getmPassword() {return mPassword;}
+    public TestableConnection getmConnection() {return mConnection;}
+
+    public void setmConnection(TestableConnection connection) {mConnection=connection;}
 
     public void connect() {
         Log.d(TAG, "Attempting to connect to: "+mIpAddress+" as: "+mUser);
@@ -174,7 +182,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         @Override
         protected Void doInBackground(String... command) {
             String[] output =  mConnection.execute(command[0]);
-            Log.d(TAG, "runInBackground result: "+ Arrays.toString(output));
+            Log.v(TAG, "runInBackground command: "+command[0] + "  result: "+ Arrays.toString(output));
             return null;
         }
     }

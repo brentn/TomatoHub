@@ -1,15 +1,23 @@
 package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
+import com.brentandjody.tomatohub.database.Wifi;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by brentn on 11/12/15.
@@ -17,8 +25,8 @@ import java.util.TimeZone;
  */
 public class DDWrtRouter extends LinuxRouter {
     private static final String TAG = DDWrtRouter.class.getName();
-    private static final String CRONFILE = "/tmp/cron.d/wrtHub";
 
+    private int timezone_adjust;
     private Boolean mQOS=null;
 
     public DDWrtRouter(Context context, Devices devices, Networks networks) {
@@ -27,9 +35,46 @@ public class DDWrtRouter extends LinuxRouter {
 
     @Override
     public void initialize() {
-        command("touch "+CRONFILE);
         refreshCronCache();
         super.initialize();
+    }
+
+    @Override
+    public void updateDevices() {
+        try {
+            String time_zone = grep(cacheNVRam, "time_zone")[0].split("=")[1];
+            timezone_adjust = Integer.parseInt(time_zone)*60*60*1000; //adjust utc for time zone
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage());
+            timezone_adjust=0;
+        }
+        super.updateDevices();
+    }
+
+    @Override
+    public List<Wifi> getWifiList() {
+        super.getWifiList();
+        // find wifi passwords
+        List<Wifi> result = new ArrayList<>();
+        for (String ssid : mWifiIds) {
+            Wifi wifi = new Wifi(ssid);
+            try {
+                String mode = "";
+                String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+                // DD-Wrt replaces the . with an X in the security_mode parameter
+                if (grep(cacheNVRam, prefix.replace(".","X") + "_security_mode=").length > 0) {
+                    mode = grep(cacheNVRam, prefix.replace(".","X")+"_security_mode=")[0].split("=")[1];
+                }
+                if (mode.contains("wpa")||mode.contains("psk")) {
+                    if (grep(cacheNVRam, prefix + "_wpa_psk=").length > 0)
+                        wifi.setPassword(grep(cacheNVRam, prefix + "_wpa_psk=")[0].split("=")[1]);
+                }
+                result.add(wifi);
+            } catch (Exception ex) {
+                Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
+            }
+        }
+        return result;
     }
 
     @Override
@@ -49,7 +94,35 @@ public class DDWrtRouter extends LinuxRouter {
 
     @Override
     public boolean isPrioritized(String ip) {
-        return grep(cacheNVRam, ip+"/32 10").length > 0;
+        return grep(grep(cacheNVRam, "svqos_ips="), ip+"/32 10").length > 0;
+    }
+
+    @Override
+    public long isPrioritizedUntil(String ip) {
+        if (isPrioritized(ip)) {
+            String[] undo = grep(cacheCrond, PREFIX+ip);
+            if (undo.length>0) {
+                String[] fields = undo[0].split(" ");
+                if (fields.length > 6) {
+                    Calendar until = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    try {
+                        int month = Integer.parseInt(fields[3]) - 1; //zero based
+                        int day = Integer.parseInt(fields[2]);
+                        int hour = Integer.parseInt(fields[1]);
+                        int mins = Integer.parseInt(fields[0]);
+                        int year = until.get(Calendar.YEAR);
+                        until.set(year, month, day, hour, mins);
+                        return until.getTimeInMillis()-timezone_adjust;
+                    } catch (Exception ex) {
+                        Log.e(TAG, "isPrioritizedUntil() "+ex.getMessage());
+                        return Device.INDETERMINATE_PRIORITY;
+                    }
+                }
+            }
+            return Device.INDETERMINATE_PRIORITY;
+        } else {
+            return Device.NOT_PRIORITIZED;
+        }
     }
 
     @Override
@@ -65,7 +138,7 @@ public class DDWrtRouter extends LinuxRouter {
                     String modified = original + " " + ip + "/32 10 |";
                     result = command("nvram set svqos_ips=\"" + modified + "\"; echo $?");
                     if (result[result.length - 1].equals("0")) {
-                        cacheCrond = command("cat "+CRONFILE);
+                        refreshCronCache();
                         cacheNVRam = command("nvram show");
                         runInBackground("stopservice wshaper && startservice wshaper");
                         Log.i(TAG, "nvram successfully updated with new rules");
@@ -83,12 +156,11 @@ public class DDWrtRouter extends LinuxRouter {
     @Override
     protected void scheduleUndoQOSRule(String ip, Calendar when) {
         final String PATTERN = " "+ip+"/32 10 |";
-        final String DELETE_SELF = "cat "+ CRONFILE +"|grep -v '"+PATTERN+"' > "+ CRONFILE;
-        final String TEMPFILE = "/tmp/backup_cron";
-        Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        utc.setTimeInMillis(when.getTimeInMillis());
+        final String DELETE_SELF = "/usr/sbin/nvram set cron_jobs=`/usr/sbin/nvram get cron_jobs|/bin/grep -v '"+PREFIX+ip+"'`";
         try {
-            String undo = "nvram set svqos_ips=\\\"\\`/usr/sbin/nvram get svqos_ips|/bin/sed 's%"+PATTERN+"%%'\\`\\\"; /sbin/stopservice wshaper && /sbin/startservice wshaper";
+            Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            utc.setTimeInMillis(when.getTimeInMillis()+timezone_adjust);
+            String undo = "/usr/sbin/nvram set svqos_ips=\\\"\\`/usr/sbin/nvram get svqos_ips|/bin/sed 's%"+PATTERN+"%%'\\`\\\"; /sbin/stopservice wshaper; /sbin/startservice wshaper";
             if (when.before(new Date())) return;
             Log.d(TAG, "Scheduling prioritization of " + ip + " to end at " + when.getTime());
             int min = utc.get(Calendar.MINUTE);
@@ -96,10 +168,11 @@ public class DDWrtRouter extends LinuxRouter {
             int day = utc.get(Calendar.DAY_OF_MONTH);
             int month = utc.get(Calendar.MONTH) + 1;
             command(DELETE_SELF);
-            //certain versions of ddwrt erase /etc/cron.d when stopping service
-            command("cp "+CRONFILE+" "+TEMPFILE+"; stopservice cron; stopservice crond");
-            command("echo \"" + min + " " + hour + " " + day + " " + month + " * root " + undo +"; "+ DELETE_SELF + " #"+PREFIX+ip+"#\" >> "+TEMPFILE);
-            command("mkdir /tmp/cron.d; cp "+TEMPFILE+" "+CRONFILE+"; rm "+TEMPFILE+";");
+            command("stopservice cron; stopservice crond");
+            String newJob = min + " " + hour + " " + day + " " + month + " * root " + undo +"; "+ DELETE_SELF.replace("`","\\`") + " #"+PREFIX+ip+"#";
+            String[] oldJobs = command("nvram get cron_jobs");
+            String newJobs = (oldJobs.length>0?TextUtils.join("\n", oldJobs)+"\n":"")+newJob;
+            command("nvram set cron_jobs=\""+ newJobs + "\"");
             runInBackground("startservice cron; startservice crond");
             refreshCronCache();
         } catch (Exception ex) {
@@ -108,7 +181,7 @@ public class DDWrtRouter extends LinuxRouter {
     }
 
     private void refreshCronCache() {
-        cacheCrond = command("cat "+ CRONFILE);
+        cacheCrond = command("nvram get cron_jobs");
     }
 
 }

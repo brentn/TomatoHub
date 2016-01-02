@@ -48,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Priority access until"
+                android:text="@string/priority_access_until"
                 android:id="@+id/priority_until"
                 android:layout_toRightOf="@+id/device_area"
                 android:layout_alignBottom="@+id/device_area"

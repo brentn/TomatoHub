@@ -65,6 +65,10 @@ public class FakeRouter extends Router {
         return new String[0];
     }
 
+    @Override
+    public void reboot() {
+    }
+
 
     @Override
     public long getBootTime() {
@@ -97,7 +101,7 @@ public class FakeRouter extends Router {
     public List<Wifi> getWifiList() {
         if (mWifis==null) {
             final int MAX_WIFIS = 4;
-            mWifis = new ArrayList();
+            mWifis = new ArrayList<>();
             for (int i = 0; i < rnd.nextInt(MAX_WIFIS); i++) {
                 String ssid = randomString(15);
                 Wifi wifi = new Wifi(ssid);

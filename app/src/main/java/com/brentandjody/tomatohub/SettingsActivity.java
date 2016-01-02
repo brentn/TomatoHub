@@ -2,6 +2,7 @@ package com.brentandjody.tomatohub;
 
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,7 +39,7 @@ import java.util.List;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends AppCompatPreferenceActivity {
+public class SettingsActivity extends Activity {
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
@@ -95,34 +96,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Intent intent = getIntent();
-//        if (intent.hasExtra(getString(R.string.pref_key_ip_address))) {
-//            String ip_address = intent.getStringExtra(getString(R.string.pref_key_ip_address));
-//            SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-//            prefs.edit().putString(getString(R.string.pref_key_ip_address), ip_address).apply();
+        // Display the fragment as the main content.
+        getFragmentManager().beginTransaction().replace(android.R.id.content,
+                new GeneralPreferenceFragment()).commit();
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.setDisplayHomeAsUpEnabled(false);
 //        }
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(false);
-        }
     }
 
-
-    @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void onBuildHeaders(List<Header> target) {
-        loadHeadersFromResource(R.xml.pref_headers, target);
-    }
-
-    /**
-     * This method stops fragment injection in malicious applications.
-     * Make sure to deny any unknown fragments here.
-     */
-    protected boolean isValidFragment(String fragmentName) {
-        return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName);
-    }
 
     /**
      * This fragment shows general preferences only. It is used when the
@@ -133,6 +115,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+
             PreferenceManager prefMgr = getPreferenceManager();
             prefMgr.setSharedPreferencesName(getString(R.string.sharedPreferences_name));
             prefMgr.setSharedPreferencesMode(MODE_PRIVATE);

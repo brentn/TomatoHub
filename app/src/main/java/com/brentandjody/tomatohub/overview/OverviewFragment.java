@@ -319,7 +319,8 @@ public class OverviewFragment extends Fragment {
                                                 Toast.makeText(getActivity(), "Prioritizing "+device.lastIP()+" for "+time, Toast.LENGTH_LONG).show();
                                                 //
                                                 String milliseconds = context.getResources().getStringArray(R.array.prioritize_times_values)[index];
-                                                long ms = 0; try { ms = Long.parseLong(milliseconds); } catch(Exception ex) {}
+                                                long ms = 0; try { ms = Long.parseLong(milliseconds); }
+                                                catch(Exception ex) {Log.e(TAG, "Could not parse milliseconds");}
                                                 device.setPrioritizedUntil(System.currentTimeMillis()+ms);
                                                 mDevices.insertOrUpdate(device);
                                                 ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
@@ -473,15 +474,23 @@ public class OverviewFragment extends Fragment {
                 if (device.prioritizedUntil()==Device.NOT_PRIORITIZED) {
                     convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
                 } else {
-                    long now = System.currentTimeMillis()/1000;
-                    if (device.prioritizedUntil()<now) {
-                        convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
+                    if (device.prioritizedUntil()==Device.INDETERMINATE_PRIORITY) {
+                        ((TextView)convertView.findViewById(R.id.priority_until)).setText(R.string.indeterminite_priority_access);
+                        convertView.findViewById(R.id.until).setVisibility(View.INVISIBLE);
                     } else {
-                        convertView.findViewById(R.id.priority).setVisibility(View.VISIBLE);
-                        Calendar undoTime = Calendar.getInstance();
-                        undoTime.setTimeInMillis(device.prioritizedUntil());
-                        String time = undoTime.get(Calendar.HOUR)+":"+String.format("%02d",undoTime.get(Calendar.MINUTE));
-                        ((TextView)convertView.findViewById(R.id.until)).setText(time);
+                        convertView.findViewById(R.id.until).setVisibility(View.VISIBLE);
+                        long now = System.currentTimeMillis() / 1000;
+                        if (device.prioritizedUntil() < now) {
+                            convertView.findViewById(R.id.priority).setVisibility(View.INVISIBLE);
+                            ((TextView)convertView.findViewById(R.id.priority_until)).setText(R.string.indeterminite_priority_access);
+                        } else {
+                            convertView.findViewById(R.id.priority).setVisibility(View.VISIBLE);
+                            Calendar undoTime = Calendar.getInstance();
+                            undoTime.setTimeInMillis(device.prioritizedUntil());
+                            String time = undoTime.get(Calendar.HOUR) + ":" + String.format("%02d", undoTime.get(Calendar.MINUTE));
+                            ((TextView)convertView.findViewById(R.id.priority_until)).setText(R.string.priority_access_until);
+                            ((TextView) convertView.findViewById(R.id.until)).setText(time);
+                        }
                     }
                 }
             } else {

@@ -3,6 +3,8 @@ package com.brentandjody.tomatohub.routers;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.annotation.UiThread;
+import android.test.UiThreadTest;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -38,7 +40,7 @@ public class LinuxRouter extends Router {
     private int mMemoryUsage;
     private String mExternalIP;
     private String[] mNetworkIds;
-    private String[] mWifiIds;
+    protected String[] mWifiIds;
     protected String[] cacheNVRam;
     private String[] cacheArp;
     private String[] cacheBrctl;
@@ -56,6 +58,20 @@ public class LinuxRouter extends Router {
         mNetworksDB=networks;
     }
 
+    public Devices getmDevicesDB() {return mDevicesDB;}
+    public Networks getmNetworksDB() {return mNetworksDB;}
+//    public String getmRouterId() {return mRouterId;}
+//    public String[] getmNetworkIds() {return mNetworkIds;}
+//    public String[] getmWifiIds() {return mWifiIds;}
+    public String[] getCacheArp() {return cacheArp;}
+    public String[] getCacheNVRam() {return cacheNVRam;}
+    public String[] getCacheBrctl() {return cacheBrctl;}
+    public String[] getCacheWf() {return cacheWf;}
+    public String[] getCacheMotd() {return cacheMotd;}
+    public String[] getCacheIptables() {return cacheIptables;}
+
+    public void setmRunningTasks(List<AsyncTask> tasks) {mRunningTasks = tasks;}
+
     @Override
     public void disconnect() {
         super.disconnect();
@@ -69,12 +85,18 @@ public class LinuxRouter extends Router {
         mRouterId=null;
         mNetworkIds=null;
         mWifiIds=null;
+        cacheArp=null;
         cacheNVRam=null;
         cacheBrctl=null;
         cacheWf=null;
         cacheMotd=null;
         cacheIptables=null;
         new Initializer().execute();
+    }
+
+    @Override
+    public void reboot() {
+        runInBackground("reboot");
     }
 
     @Override
@@ -161,19 +183,10 @@ public class LinuxRouter extends Router {
                 Log.e(TAG, "getWifiList():"+ex.getMessage());
             }
         }
-        // find wifi passwords
+        // blank passwords
         List<Wifi> result = new ArrayList<>();
         for (String ssid : mWifiIds) {
             Wifi wifi = new Wifi(ssid);
-            try {
-                String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
-                String mode = grep(cacheNVRam, prefix + "_security_mode=")[0].split("=")[1];
-                if (mode.contains("wpa"))
-                    wifi.setPassword(grep(cacheNVRam, prefix + "_wpa_psk=")[0].split("=")[1]);
-                result.add(wifi);
-            } catch (Exception ex) {
-                Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
-            }
         }
         return result;
     }
@@ -259,25 +272,6 @@ public class LinuxRouter extends Router {
     @Override
     public long isPrioritizedUntil(String ip) {
         if (isPrioritized(ip)) {
-            String[] undo = grep(cacheCrond, PREFIX+ip);
-            if (undo.length>0) {
-                String[] fields = undo[0].split(" ");
-                if (fields.length > 6) {
-                    Calendar until = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                    try {
-                        int month = Integer.parseInt(fields[3]) - 1; //zero based
-                        int day = Integer.parseInt(fields[2]);
-                        int hour = Integer.parseInt(fields[1]);
-                        int mins = Integer.parseInt(fields[0]);
-                        int year = until.get(Calendar.YEAR);
-                        until.set(year, month, day, hour, mins);
-                        return until.getTimeInMillis();
-                    } catch (Exception ex) {
-                        Log.e(TAG, "isPrioritizedUntil() "+ex.getMessage());
-                        return Device.INDETERMINATE_PRIORITY;
-                    }
-                }
-            }
             return Device.INDETERMINATE_PRIORITY;
         } else {
             return Device.NOT_PRIORITIZED;

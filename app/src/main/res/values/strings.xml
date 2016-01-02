@@ -153,6 +153,13 @@
     <string name="wifi_not_enabled">WiFi not enabled</string>
     <string name="prioritize_device">Prioritize Device</string>
     <string name="prioritize_device_time">Length of time to prioritize device for:</string>
-    <string name="priority_access_until">Priority access until</string>
+    <string name="priority_access_until">Prioritized until</string>
     <string name="prioritize_not_implemented_for_router_type">Prioritize is not implemented for this router type</string>
+    <string name="indeterminite_priority_access">Prioritized</string>
+    <string name="reboot">Reboot</string>
+    <string name="confirm_reboot">Reboot router?</string>
+    <string name="reboot_explanation">Rebooting your router will remove all \'blocked\' and \'prioritized\' devices</string>
+    <string name="router_is_rebooting">Router is rebooting.</string>
+    <string name="wait_for_reboot">The app will now exit.  Wait until the router has completed rebooting before restarting the app.</string>
+    <string name="ok">OK</string>
 </resources>

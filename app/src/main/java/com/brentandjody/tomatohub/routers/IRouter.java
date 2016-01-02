@@ -14,6 +14,7 @@ interface IRouter {
     void disconnect();
     String[] command(String command);
     void runInBackground(String command);
+    void reboot();
 
     // COMMANDS
     void initialize();

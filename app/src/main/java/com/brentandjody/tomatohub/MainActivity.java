@@ -1,6 +1,8 @@
 package com.brentandjody.tomatohub;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.DhcpInfo;
@@ -10,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -263,10 +266,41 @@ public class MainActivity extends AppCompatActivity
         mRouter.initialize();
     }
 
+    private void reboot() {
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
+        if (prefs.getBoolean(getString(R.string.pref_key_allow_changes), false)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.confirm_reboot))
+                    .setMessage(getString(R.string.reboot_explanation))
+                    .setPositiveButton(getString(R.string.reboot), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mRouter.reboot();
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle(getString(R.string.router_is_rebooting))
+                                    .setMessage(getString(R.string.wait_for_reboot))
+                                    .setCancelable(false)
+                                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            finish();
+                                        }
+                                    })
+                                    .show();
+                        }
+                    })
+                    .show();
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
+        if (! prefs.getBoolean(getString(R.string.pref_key_allow_changes), false)) {
+            menu.removeItem(R.id.action_reboot);
+        }
         return true;
     }
 
@@ -282,8 +316,16 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(new Intent(MainActivity.this, SettingsActivity.class), SETTINGS_REQUEST_CODE);
             return true;
         } else if (id == R.id.action_refresh) {
-            refresh();
+            if (mOverviewFragment != null) {
+                mOverviewFragment.hideDetailView();
+                refresh();
+            }
             return true;
+        } else if (id == R.id.action_reboot) {
+            if (mOverviewFragment != null) {
+                mOverviewFragment.hideDetailView();
+                reboot();
+            }
         }
 
         return super.onOptionsItemSelected(item);

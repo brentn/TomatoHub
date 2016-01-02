@@ -81,9 +81,11 @@ public class WifiFragment extends Fragment {
     }
 
     public void setWifiList(List<Wifi> wifi_list) {
-        mWifiList = wifi_list;
-        ListView list = (ListView)mView.findViewById(R.id.wifi_list);
-        list.setAdapter(new WifiListAdapter(getActivity(), mWifiList, mListener));
+        if (wifi_list!= null) {
+            mWifiList = wifi_list;
+            ListView list = (ListView) mView.findViewById(R.id.wifi_list);
+            list.setAdapter(new WifiListAdapter(getActivity(), mWifiList, mListener));
+        }
     }
 
     public interface OnSignalListener {

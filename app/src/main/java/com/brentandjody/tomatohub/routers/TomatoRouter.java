@@ -9,7 +9,9 @@ import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
+import com.brentandjody.tomatohub.database.Wifi;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -45,6 +47,31 @@ public class TomatoRouter extends LinuxRouter {
     public void initialize() {
         refreshCronCache();
         super.initialize();
+    }
+
+    @Override
+    public List<Wifi> getWifiList() {
+        super.getWifiList();
+        // find wifi passwords
+        List<Wifi> result = new ArrayList<>();
+        for (String ssid : mWifiIds) {
+            Wifi wifi = new Wifi(ssid);
+            try {
+                String mode = "";
+                String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+                if (grep(cacheNVRam, prefix + "_security_mode=").length > 0) {
+                    mode = grep(cacheNVRam, prefix+"_security_mode=")[0].split("=")[1];
+                }
+                if (mode.contains("wpa")) {
+                    if (grep(cacheNVRam, prefix + "_wpa_psk=").length > 0)
+                        wifi.setPassword(grep(cacheNVRam, prefix + "_wpa_psk=")[0].split("=")[1]);
+                }
+                result.add(wifi);
+            } catch (Exception ex) {
+                Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
+            }
+        }
+        return result;
     }
 
     @Override
