@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
                         mOverviewFragment.showRouter(true);
-                        mOverviewFragment.setStatusMessage(getString(R.string.scanning_network));
+                        mOverviewFragment.setStatusMessage(getString((mConnecting?R.string.scanning_network:R.string.rescannng_network)));
                     }
                     mRouter.initialize();
                 } else {
@@ -237,18 +237,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "Instantiating router...");
-        switch (getRouterType()) {
-            case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
-            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
-            case RouterType.FAKE: mRouter = new FakeRouter(this);
-                Toast.makeText(this, R.string.running_in_demo_mode, Toast.LENGTH_LONG).show();
-                break;
-            default: mRouter = new FakeRouter(this);
-        }
-        mConnecting=true;
-        Log.d(TAG, "Connecting...");
-        mRouter.connect();
+        connectRouter();
     }
 
     @Override
@@ -259,14 +248,30 @@ public class MainActivity extends AppCompatActivity
         mConnecting=false;
     }
 
+    private void connectRouter() {
+        mConnecting=true;
+        Log.d(TAG, "Instantiating router...");
+        switch (getRouterType()) {
+            case RouterType.TOMATO: mRouter = new TomatoRouter(this, mDevices, mNetworks); break;
+            case RouterType.DDWRT: mRouter = new DDWrtRouter(this, mDevices, mNetworks); break;
+            case RouterType.FAKE: mRouter = new FakeRouter(this);
+                Toast.makeText(this, R.string.running_in_demo_mode, Toast.LENGTH_LONG).show();
+                break;
+            default: mRouter = new FakeRouter(this);
+        }
+        Log.d(TAG, "Connecting...");
+        mRouter.connect();
+    }
+
     private void refresh() {
         if (mOverviewFragment!=null) {
             mOverviewFragment.setWifiMessage("");
             mOverviewFragment.setDevicesMessage("","");
             mOverviewFragment.hideAllNetworkIcons();
-            mOverviewFragment.showRouter(true);
-            mOverviewFragment.setStatusMessage(getString(R.string.rescannng_network));
+            mOverviewFragment.showRouter(false);
+            mOverviewFragment.setStatusMessage(getString(R.string.searching_for_router));
         }
+        connectRouter();
         mRouter.initialize();
     }
 
@@ -315,12 +320,6 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivityForResult(new Intent(MainActivity.this, SettingsActivity.class), SETTINGS_REQUEST_CODE);
-            return true;
-        } else if (id == R.id.action_refresh) {
-            if (mOverviewFragment != null) {
-                mOverviewFragment.hideDetailView();
-                refresh();
-            }
             return true;
         }
 

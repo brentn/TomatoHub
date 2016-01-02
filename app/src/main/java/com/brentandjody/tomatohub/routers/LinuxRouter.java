@@ -164,13 +164,13 @@ public class LinuxRouter extends Router {
                 Log.e(TAG, "getExternalIP():"+ex.getMessage());
             }
         }
+        if (mExternalIP==null) mExternalIP="";
         return mExternalIP;
     }
 
     @Override
     public List<Wifi> getWifiList() {
         if (mWifiIds==null) {
-            mWifiIds = new String[0];
             List<String> wifis = new ArrayList();
             try {
                 for (String wireless : grep(cacheNVRam, "net_mode=")) {
@@ -200,6 +200,7 @@ public class LinuxRouter extends Router {
                 Log.e(TAG, "getWifiList():"+ex.getMessage());
             }
         }
+        if (mWifiIds==null) mWifiIds=new String[0];
         // blank passwords
         List<Wifi> result = new ArrayList<>();
         for (String ssid : mWifiIds) {
@@ -224,6 +225,7 @@ public class LinuxRouter extends Router {
                 Log.e(TAG, "getNetworkIds():"+ex.getMessage());
             }
         }
+        if (mNetworkIds==null) mNetworkIds = new String[0];
         return mNetworkIds;
     }
     @Override
