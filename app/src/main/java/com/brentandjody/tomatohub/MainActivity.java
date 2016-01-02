@@ -76,6 +76,10 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             }
+            case OverviewFragment.SIGNAL_REBOOT: {
+                reboot();
+                break;
+            }
             case OverviewFragment.SIGNAL_REFRESH: {
                 refresh();
                 break;
@@ -298,9 +302,6 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-        if (! prefs.getBoolean(getString(R.string.pref_key_allow_changes), false)) {
-            menu.removeItem(R.id.action_reboot);
-        }
         return true;
     }
 
@@ -321,11 +322,6 @@ public class MainActivity extends AppCompatActivity
                 refresh();
             }
             return true;
-        } else if (id == R.id.action_reboot) {
-            if (mOverviewFragment != null) {
-                mOverviewFragment.hideDetailView();
-                reboot();
-            }
         }
 
         return super.onOptionsItemSelected(item);

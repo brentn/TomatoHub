@@ -48,9 +48,10 @@ public class OverviewFragment extends Fragment {
 
     public static final int SIGNAL_LOADED = 1;
     public static final int SIGNAL_REFRESH = 2;
-    public static final int SIGNAL_BLOCK = 3;
-    public static final int SIGNAL_UNBLOCK = 4;
-    public static final int SIGNAL_PRIORITIZE = 5;
+    public static final int SIGNAL_REBOOT = 3;
+    public static final int SIGNAL_BLOCK = 4;
+    public static final int SIGNAL_UNBLOCK = 5;
+    public static final int SIGNAL_PRIORITIZE = 6;
     
     private static final String TAG = OverviewFragment.class.getName();
     private OnSignalListener mListener;
@@ -224,8 +225,10 @@ public class OverviewFragment extends Fragment {
     public void setupRouterClickListener(final String router_type, final String external_ip, final long bootTime, final int memory, final int[] cpu) {
         try {
             mView.findViewById(R.id.router).setOnClickListener(new View.OnClickListener() {
+
                 @Override
                 public void onClick(View v) {
+                    SharedPreferences prefs = getActivity().getSharedPreferences(getActivity().getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
                     View routerView = getLayoutInflater(null).inflate(R.layout.dialog_router_details, null);
                     ((TextView) routerView.findViewById(R.id.router_type)).setText(router_type);
                     ((TextView) routerView.findViewById(R.id.external_ip)).setText(external_ip);
@@ -233,9 +236,23 @@ public class OverviewFragment extends Fragment {
                     ((ProgressBar) routerView.findViewById(R.id.memory_usage)).setProgress(memory);
                     ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
                     ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
-                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                    alert.setTitle(getString(R.string.router_details));
-                    alert.setView(routerView);
+                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity())
+                        .setTitle(getString(R.string.router_details))
+                        .setView(routerView)
+                        .setNeutralButton(getString(R.string.refresh), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mListener.onSignal(SIGNAL_REFRESH, null);
+                            }
+                        });
+                    if (prefs.getBoolean(getString(R.string.pref_key_allow_changes), false)) {
+                        alert.setPositiveButton(getString(R.string.reboot), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mListener.onSignal(SIGNAL_REBOOT, null);
+                            }
+                        });
+                    }
                     alert.show();
                 }
             });
