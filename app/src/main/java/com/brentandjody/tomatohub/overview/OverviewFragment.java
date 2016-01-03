@@ -361,7 +361,7 @@ public class OverviewFragment extends Fragment {
                                             }
                                         });
                                     }
-                                    new AlertDialog.Builder(context)
+                                    popup = new  AlertDialog.Builder(context)
                                             .setTitle(context.getString(R.string.prioritize_device))
                                             .setMessage(context.getString(R.string.prioritize_device_time))
                                             .setView(view)

@@ -156,24 +156,34 @@ public class DDWrtRouter extends LinuxRouter {
     @Override
     protected void scheduleUndoQOSRule(String ip, Calendar when) {
         final String PATTERN = " "+ip+"/32 10 |";
-        final String DELETE_SELF = "/usr/sbin/nvram set cron_jobs=`/usr/sbin/nvram get cron_jobs|/bin/grep -v '"+PREFIX+ip+"'`";
+        final String DELETE_CRON_JOB = "/usr/sbin/nvram set cron_jobs=\"`/usr/sbin/nvram get cron_jobs|/bin/grep -v '"+PREFIX+ip+"'`\"";
         try {
             Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             utc.setTimeInMillis(when.getTimeInMillis()+timezone_adjust);
-            String undo = "/usr/sbin/nvram set svqos_ips=\\\"\\`/usr/sbin/nvram get svqos_ips|/bin/sed 's%"+PATTERN+"%%'\\`\\\"; /sbin/stopservice wshaper; /sbin/startservice wshaper";
+            //String undo = "/usr/sbin/nvram set svqos_ips=\\\"\\`/usr/sbin/nvram get svqos_ips|/bin/sed 's%"+PATTERN+"%%'\\`\\\"; /sbin/stopservice wshaper; /sbin/startservice wshaper";
             if (when.before(new Date())) return;
             Log.d(TAG, "Scheduling prioritization of " + ip + " to end at " + when.getTime());
             int min = utc.get(Calendar.MINUTE);
             int hour = utc.get(Calendar.HOUR_OF_DAY);
             int day = utc.get(Calendar.DAY_OF_MONTH);
             int month = utc.get(Calendar.MONTH) + 1;
-            command(DELETE_SELF);
-            command("stopservice cron; stopservice crond");
-            String newJob = min + " " + hour + " " + day + " " + month + " * root " + undo +"; "+ DELETE_SELF.replace("`","\\`") + " #"+PREFIX+ip+"#";
+            String scriptName = "/tmp/unPrioritize"+ip;
+            command(DELETE_CRON_JOB);
+            command("echo '#!/bin/sh\n"
+                    +"/usr/sbin/nvram set svqos_ips=\"`/usr/sbin/nvram get svqos_ips|/bin/sed \"s%"+PATTERN+"%%\"`\"\n"
+                    +"/sbin/stopservice wshaper\n"
+                    +"/sbin/startservice wshaper\n"
+                    + DELETE_CRON_JOB.replace("'","\'")+"\n"
+                    +"/sbin/stopservice cron; /sbin/stopservice crond\n"
+                    +"/sbin/startservice cron; /sbin/startservice crond\n"
+                    + "rm " + scriptName + "' > "+scriptName);
+            command("chmod +x "+scriptName);
+
+            String newJob = min + " " + hour + " " + day + " " + month + " * root " + scriptName + " #"+PREFIX+ip+"#";
             String[] oldJobs = command("nvram get cron_jobs");
             String newJobs = (oldJobs.length>0?TextUtils.join("\n", oldJobs)+"\n":"")+newJob;
             command("nvram set cron_jobs=\""+ newJobs + "\"");
-            runInBackground("startservice cron; startservice crond");
+            runInBackground("stopservice cron; stopservice crond; startservice cron; startservice crond");
             refreshCronCache();
         } catch (Exception ex) {
             Log.e(TAG, "scheduleNewQOSRule() "+ex.getMessage());
