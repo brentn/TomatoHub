@@ -20,6 +20,7 @@ interface IRouter {
     void initialize();
     long getBootTime();
     String getExternalIP();
+    String getInternalIP();
     int getMemoryUsage();
     int[] getCPUUsage();
     void updateDevices();

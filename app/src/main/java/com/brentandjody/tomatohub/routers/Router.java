@@ -71,6 +71,9 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         }
     }
 
+    @Override
+    public String getInternalIP() { return mIpAddress; }
+
     public String getmIpAddress() {return mIpAddress;}
     public String getmUser() {return mUser;}
     public String getmPassword() {return mPassword;}

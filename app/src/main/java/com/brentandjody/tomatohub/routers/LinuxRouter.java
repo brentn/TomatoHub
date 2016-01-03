@@ -19,6 +19,7 @@ import com.brentandjody.tomatohub.database.Wifi;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -61,9 +62,6 @@ public class LinuxRouter extends Router {
 
     public Devices getmDevicesDB() {return mDevicesDB;}
     public Networks getmNetworksDB() {return mNetworksDB;}
-//    public String getmRouterId() {return mRouterId;}
-//    public String[] getmNetworkIds() {return mNetworkIds;}
-//    public String[] getmWifiIds() {return mWifiIds;}
     public String[] getCacheArp() {return cacheArp;}
     public String[] getCacheNVRam() {return cacheNVRam;}
     public String[] getCacheBrctl() {return cacheBrctl;}
@@ -181,9 +179,7 @@ public class LinuxRouter extends Router {
                             interfaces.add(prefix);
                             for (String key : grep(cacheNVRam, prefix + "_vifs=")) {
                                 if (! key.endsWith("="))
-                                    for (String iface : key.split("=")[1].split(" ")) {
-                                        interfaces.add(iface);
-                                    }
+                                    Collections.addAll(interfaces, key.split("=")[1].split(" "));
                             }
                             for (String iface : interfaces) {
                                 for (String key : grep(cacheNVRam, iface + "_ssid=")) {

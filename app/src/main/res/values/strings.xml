@@ -162,4 +162,6 @@
     <string name="router_is_rebooting">Router is rebooting.</string>
     <string name="wait_for_reboot">The app will now exit.  Wait until the router has completed rebooting before restarting the app.</string>
     <string name="ok">OK</string>
+    <string name="internal_ip_address">Internal IP Address:</string>
+    <string name="gateway_address">Gateway Address:</string>
 </resources>

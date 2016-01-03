@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.showRouter(false);
                         mOverviewFragment.showSpeedTestButton(false);
                         mOverviewFragment.setStatusMessage(getString(R.string.connection_failure));
+                        mOverviewFragment.setupInternetClickListener("");
                     }
                 }
                 break;
@@ -138,6 +139,7 @@ public class MainActivity extends AppCompatActivity
             case Router.ACTIVITY_INTIALIZE: {
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
+                        mOverviewFragment.setupInternetClickListener(mRouter.getExternalIP());
                         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                         String myIp = Router.intToIp(wifi.getConnectionInfo().getIpAddress());
                         mOverviewFragment.setMyMac(mRouter.getMacForIp(myIp));
@@ -161,7 +163,7 @@ public class MainActivity extends AppCompatActivity
                         mOverviewFragment.setWifiMessage(wifiMessage);
                         mOverviewFragment.setupRouterClickListener(
                                 mRouter.getRouterType(),
-                                mRouter.getExternalIP(),
+                                mRouter.getInternalIP(),
                                 mRouter.getBootTime(),
                                 mRouter.getMemoryUsage(),
                                 mRouter.getCPUUsage()
@@ -281,7 +283,7 @@ public class MainActivity extends AppCompatActivity
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.confirm_reboot))
                     .setMessage(getString(R.string.reboot_explanation))
-                    .setPositiveButton(getString(R.string.reboot), new DialogInterface.OnClickListener() {
+                    .setNeutralButton(getString(R.string.reboot), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             mRouter.reboot();
