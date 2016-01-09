@@ -57,16 +57,8 @@ public class LinuxRouterTests extends InstrumentationTestCase {
 
     @Before
     public void setup() {
-        initialized=new CountDownLatch(1);
-        class TestableMain extends MainActivity {
-            @Override
-            public void onRouterActivityComplete(int activity_id, int status) {
-                switch (activity_id) {
-                    case Router.ACTIVITY_INTIALIZE:initialized.countDown();break;
-                }
-            }
-        }
-        fakeActivity = mock(TestableMain.class);
+        fakeActivity = mock(MainActivity.class);
+
         when(fakeActivity.getString(R.string.sharedPreferences_name)).thenReturn("wrtHub");
         when(fakeActivity.getString(R.string.pref_key_ip_address)).thenReturn("ip_address");
         when(fakeActivity.getString(R.string.pref_key_username)).thenReturn("username");
@@ -179,20 +171,38 @@ public class LinuxRouterTests extends InstrumentationTestCase {
 
     @Test
     public void initialize_gets_values_for_all_caches() throws Throwable {
-        setupConnection();
-        final LinuxRouter router = new LinuxRouter(fakeActivity, null, null);
-        router.setmConnection(fakeConnection);
-        assertNull(router.getCacheNVRam());
-        assertNull(router.getCacheBrctl());
-        assertNull(router.getCacheWf());
-        assertNull(router.getCacheMotd());
-        assertNull(router.getCacheIptables());
-        router.initialize();
-        initialized.await(10, TimeUnit.SECONDS);
-        assertTrue(router.getCacheNVRam().length>0);
-        assertTrue(router.getCacheBrctl().length>0);
-        assertTrue(router.getCacheWf().length>0);
-        assertTrue(router.getCacheMotd().length>0);
-        assertTrue(router.getCacheIptables().length>0);
+        InstrumentationTestCase itc = new InstrumentationTestCase();
+        itc.runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                initialized=new CountDownLatch(1);
+                class TestableMain extends MainActivity {
+                    @Override
+                    public void onRouterActivityComplete(int activity_id, int status) {
+                        switch (activity_id) {
+                            case Router.ACTIVITY_INTIALIZE:initialized.countDown();break;
+                        }
+                    }
+                }
+                fakeActivity = new TestableMain();
+                setupConnection();
+                final LinuxRouter router = new LinuxRouter(fakeActivity, null, null);
+                router.setmConnection(fakeConnection);
+                assertNull(router.getCacheNVRam());
+                assertNull(router.getCacheBrctl());
+                assertNull(router.getCacheMotd());
+                assertNull(router.getCacheIptables());
+                router.initialize();
+                try {
+                    initialized.await(10, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                assertTrue(router.getCacheNVRam().length>0);
+                assertTrue(router.getCacheBrctl().length>0);
+                assertTrue(router.getCacheMotd().length>0);
+                assertTrue(router.getCacheIptables().length>0);
+            }
+        });
     }
 }

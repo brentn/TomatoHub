@@ -216,7 +216,8 @@ public class LinuxRouter extends Router {
                     }
 
                 }
-                mNetworkIds = list.toArray(new String[list.size()]);
+                if (list.size()>0)
+                    mNetworkIds = list.toArray(new String[list.size()]);
             } catch (Exception ex) {
                 Log.e(TAG, "getNetworkIds():"+ex.getMessage());
             }

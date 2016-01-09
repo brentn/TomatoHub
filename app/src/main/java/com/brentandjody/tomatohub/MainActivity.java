@@ -263,6 +263,7 @@ public class MainActivity extends AppCompatActivity
         }
         Log.d(TAG, "Connecting...");
         mRouter.connect();
+        mRouter.initialize();
     }
 
     private void refresh() {

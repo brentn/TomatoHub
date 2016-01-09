@@ -227,16 +227,20 @@ public class OverviewFragment extends Fragment {
             mView.findViewById(R.id.internet).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new AlertDialog.Builder(getActivity())
-                            .setTitle("Internet")
-                            .setMessage("External IP Address: "+external_ip)
-                            .setPositiveButton(getString(R.string.refresh), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    mListener.onSignal(SIGNAL_REFRESH, null);
-                                }
-                            })
-                            .show();
+                    if (external_ip.isEmpty()) {
+                        mListener.onSignal(SIGNAL_REFRESH, null);
+                    } else {
+                        new AlertDialog.Builder(getActivity())
+                                .setTitle("Internet")
+                                .setMessage("External IP Address: " + external_ip)
+                                .setPositiveButton(getString(R.string.refresh), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        mListener.onSignal(SIGNAL_REFRESH, null);
+                                    }
+                                })
+                                .show();
+                    }
                 }
             });
         } catch (Exception ex) {

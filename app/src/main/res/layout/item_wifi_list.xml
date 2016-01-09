@@ -43,7 +43,8 @@
                 android:src="@drawable/ic_menu_moreoverflow"
                 android:background="@android:color/transparent"
                 android:clickable="true"
-                android:padding="8dp" />
+                android:padding="8dp"
+                android:visibility="invisible" />
         </FrameLayout>
 
         <Switch
