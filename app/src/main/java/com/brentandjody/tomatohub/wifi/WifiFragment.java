@@ -44,12 +44,6 @@ public class WifiFragment extends Fragment {
     public WifiFragment() {
     }
 
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
-    public static WifiFragment newInstance() {
-        return new WifiFragment();
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

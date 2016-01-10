@@ -1,5 +1,7 @@
 package com.brentandjody.tomatohub.database;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -117,5 +119,54 @@ public class Device {
 
     public float lastSpeed() {return _last_speed;}
 
+
+//    @Override
+//    public int describeContents() {
+//        return 0;
+//    }
+//
+//    @Override
+//    public void writeToParcel(Parcel dest, int flags) {
+//        dest.writeString(_router_id);
+//        dest.writeString(_name);
+//        dest.writeString(_custom_name);
+//        dest.writeString(_mac);
+//        dest.writeString(_ip);
+//        dest.writeString(_last_network);
+//        dest.writeInt(_active?1:0);
+//        dest.writeInt(_blocked?1:0);
+//        dest.writeLong(_prioritized_until);
+//        dest.writeLong(_tx_bytes);
+//        dest.writeLong(_rx_bytes);
+//        dest.writeLong(_timestamp);
+//        dest.writeFloat(_last_speed);
+//    }
+//
+//    public static final Parcelable.Creator<Device> CREATOR
+//             = new Parcelable.Creator<Device>() {
+//         public Device createFromParcel(Parcel in) {
+//             return new Device(in);
+//         }
+//
+//         public Device[] newArray(int size) {
+//             return new Device[size];
+//         }
+//     };
+//
+//    private Device(Parcel in) {
+//        _router_id = in.readString();
+//        _name = in.readString();
+//        _custom_name = in.readString();
+//        _mac = in.readString();
+//        _ip = in.readString();
+//        _last_network = in.readString();
+//        _active = (in.readInt()==1);
+//        _blocked = (in.readInt()==1);
+//        _prioritized_until = in.readLong();
+//        _tx_bytes = in.readLong();
+//        _rx_bytes = in.readLong();
+//        _timestamp = in.readLong();
+//        _last_speed = in.readFloat();
+//    }
 
 }

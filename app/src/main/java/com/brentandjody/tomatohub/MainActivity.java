@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity
         mDevices = new Devices(this);
     }
 
+    public Devices getDevices() { return mDevices; }
+    public Networks getNetworks() { return mNetworks; }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -378,11 +381,11 @@ public class MainActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             if (position==0) {
-                mOverviewFragment = OverviewFragment.newInstance(mNetworks, mDevices);
+                mOverviewFragment = new OverviewFragment();
                 return mOverviewFragment;
             }
             else {
-                mWifiFragment = WifiFragment.newInstance();
+                mWifiFragment = new WifiFragment();
                 return mWifiFragment;
             }
         }

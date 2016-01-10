@@ -33,6 +33,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.SpeedTestActivity;
 import com.brentandjody.tomatohub.database.Device;
@@ -74,13 +75,6 @@ public class OverviewFragment extends Fragment {
     private String myMacAddress;
 
     public OverviewFragment() {
-        // Required empty public constructor
-    }
-
-    public static OverviewFragment newInstance(Networks networks, Devices devices) {
-        OverviewFragment fragment = new OverviewFragment();
-        fragment.setDatabases(networks, devices);
-        return fragment;
     }
 
     @Override
@@ -101,8 +95,15 @@ public class OverviewFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        mDevices = ((MainActivity)getActivity()).getDevices();
+        mNetworks = ((MainActivity)getActivity()).getNetworks();
         mDetailViewVisible=false;
         mNetworkLabels = new ArrayList<>();
         mDevicesList = new List[5];
@@ -150,7 +151,6 @@ public class OverviewFragment extends Fragment {
     public void setRouterId(String router_id) {mRouterId = router_id;}
     public void setQOSEnabled(boolean enabled) {mQOSEnabled=enabled;}
     public void setMyMac(String mac) {if (mac!=null) myMacAddress = mac.toUpperCase();}
-    public void setDatabases(Networks networks, Devices devices) {mDevices = devices; mNetworks = networks;}
     public void setWifiMessage(String message) { mWifiMessage.setText(message);}
     public void setStatusMessage(String message) {mStatusMessage.setText(message);}
     public void setDevicesMessage(String devices, String message) {
