@@ -1,11 +1,9 @@
 package com.brentandjody.tomatohub;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -39,6 +37,8 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getName();
     private static final int SETTINGS_REQUEST_CODE = 38;
+    private static final String OVERVIEW_FRAGMENT = "OVERVIEW_FRAGMENT";
+    private static final String WIFI_FRAGMENT = "WIFI_FRAGMENT";
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private boolean mConnecting=false;
     private ViewPager mViewPager;
@@ -54,8 +54,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        getSupportFragmentManager().putFragment(outState, OVERVIEW_FRAGMENT, mOverviewFragment);
+        getSupportFragmentManager().putFragment(outState, WIFI_FRAGMENT, mWifiFragment);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState!=null) {
+            mOverviewFragment = (OverviewFragment) getSupportFragmentManager().getFragment(savedInstanceState, OVERVIEW_FRAGMENT);
+            mWifiFragment = (WifiFragment) getSupportFragmentManager().getFragment(savedInstanceState, WIFI_FRAGMENT);
+        }
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -263,7 +275,6 @@ public class MainActivity extends AppCompatActivity
         }
         Log.d(TAG, "Connecting...");
         mRouter.connect();
-        mRouter.initialize();
     }
 
     private void refresh() {
