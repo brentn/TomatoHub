@@ -147,7 +147,8 @@
         android:layout_below="@+id/message_area"
         android:layout_marginTop="50dp"
         android:layout_marginLeft="70dp"
-        android:clickable="false" />
+        android:clickable="false"
+        android:focusableInTouchMode="false" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -160,7 +161,9 @@
         android:layout_marginLeft="22dp"
         android:layout_marginTop="15dp"
         android:visibility="gone"
-        android:clickable="true" />
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -189,7 +192,9 @@
         android:layout_marginRight="10dp"
         android:layout_marginTop="-8dp"
         android:visibility="gone"
-        android:clickable="true" />
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -206,7 +211,9 @@
         android:layout_toRightOf="@+id/router"
         android:layout_marginTop="10dp"
         android:visibility="gone"
-        android:clickable="true" />
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -224,7 +231,9 @@
         android:layout_marginLeft="-18dp"
         android:layout_alignLeft="@+id/router"
         android:visibility="gone"
-        android:clickable="true" />
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -242,7 +251,9 @@
         android:layout_toRightOf="@+id/router"
         android:layout_marginLeft="30dp"
         android:visibility="gone"
-        android:clickable="true" />
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -259,7 +270,9 @@
         android:layout_toRightOf="@+id/router"
         android:layout_marginTop="-70dp"
         android:layout_marginLeft="2dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:focusableInTouchMode="false"
+        android:focusable="false" />
 
     <TextView
         android:layout_width="wrap_content"
