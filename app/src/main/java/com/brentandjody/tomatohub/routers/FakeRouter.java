@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
+import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
@@ -69,7 +70,6 @@ public class FakeRouter extends Router {
     public void reboot() {
     }
 
-
     @Override
     public long getBootTime() {
         int LONGEST_TIME = 30*24*60*60;
@@ -79,7 +79,6 @@ public class FakeRouter extends Router {
         Log.d(TAG, "Boot time:"+result);
         return result;
     }
-
 
     @Override
     public String getExternalIP() { return "8.8.8.7"; }
@@ -100,12 +99,12 @@ public class FakeRouter extends Router {
     @Override
     public List<Wifi> getWifiList() {
         if (mWifis==null) {
-            final int MAX_WIFIS = 4;
+            final int MAX_WIFIS = 3;
             mWifis = new ArrayList<>();
-            for (int i = 0; i < rnd.nextInt(MAX_WIFIS); i++) {
-                String ssid = randomString(15);
+            for (int i = 0; i < rnd.nextInt(MAX_WIFIS)+1; i++) {
+                String ssid = randomWifiName();
                 Wifi wifi = new Wifi(ssid);
-                wifi.setPassword("MyWifiPassword");
+                wifi.setPassword(randomString(12));
                 mWifis.add(wifi);
             }
         }
@@ -179,7 +178,8 @@ public class FakeRouter extends Router {
             for (Device d : mDevices.getDevicesOnNetwork(getRouterId(), networkId)) {
                 if (d.isActive()) {
                     long elapsed_time = (now - mTimestamp)/1000;
-                    int traffic = Math.round((float) rnd.nextInt(100000000) / elapsed_time);
+                    long bytes = Math.round(Math.pow(rnd.nextFloat()*10,rnd.nextInt(15)));
+                    long traffic = Math.round((float) bytes / elapsed_time);
                     d.setTrafficStats(traffic,traffic,now);
                     mDevices.insertOrUpdate(d);
                 }
@@ -225,10 +225,10 @@ public class FakeRouter extends Router {
         int total_devices = rnd.nextInt(40)+3;
         Log.d(TAG, "Generating "+total_devices+" fake devices");
         for (int i=0; i<total_devices; i++) {
-            Device device = new Device(getRouterId(), randomMACAddress(), randomString(10));
+            Device device = new Device(getRouterId(), randomMACAddress(), randomDeviceName());
             device.setCurrentIP("192.168.1."+(rnd.nextInt(253)+1));
             device.setCurrentNetwork(mNetworkIds[rnd.nextInt(mNetworkIds.length)]);
-            device.setActive(rnd.nextInt(100)<70);
+            device.setActive(rnd.nextInt(100)<25);
             device.setTrafficStats(0,0,mTimestamp-60000); //1 min ago
             mDevices.insertOrUpdate(device);
         }
@@ -260,6 +260,37 @@ public class FakeRouter extends Router {
         for( int i = 0; i < len; i++ )
             sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
         return sb.toString();
+    }
+
+    String randomDeviceName() {
+        String[] people = new String[] {"Dave", "Monica", "Ralph", "Julie", "Guido", "Alfons", "Sarah", "Jean", "Kelly", "David", "Maryanne", "Joel", "Dannika", "Lorrie", "Stephen",
+        "Harlow", "Pixie", "Donna", "Darth Vader", "Lindsay", "Norm", "Pinky", "Dillon", "Eugene", "Sam", "Ronald", "Ice man", "Wellington", "Tuna", "Nice lady"};
+        String[] devices = new String[] {"Main Computer", "[NAME]'s laptop", "[NAME]'s MacBook Pro", "[NAME]'s iPhone", "[NAME]'s phone", "[NAME]'s Android", "Kid's tablet",
+        "Telephone", "Thermostat", "Smart TV", "Bedroom TV", "Apple TV", "Kindle Fire TV", "Work computer", "[NAME]'s computer", "Printer", "Color printer", "Print server",
+        "[NAME]'s iPad", "XBox", "[NAME]'s Wii", "Old iPad", "RPi", "Cisco [ID]", "android-[ID]", "generic game console", "Google Glass" } ;
+        boolean duplicate = true;
+        String name = people[rnd.nextInt(people.length)];
+        String devicename="";
+        while (duplicate) {
+            String id = randomString(rnd.nextInt(5)+5);
+            devicename = devices[rnd.nextInt(devices.length)].replace("[NAME]", name).replace("[ID]", id);
+            duplicate = false;
+            for (String n : getNetworkIds()) {
+                for (Device d : mDevices.getDevicesOnNetwork(getRouterId(), n)) {
+                    if (d.name().equals(devicename)) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return devicename;
+    }
+
+    String randomWifiName() {
+        String[] wifis = new String[] {"Wifi", "Guest Network", "guest", "ddwrt", "tomato26", "tomato5", "Downstairs", "Backyard wifi", "insecure", "Police Surviellance Van #4",
+        "42", "My WiFi", "My Neighbor's Wifi", "Telus2095", "Dickie's Wifi"};
+        return wifis[rnd.nextInt(wifis.length)];
     }
 
     class Priority {
