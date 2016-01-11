@@ -40,6 +40,12 @@ public class DDWrtRouter extends LinuxRouter {
     }
 
     @Override
+    public void reboot() {
+        restore_from_backup();
+        super.reboot();
+    }
+
+    @Override
     public void updateDevices() {
         try {
             String time_zone = grep(cacheNVRam, "time_zone")[0].split("=")[1];
@@ -209,6 +215,7 @@ public class DDWrtRouter extends LinuxRouter {
             changed=true;
         }
         if (changed)
+            Log.d(TAG, "Backed up unmodified QOS");
             cacheNVRam = command("nvram show");
     }
 
@@ -217,6 +224,7 @@ public class DDWrtRouter extends LinuxRouter {
         String key2 = PREFIX+"_cron_jobs";
         if (Arrays.asList(cacheNVRam).contains(key1)) {
             command("nvram set svqos_ips=\"`nvram get "+key1+"`\"; nvram unset "+key1);
+            Log.d(TAG, "Restoring unmodified QOS");
         }
         if (Arrays.asList(cacheNVRam).contains(key2)) {
             command("nvram set cron_jobs=\"`nvram get "+key2+"`\"; nvram unset "+key2);

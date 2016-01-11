@@ -46,6 +46,12 @@ public class TomatoRouter extends LinuxRouter {
     }
 
     @Override
+    public void reboot() {
+        restore_from_backup();
+        super.reboot();
+    }
+
+    @Override
     public List<Wifi> getWifiList() {
         super.getWifiList();
         // find wifi passwords
@@ -188,6 +194,7 @@ public class TomatoRouter extends LinuxRouter {
         if (! Arrays.asList(cacheNVRam).contains(key)) {
             command("nvram set "+key+"=\"`nvram get qos_orules`\"");
             cacheNVRam = command("nvram show");
+            Log.d(TAG, "Backed up unmodified QOS");
         }
     }
 
@@ -197,6 +204,7 @@ public class TomatoRouter extends LinuxRouter {
             command("nvram set qos_orules=\"`nvram get "+key+"`\"");
             command("nvram unset "+key);
             cacheNVRam = command("nvram show");
+            Log.d(TAG, "Restoring unmodified QOS");
         }
     }
 
