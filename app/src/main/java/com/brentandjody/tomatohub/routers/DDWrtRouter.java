@@ -136,6 +136,7 @@ public class DDWrtRouter extends LinuxRouter {
                 else {
                     original = original.replace(" "+ip+"/32 10 |",""); //remove this ip if it is already there
                     String modified = original + " " + ip + "/32 10 |";
+                    ensure_backup_exists();
                     result = command("nvram set svqos_ips=\"" + modified + "\"; echo $?");
                     if (result[result.length - 1].equals("0")) {
                         refreshCronCache();
@@ -158,6 +159,7 @@ public class DDWrtRouter extends LinuxRouter {
         final String PATTERN = " "+ip+"/32 10 |";
         final String DELETE_CRON_JOB = "/usr/sbin/nvram set cron_jobs=\"`/usr/sbin/nvram get cron_jobs|/bin/grep -v '"+PREFIX+ip+"'`\"";
         try {
+            ensure_backup_exists();
             Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             utc.setTimeInMillis(when.getTimeInMillis()+timezone_adjust);
             //String undo = "/usr/sbin/nvram set svqos_ips=\\\"\\`/usr/sbin/nvram get svqos_ips|/bin/sed 's%"+PATTERN+"%%'\\`\\\"; /sbin/stopservice wshaper; /sbin/startservice wshaper";
@@ -194,4 +196,31 @@ public class DDWrtRouter extends LinuxRouter {
         cacheCrond = command("nvram get cron_jobs");
     }
 
+    private void ensure_backup_exists() {
+        String key1 = PREFIX+"_svqos_ips";
+        String key2 = PREFIX+"_cron_jobs";
+        boolean changed=false;
+        if (!Arrays.asList(cacheNVRam).contains(key1)) {
+            command("nvram set "+key1+"=\"`nvram get svqos_ips`\"");
+            changed=true;
+        }
+        if (!Arrays.asList(cacheNVRam).contains(key2)) {
+            command("nvram set "+key2+"=\"`nvram get cron_jobs`\"");
+            changed=true;
+        }
+        if (changed)
+            cacheNVRam = command("nvram show");
+    }
+
+    private void restore_from_backup() {
+        String key1 = PREFIX+"_svqos_ips";
+        String key2 = PREFIX+"_cron_jobs";
+        if (Arrays.asList(cacheNVRam).contains(key1)) {
+            command("nvram set svqos_ips=\"`nvram get "+key1+"`\"; nvram unset "+key1);
+        }
+        if (Arrays.asList(cacheNVRam).contains(key2)) {
+            command("nvram set cron_jobs=\"`nvram get "+key2+"`\"; nvram unset "+key2);
+        }
+        cacheNVRam = command("nvram show");
+    }
 }

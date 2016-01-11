@@ -1,11 +1,8 @@
 package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.text.TextUtils;
 import android.util.Log;
 
-import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
@@ -17,7 +14,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.zip.DataFormatException;
 
 /**
@@ -141,6 +137,7 @@ public class TomatoRouter extends LinuxRouter {
             }
             // add new rules
             //TODO: prevent adding duplicate rule
+            ensure_backup_exists();
             String[] result = command("nvram set qos_orules=\"`nvram get qos_orules`>"+incomingRule(ip)+">"+outgoingRule(ip)+"\"; echo $?");
             if (result[result.length - 1].equals("0")) {
                 cacheCrond = command("cru l");
@@ -160,6 +157,7 @@ public class TomatoRouter extends LinuxRouter {
     protected void scheduleUndoQOSRule(String ip, Calendar when) {
         final String DELETE_SELF = ";cru d "+PREFIX+ip;
         try {
+            ensure_backup_exists();
             String undo = "/bin/nvram set qos_orules=\\\"\\`/bin/nvram get qos_orules|sed 's|>"+incomingRule(ip)+"||'|sed 's|>"+outgoingRule(ip)+"||'\\`\\\"; service qos restart";
             if (when.before(new Date())) return;
             Log.d(TAG, "Scheduling prioritization of " + ip + " to end at " + when);
@@ -183,6 +181,23 @@ public class TomatoRouter extends LinuxRouter {
 
     private void refreshCronCache() {
         cacheCrond = command("cru l");
+    }
+
+    private void ensure_backup_exists() {
+        String key = PREFIX+"_qos_orules";
+        if (! Arrays.asList(cacheNVRam).contains(key)) {
+            command("nvram set "+key+"=\"`nvram get qos_orules`\"");
+            cacheNVRam = command("nvram show");
+        }
+    }
+
+    private void restore_from_backup() {
+        String key = PREFIX+"_qos_orules";
+        if (Arrays.asList(cacheNVRam).contains(key)) {
+            command("nvram set qos_orules=\"`nvram get "+key+"`\"");
+            command("nvram unset "+key);
+            cacheNVRam = command("nvram show");
+        }
     }
 
     class QOSRule {
