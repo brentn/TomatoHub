@@ -59,8 +59,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        getSupportFragmentManager().putFragment(outState, OVERVIEW_FRAGMENT, mOverviewFragment);
-        getSupportFragmentManager().putFragment(outState, WIFI_FRAGMENT, mWifiFragment);
+        if (mOverviewFragment!=null)
+            getSupportFragmentManager().putFragment(outState, OVERVIEW_FRAGMENT, mOverviewFragment);
+        if (mWifiFragment!=null)
+            getSupportFragmentManager().putFragment(outState, WIFI_FRAGMENT, mWifiFragment);
     }
 
     @Override

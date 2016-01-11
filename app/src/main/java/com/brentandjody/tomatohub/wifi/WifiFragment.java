@@ -112,7 +112,7 @@ public class WifiFragment extends Fragment {
             hsv[0] = (float)(wifi.SSID().hashCode()%360);
             int backColor = Color.HSVToColor(hsv);
             background.setColorFilter(new PorterDuffColorFilter(backColor, PorterDuff.Mode.OVERLAY));
-            ((TextView)convertView.findViewById(R.id.ssid)).setText(wifi.SSID());
+            ((TextView)convertView.findViewById(R.id.ssid)).setText(wifi.SSID().length()>18?wifi.SSID().substring(0,18):wifi.SSID());
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(true);
             boolean allow_changes = mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false);
             convertView.findViewById(R.id.enabled_switch).setVisibility(View.GONE); //hide this permanently, until implemented

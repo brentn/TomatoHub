@@ -15,6 +15,6 @@
         android:layout_marginRight="16dp"
         tools:context=".wifi.WifiFragment"
         tools:listitem="@layout/item_wifi_list"
-        >
+        android:paddingBottom="70dp">
     </ListView>
 </RelativeLayout>
