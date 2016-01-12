@@ -17,14 +17,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Wifi;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,10 +36,12 @@ import java.util.List;
  * A fragment representing a list of Items.
  */
 public class WifiFragment extends Fragment {
+    public static final int SIGNAL_CHANGE_WIFI_PASSWORD = 100;
 
     private OnSignalListener mListener;
     private View mView;
     private List<Wifi> mWifiList;
+    private SecureRandom secureRandom = new SecureRandom();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -84,6 +90,16 @@ public class WifiFragment extends Fragment {
 
     public interface OnSignalListener {
         void onSignal(int signal, String parameter);
+    }
+
+    private String generatePassword(int length) {
+        char[] CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789".toCharArray();
+        StringBuilder result = new StringBuilder();
+        for (int i=0; i < length; i++) {
+            if (i>1 && i%4==0) result.append(" "); //add spaces for readability
+            result.append(CHARS[secureRandom.nextInt(CHARS.length)]);
+        }
+        return result.toString();
     }
 
     public class WifiListAdapter extends ArrayAdapter<Wifi> {
@@ -140,6 +156,55 @@ public class WifiFragment extends Fragment {
                             startActivity(Intent.createChooser(sharingIntent, mContext.getString(R.string.how_do_you_want_to_share)));
                         }
                     });
+                    alert.setNeutralButton(R.string.change_password, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            final EditText newPassword = new EditText(mContext);
+                            newPassword.setTextColor(getResources().getColor(R.color.colorAccent));
+                            newPassword.setTextSize(24);
+                            newPassword.setTypeface(null, Typeface.BOLD);
+                            newPassword.setPadding(50, 20, 50, 20);
+                            final AlertDialog passwordDialog = new AlertDialog.Builder(getActivity())
+                                    .setTitle(wifi.SSID())
+                                    .setMessage(R.string.new_password)
+                                    .setView(newPassword)
+                                    .setNeutralButton("Generate", null)
+                                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            if (! newPassword.getText().toString().isEmpty()) {
+                                                new AlertDialog.Builder(getActivity())
+                                                        .setTitle(R.string.warning)
+                                                        .setMessage(R.string.wifi_disconnect_warning)
+                                                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                mListener.onSignal(SIGNAL_CHANGE_WIFI_PASSWORD, wifi.SSID() + "\n" + newPassword.getText().toString());
+                                                            }
+                                                        })
+                                                        .show();
+                                            } else Toast.makeText(getActivity(), R.string.password_cannot_be_empty, Toast.LENGTH_LONG).show();
+                                        }
+                                    })
+                                    .create();
+                            passwordDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                                @Override
+                                public void onShow(DialogInterface dialog) {
+                                    Button btnGenerate = passwordDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+                                    btnGenerate.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            newPassword.setText(generatePassword(16));
+                                        }
+                                    });
+                                }
+                            });
+                            passwordDialog.show();
+                        }
+                    });
+                    if (! mPrefs.getBoolean(getString(R.string.pref_key_allow_changes), false)) {
+                        alert.setNeutralButton("",null);
+                    }
                     alert.show();
                 }
             });

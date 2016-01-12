@@ -113,7 +113,7 @@
     <string name="pref_key_port">port</string>
     <string name="pref_key_allow_changes">allow changes</string>
     <string name="modify_device_name">Rename this device</string>
-    <string name="share_password">Share Password</string>
+    <string name="show_password">Show Password</string>
     <string name="enabled">Enabled?</string>
     <string name="external_ip_address">External IP Address:</string>
     <string name="uptime">Uptime:</string>
@@ -162,4 +162,10 @@
     <string name="ok">OK</string>
     <string name="internal_ip_address">Internal IP Address:</string>
     <string name="gateway_address">Gateway Address:</string>
+    <string name="password_change_not_supported">Password change not supported on this router type</string>
+    <string name="password_change_failed">Password change failed</string>
+    <string name="wifi_disconnect_warning">All WiFi devices will be temporarily disconnected as the WiFi service is restarted.  Devices on THIS network will need to reset their password in order to log back in</string>
+    <string name="warning">Warning</string>
+    <string name="new_password">Enter a new password</string>
+    <string name="password_cannot_be_empty">Password cannot be empty</string>
 </resources>

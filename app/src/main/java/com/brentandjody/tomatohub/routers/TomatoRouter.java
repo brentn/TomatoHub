@@ -2,7 +2,9 @@ package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
@@ -74,6 +76,24 @@ public class TomatoRouter extends LinuxRouter {
             }
         }
         return result;
+    }
+
+    @Override
+    public void setWifiPassword( Wifi wifi,  String newPassword) {
+        try {
+            String mode = "";
+            String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+            if (grep(cacheNVRam, prefix + "_security_mode=").length > 0) {
+                mode = grep(cacheNVRam, prefix + "_security_mode=")[0].split("=")[1];
+            }
+            if (mode.contains("wpa")) {
+                super.setWifiPassword(wifi, newPassword);
+                return;
+            } else Log.w(TAG, "setWifiPassword(): doesn't work in "+mode+" mode");
+        } catch (Exception ex) {
+            Log.e(TAG, "setWifiPassword: "+ex.getMessage());
+        }
+        Toast.makeText(mContext, R.string.password_change_failed, Toast.LENGTH_LONG).show();
     }
 
     @Override

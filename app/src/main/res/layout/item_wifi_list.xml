@@ -79,7 +79,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/share_password"
+            android:text="@string/show_password"
             android:id="@+id/share_button"
             android:layout_below="@+id/wifi_details"
             android:layout_alignParentLeft="true"

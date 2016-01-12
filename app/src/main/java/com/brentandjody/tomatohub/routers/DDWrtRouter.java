@@ -1,10 +1,11 @@
 package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
@@ -16,8 +17,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by brentn on 11/12/15.
@@ -81,6 +80,25 @@ public class DDWrtRouter extends LinuxRouter {
             }
         }
         return result;
+    }
+
+    @Override
+    public void setWifiPassword(Wifi wifi, String newPassword) {
+        try {
+            String mode = "";
+            String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+            // DD-Wrt replaces the . with an X in the security_mode parameter
+            if (grep(cacheNVRam, prefix.replace(".", "X") + "_security_mode=").length > 0) {
+                mode = grep(cacheNVRam, prefix.replace(".", "X") + "_security_mode=")[0].split("=")[1];
+            }
+            if (mode.contains("wpa")||mode.contains("psk")) {
+                super.setWifiPassword(wifi, newPassword);
+                return;
+            } else Log.w(TAG, "setWifiPassword(): doesn't work in "+mode+" mode");
+        } catch (Exception ex) {
+            Log.e(TAG, "setWifiPassword: "+ex.getMessage());
+        }
+        Toast.makeText(mContext, R.string.password_change_failed, Toast.LENGTH_LONG).show();
     }
 
     @Override

@@ -29,6 +29,7 @@ interface IRouter {
     String getRouterType();
     String getMacForIp(String ip);
     List<Wifi> getWifiList();
+    void setWifiPassword(Wifi wifi, String newPassword);
     String[] getNetworkIds();
     int getTotalDevices();
     int getTotalDevicesOn(String network_id);

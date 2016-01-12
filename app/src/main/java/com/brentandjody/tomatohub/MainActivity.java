@@ -129,6 +129,21 @@ public class MainActivity extends AppCompatActivity
                         Log.e(TAG, "couldn't parse time value");
                     }
                 }
+                break;
+            }
+            case WifiFragment.SIGNAL_CHANGE_WIFI_PASSWORD: {
+                if (parameter!=null && parameter.contains("\n")) {
+                    String ssid = parameter.split("\n")[0];
+                    String newPassword = parameter.split("\n")[1];
+                    Wifi wifi = null;
+                    for (Wifi w : mRouter.getWifiList()) {
+                        if (w.SSID().equals(ssid)) wifi = w;
+                    }
+                    if (wifi != null) {
+                        mRouter.setWifiPassword(wifi, newPassword);
+                    }
+                }
+                break;
             }
         }
     }
@@ -232,6 +247,10 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 }
+                break;
+            }
+            case Router.ACTIVITY_PASSWORD_CHANGED: {
+                mWifiFragment.setWifiList(mRouter.getWifiList());
                 break;
             }
         }

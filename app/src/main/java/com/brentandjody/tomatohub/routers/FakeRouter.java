@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
-import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
@@ -112,6 +111,13 @@ public class FakeRouter extends Router {
     }
 
     @Override
+    public void setWifiPassword(Wifi wifi, String newPassword) {
+        if (! newPassword.isEmpty()) {
+            wifi.setPassword(newPassword);
+        }
+    }
+
+    @Override
     public String[] getNetworkIds() {
         if (mNetworkIds==null) {
             final int MAX_NETWORKS = 3;
@@ -179,7 +185,6 @@ public class FakeRouter extends Router {
                 if (d.isActive()) {
                     long elapsed_time = (now - mTimestamp)/1000;
                     long bytes = Math.round(Math.pow((rnd.nextInt(500)/1000000F),-2));
-                    Log.e(TAG, "Bytes: "+bytes);
                     long traffic = Math.round((float) bytes / elapsed_time);
                     d.setTrafficStats(traffic,traffic,now);
                     mDevices.insertOrUpdate(d);
@@ -234,7 +239,6 @@ public class FakeRouter extends Router {
             mDevices.insertOrUpdate(device);
         }
     }
-
 
     private String randomMACAddress(){
         Random rand = new Random();

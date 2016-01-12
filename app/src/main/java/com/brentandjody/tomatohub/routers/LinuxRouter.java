@@ -1,7 +1,11 @@
 package com.brentandjody.tomatohub.routers;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.support.annotation.UiThread;
 import android.test.UiThreadTest;
@@ -204,6 +208,25 @@ public class LinuxRouter extends Router {
         }
         return result;
     }
+
+    @Override
+    public void setWifiPassword(final Wifi wifi, final String newPassword) {
+        String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+        final String key = prefix + "_wpa_psk";
+        if (grep(cacheNVRam, key + "=").length > 0) {
+            if (grep(cacheNVRam, key + "=")[0].split("=")[1].equals(wifi.password())) {
+                if (!newPassword.isEmpty()) {
+                    wifi.setPassword(newPassword);
+                    command("nvram set " + key + "=\""+newPassword+"\"; nvram commit");
+                    cacheNVRam = command("nvram show");
+                    runInBackground("service wireless restart");
+                    mListener.onRouterActivityComplete(Router.ACTIVITY_PASSWORD_CHANGED, ACTIVITY_STATUS_SUCCESS);
+                    Log.d(TAG, "setWifiPassword() SUCCESS");
+                }
+            } else Log.w(TAG, "setWifiPassword(): Original password did not match");
+        } else Log.w(TAG, "setWifiPassword(): Password not found in NVRam");
+    }
+
     @Override
     public String[] getNetworkIds() {
         if (mNetworkIds == null) {
@@ -225,6 +248,7 @@ public class LinuxRouter extends Router {
         if (mNetworkIds==null) mNetworkIds = new String[0];
         return mNetworkIds;
     }
+
     @Override
     public int getTotalDevices() {
         int total=0;

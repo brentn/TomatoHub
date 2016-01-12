@@ -13,7 +13,6 @@ import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
 import com.brentandjody.tomatohub.routers.connection.TestableConnection;
 
-import java.sql.Connection;
 import java.util.Arrays;
 
 /**
@@ -28,6 +27,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
     public static final int ACTIVITY_INTERNET_10MDOWNLOAD = 5;
     public static final int ACTIVITY_WIFI_SPEED_TEST = 6;
+    public static final int ACTIVITY_PASSWORD_CHANGED = 7;
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
 
