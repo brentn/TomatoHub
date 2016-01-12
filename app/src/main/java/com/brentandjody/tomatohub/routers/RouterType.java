@@ -17,7 +17,7 @@ public class RouterType {
         switch (type) {
             case TOMATO:return "Tomato";
             case DDWRT:return "DD-Wrt";
-            case FAKE:return "Dummy Router";
+            case FAKE:return "DEMO MODE";
             default: return "<unknown>";
         }
     }
