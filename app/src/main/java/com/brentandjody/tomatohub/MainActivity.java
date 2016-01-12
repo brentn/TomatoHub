@@ -142,6 +142,7 @@ public class MainActivity extends AppCompatActivity
                     if (wifi != null) {
                         mRouter.setWifiPassword(wifi, newPassword);
                     }
+                    finish();
                 }
                 break;
             }

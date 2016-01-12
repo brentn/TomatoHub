@@ -83,22 +83,21 @@ public class DDWrtRouter extends LinuxRouter {
     }
 
     @Override
-    public void setWifiPassword(Wifi wifi, String newPassword) {
-        try {
-            String mode = "";
-            String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
-            // DD-Wrt replaces the . with an X in the security_mode parameter
-            if (grep(cacheNVRam, prefix.replace(".", "X") + "_security_mode=").length > 0) {
-                mode = grep(cacheNVRam, prefix.replace(".", "X") + "_security_mode=")[0].split("=")[1];
-            }
-            if (mode.contains("wpa")||mode.contains("psk")) {
-                super.setWifiPassword(wifi, newPassword);
-                return;
-            } else Log.w(TAG, "setWifiPassword(): doesn't work in "+mode+" mode");
-        } catch (Exception ex) {
-            Log.e(TAG, "setWifiPassword: "+ex.getMessage());
-        }
-        Toast.makeText(mContext, R.string.password_change_failed, Toast.LENGTH_LONG).show();
+    public void setWifiPassword(final Wifi wifi, final String newPassword) {
+        String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+        final String key = prefix + "_wpa_psk";
+        if (grep(cacheNVRam, key + "=").length > 0) {
+            if (grep(cacheNVRam, key + "=")[0].split("=")[1].equals(wifi.password())) {
+                if (!newPassword.isEmpty()) {
+                    wifi.setPassword(newPassword);
+                    command("nvram set " + key + "=\""+newPassword+"\"; nvram commit");
+                    cacheNVRam = command("nvram show");
+                    runInBackground("rc start");
+                    mListener.onRouterActivityComplete(Router.ACTIVITY_PASSWORD_CHANGED, ACTIVITY_STATUS_SUCCESS);
+                    Log.d(TAG, "setWifiPassword() SUCCESS");
+                }
+            } else Log.w(TAG, "setWifiPassword(): Original password did not match");
+        } else Log.w(TAG, "setWifiPassword(): Password not found in NVRam");
     }
 
     @Override

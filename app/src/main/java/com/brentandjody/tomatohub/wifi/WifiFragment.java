@@ -84,7 +84,8 @@ public class WifiFragment extends Fragment {
         if (wifi_list!= null) {
             mWifiList = wifi_list;
             ListView list = (ListView) mView.findViewById(R.id.wifi_list);
-            list.setAdapter(new WifiListAdapter(getActivity(), mWifiList, mListener));
+            if (getActivity()!=null)
+                list.setAdapter(new WifiListAdapter(getActivity(), mWifiList, mListener));
         }
     }
 
@@ -172,7 +173,7 @@ public class WifiFragment extends Fragment {
                                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            if (! newPassword.getText().toString().isEmpty()) {
+                                            if (newPassword.getText().toString().length()>=8) {
                                                 new AlertDialog.Builder(getActivity())
                                                         .setTitle(R.string.warning)
                                                         .setMessage(R.string.wifi_disconnect_warning)
@@ -183,7 +184,7 @@ public class WifiFragment extends Fragment {
                                                             }
                                                         })
                                                         .show();
-                                            } else Toast.makeText(getActivity(), R.string.password_cannot_be_empty, Toast.LENGTH_LONG).show();
+                                            } else Toast.makeText(getActivity(), R.string.password_too_short, Toast.LENGTH_LONG).show();
                                         }
                                     })
                                     .create();

@@ -164,8 +164,9 @@
     <string name="gateway_address">Gateway Address:</string>
     <string name="password_change_not_supported">Password change not supported on this router type</string>
     <string name="password_change_failed">Password change failed</string>
-    <string name="wifi_disconnect_warning">All WiFi devices will be temporarily disconnected as the WiFi service is restarted.  Devices on THIS network will need to reset their password in order to log back in</string>
+    <string name="wifi_disconnect_warning">All WiFi devices will be temporarily disconnected as the WiFi service is restarted.\n\nThe app now exit.\n\nPlease wait until your WiFi connection has been re-established before re-starting the app.</string>
     <string name="warning">Warning</string>
     <string name="new_password">Enter a new password</string>
     <string name="password_cannot_be_empty">Password cannot be empty</string>
+    <string name="password_too_short">Password is too short</string>
 </resources>
