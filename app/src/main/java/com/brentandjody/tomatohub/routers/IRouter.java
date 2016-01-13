@@ -3,6 +3,7 @@ package com.brentandjody.tomatohub.routers;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Created by brentn on 15/12/15.
@@ -13,7 +14,6 @@ interface IRouter {
     void connect();
     void disconnect();
     String[] command(String command);
-    void runInBackground(String command);
     void reboot();
 
     // COMMANDS
@@ -27,15 +27,24 @@ interface IRouter {
     void updateTrafficStats();
     String getRouterId();
     String getRouterType();
-    String getMacForIp(String ip);
-    List<Wifi> getWifiList();
-    void setWifiPassword(Wifi wifi, String newPassword);
     String[] getNetworkIds();
     int getTotalDevices();
     int getTotalDevicesOn(String network_id);
-    void wifiSpeedTest(int port);
+
+    String getMacForIp(String ip);
+
+    //Speed Test
     float getConnectionSpeed();
     void internetSpeedTest();
+
+    //WiFi
+    List<Wifi> getWifiList();
+    void setWifiPassword(Wifi wifi, String newPassword);
+    void enableWifi(String ssid, boolean enabled);
+    void broadcastWifi(String ssid, boolean broadcast);
+    void wifiSpeedTest(int port);
+
+    //Prioritize
     boolean isQOSEnabled();
     boolean isPrioritized(String ip);
     long isPrioritizedUntil(String ip);

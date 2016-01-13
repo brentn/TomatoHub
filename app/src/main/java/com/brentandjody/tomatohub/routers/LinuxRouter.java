@@ -211,21 +211,51 @@ public class LinuxRouter extends Router {
     }
 
     @Override
-    public void setWifiPassword(final Wifi wifi, final String newPassword) {
-        String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
-        final String key = prefix + "_wpa_psk";
-        if (grep(cacheNVRam, key + "=").length > 0) {
-            if (grep(cacheNVRam, key + "=")[0].split("=")[1].equals(wifi.password())) {
-                if (!newPassword.isEmpty()) {
-                    wifi.setPassword(newPassword);
-                    command("nvram set " + key + "=\""+newPassword+"\"; nvram commit");
-                    cacheNVRam = command("nvram show");
-                    runInBackground("service wireless restart");
-                    mListener.onRouterActivityComplete(Router.ACTIVITY_PASSWORD_CHANGED, ACTIVITY_STATUS_SUCCESS);
-                    Log.d(TAG, "setWifiPassword() SUCCESS");
-                }
-            } else Log.w(TAG, "setWifiPassword(): Original password did not match");
-        } else Log.w(TAG, "setWifiPassword(): Password not found in NVRam");
+    public void setWifiPassword(Wifi wifi, final String newPassword) {
+        if (grep(cacheNVRam, "ssid="+wifi.SSID()).length > 0) {
+            String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
+            String key = prefix + "_wpa_psk=";
+            if (grep(cacheNVRam, key).length > 0) {
+                if (grep(cacheNVRam, key)[0].split("=")[1].equals(wifi.password())) {
+                    if (!newPassword.isEmpty()) {
+                        wifi.setPassword(newPassword);
+                        command("nvram set " + key + "\"" + newPassword + "\"; nvram commit");
+                        cacheNVRam = command("nvram show");
+                        runInBackground("service wireless restart");
+                        mListener.onRouterActivityComplete(Router.ACTIVITY_PASSWORD_CHANGED, ACTIVITY_STATUS_SUCCESS);
+                        Log.d(TAG, "setWifiPassword() SUCCESS");
+                    }
+                } else Log.w(TAG, "setWifiPassword(): Original password did not match");
+            } else Log.w(TAG, "setWifiPassword(): Password not found in NVRam");
+        } else Log.w(TAG, "setWifiPassword(): SSID not found in NVRam");
+    }
+
+    @Override
+    public void enableWifi(String ssid, boolean enabled) {
+        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
+            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
+            String key = prefix+"_radio=";
+            if (grep(cacheNVRam, key).length>0) {
+                command("nvram set " + key + (enabled?"\"1\"":"\"0\""));
+                cacheNVRam = command("nvram show");
+                runInBackground("service net restart", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
+                Log.d(TAG, "enableWifi() SUCCESS");
+            } else Log.w(TAG, "enableWifi(): key not found in NVRam");
+        }
+    }
+
+    @Override
+    public void broadcastWifi(String ssid, boolean broadcast) {
+        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
+            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
+            String key = prefix+"_closed=";
+            if (grep(cacheNVRam, key).length>0) {
+                command("nvram set " + key + (broadcast?"\"0\"":"\"1\""));
+                cacheNVRam = command("nvram show");
+                runInBackground("service net restart", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
+                Log.d(TAG, "enableWifi() SUCCESS");
+            } else Log.w(TAG, "enableWifi(): key not found in NVRam");
+        }
     }
 
     @Override

@@ -13,7 +13,10 @@ import com.brentandjody.tomatohub.routers.connection.SshConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
 import com.brentandjody.tomatohub.routers.connection.TestableConnection;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by brent on 28/11/15.
@@ -28,8 +31,13 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public static final int ACTIVITY_INTERNET_10MDOWNLOAD = 5;
     public static final int ACTIVITY_WIFI_SPEED_TEST = 6;
     public static final int ACTIVITY_PASSWORD_CHANGED = 7;
+    public static final int ACTIVITY_BACKGROUND_COMMAND = 10;
+
+    public static final String ACTIVITY_FLAG_EXIT_ON_COMPLETION = "EXIT";
+
     public static final int ACTIVITY_STATUS_SUCCESS = 1;
     public static final int ACTIVITY_STATUS_FAILURE = 2;
+    public static final int ACTIVITY_STATUS_EXIT = 3;
 
     private static final String TAG = Router.class.getName();
     protected OnRouterActivityCompleteListener mListener;
@@ -118,9 +126,16 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
         }
     }
 
-    @Override
-    public void runInBackground(String command) {
+    protected void runInBackground(String command) {
         Log.d(TAG, "executing command in background: "+command);
+        new BackgroundRunner().execute(command);
+    }
+
+    protected void runInBackground(String command, String[] flags) {
+        Log.d(TAG, "executing command in background with flags: "+command+" : "+Arrays.toString(flags));
+        List<String> commandWithFlags = new ArrayList();
+        commandWithFlags.add(command);
+        Collections.addAll(commandWithFlags, flags);
         new BackgroundRunner().execute(command);
     }
 
@@ -182,11 +197,26 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     }
 
     class BackgroundRunner extends AsyncTask<String, Void, Void> {
+        private boolean success;
+        private String[] flags;
+
         @Override
         protected Void doInBackground(String... command) {
+            flags = command.length>1?Arrays.copyOfRange(command, 1, command.length):null;
             String[] output =  mConnection.execute(command[0]);
             Log.v(TAG, "runInBackground command: "+command[0] + "  result: "+ Arrays.toString(output));
+            try { success = mConnection.execute("echo $?")[0].equals("0"); }
+            catch (Exception ex ) {success = false;}
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            int result = success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE;
+            if (Arrays.asList(flags).contains(ACTIVITY_FLAG_EXIT_ON_COMPLETION)) {
+                result = ACTIVITY_STATUS_EXIT;
+            }
+            mListener.onRouterActivityComplete(ACTIVITY_BACKGROUND_COMMAND, result);
         }
     }
 

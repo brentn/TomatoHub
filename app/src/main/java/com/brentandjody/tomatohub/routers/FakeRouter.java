@@ -93,6 +93,12 @@ public class FakeRouter extends Router {
     public boolean isQOSEnabled() { return true; }
 
     @Override
+    public void enableWifi(String ssid, boolean enabled) {}
+
+    @Override
+    public void broadcastWifi(String ssid, boolean broadcast) { }
+
+    @Override
     public String getMacForIp(String ip) { return "00:00:00:00:00:00"; }
 
     @Override

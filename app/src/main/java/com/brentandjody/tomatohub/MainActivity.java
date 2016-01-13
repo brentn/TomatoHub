@@ -147,6 +147,22 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             }
+            case WifiFragment.SIGNAL_DISABLE_WIFI: {
+                mRouter.enableWifi(parameter, false);
+                break;
+            }
+            case WifiFragment.SIGNAL_ENABLE_WIFI: {
+                mRouter.enableWifi(parameter, true);
+                break;
+            }
+            case WifiFragment.SIGNAL_HIDE_WIFI: {
+                mRouter.broadcastWifi(parameter, false);
+                break;
+            }
+            case WifiFragment.SIGNAL_SHOW_WIFI: {
+                mRouter.broadcastWifi(parameter, true);
+                break;
+            }
         }
     }
 
@@ -255,6 +271,11 @@ public class MainActivity extends AppCompatActivity
             }
             case Router.ACTIVITY_PASSWORD_CHANGED: {
                 mWifiFragment.setWifiList(mRouter.getWifiList());
+                break;
+            }
+            case Router.ACTIVITY_BACKGROUND_COMMAND: {
+                if (status==Router.ACTIVITY_STATUS_EXIT)
+                    finish();
                 break;
             }
         }

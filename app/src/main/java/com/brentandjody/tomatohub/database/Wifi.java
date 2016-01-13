@@ -11,6 +11,7 @@ public class Wifi {
     private String mPassword;
 
     public Wifi(String ssid) {
+        if (ssid==null) ssid="<unspecified>";
         mSSID=ssid;
     }
 
@@ -22,4 +23,14 @@ public class Wifi {
     public boolean broadcast() {return mBroadcast;}
     public boolean enabled() {return mEnabled;}
     public String password() {return mPassword;}
+
+    @Override
+    public boolean equals(Object that) {
+        return (that instanceof Wifi && this.mSSID.equals(((Wifi)that).SSID()));
+    }
+
+    @Override
+    public int hashCode() {
+        return mSSID.hashCode();
+    }
 }
