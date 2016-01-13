@@ -63,14 +63,25 @@ public class TomatoRouter extends LinuxRouter {
             try {
                 String mode = "";
                 String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
-                if (grep(cacheNVRam, prefix + "_security_mode=").length > 0) {
-                    mode = grep(cacheNVRam, prefix+"_security_mode=")[0].split("=")[1];
+                String[] items = grep(cacheNVRam, prefix + "_security_mode");
+                if (items.length > 0) {
+                    mode = items[0].split("=")[1];
                 }
                 if (mode.contains("wpa")) {
-                    if (grep(cacheNVRam, prefix + "_wpa_psk=").length > 0)
-                        wifi.setPassword(grep(cacheNVRam, prefix + "_wpa_psk=")[0].split("=")[1]);
+                    items = grep(cacheNVRam, prefix + "_wpa_psk=");
+                    if (items.length > 0) {
+                        wifi.setPassword(items[0].split("=")[1]);
+                    }
                 }
                 result.add(wifi);
+                items = grep(cacheNVRam, prefix+"_closed=");
+                if (items.length > 0) {
+                    wifi.setBroadcast(items[0].equals(prefix + "_closed=0"));
+                }
+                items = grep(cacheNVRam, prefix+"_radio=");
+                if (items.length > 0) {
+                    wifi.setEnabled(items[0].equals(prefix + "_radio=1"));
+                }
             } catch (Exception ex) {
                 Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
             }

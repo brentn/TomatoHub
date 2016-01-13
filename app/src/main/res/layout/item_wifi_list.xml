@@ -9,7 +9,8 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#8879d3">
+        android:background="#8879d3"
+        android:paddingBottom="10dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -54,12 +55,24 @@
             android:id="@+id/enabled_switch"
             android:layout_below="@+id/wifi_details"
             android:layout_alignRight="@+id/wifi_details"
-            android:layout_marginTop="10dp"
             android:layout_marginRight="20dp"
             android:textOn="Wifi is enabled"
             android:textOff="Wifi is DISABLED"
             android:switchPadding="10dp"
             android:textColor="#ffffff" />
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/visible"
+            android:id="@+id/visible_switch"
+            android:layout_below="@+id/enabled_switch"
+            android:textOn="Wifi is enabled"
+            android:textOff="Wifi is DISABLED"
+            android:switchPadding="10dp"
+            android:textColor="#ffffff"
+            android:layout_alignRight="@+id/enabled_switch"
+            android:layout_marginTop="5dp" />
 
         <TextView
             android:layout_width="match_parent"

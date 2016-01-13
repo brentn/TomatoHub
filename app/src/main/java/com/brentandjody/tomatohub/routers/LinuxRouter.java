@@ -205,6 +205,7 @@ public class LinuxRouter extends Router {
         List<Wifi> result = new ArrayList<>();
         for (String ssid : mWifiIds) {
             Wifi wifi = new Wifi(ssid);
+            result.add(wifi);
         }
         return result;
     }
