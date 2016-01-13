@@ -173,13 +173,13 @@ public class LinuxRouter extends Router {
     @Override
     public List<Wifi> getWifiList() {
         if (mWifiIds==null) {
-            List<String> wifis = new ArrayList();
+            List<String> wifis = new ArrayList<>();
             try {
                 for (String wireless : grep(cacheNVRam, "net_mode=")) {
                     if (! wireless.contains("disabled")) {
                         String prefix = wireless.substring(0, wireless.indexOf("_"));
                         if (grep(cacheNVRam, prefix+"_radio=1").length>0) {
-                            List<String> interfaces = new ArrayList();
+                            List<String> interfaces = new ArrayList<>();
                             interfaces.add(prefix);
                             for (String key : grep(cacheNVRam, prefix + "_vifs=")) {
                                 if (! key.endsWith("="))
@@ -231,32 +231,10 @@ public class LinuxRouter extends Router {
     }
 
     @Override
-    public void enableWifi(String ssid, boolean enabled) {
-        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
-            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
-            String key = prefix+"_radio=";
-            if (grep(cacheNVRam, key).length>0) {
-                command("nvram set " + key + (enabled?"\"1\"":"\"0\""));
-                cacheNVRam = command("nvram show");
-                runInBackground("service net restart", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
-                Log.d(TAG, "enableWifi() SUCCESS");
-            } else Log.w(TAG, "enableWifi(): key not found in NVRam");
-        }
-    }
+    public void enableWifi(String ssid, boolean enabled) {}
 
     @Override
-    public void broadcastWifi(String ssid, boolean broadcast) {
-        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
-            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
-            String key = prefix+"_closed=";
-            if (grep(cacheNVRam, key).length>0) {
-                command("nvram set " + key + (broadcast?"\"0\"":"\"1\""));
-                cacheNVRam = command("nvram show");
-                runInBackground("service net restart", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
-                Log.d(TAG, "enableWifi() SUCCESS");
-            } else Log.w(TAG, "enableWifi(): key not found in NVRam");
-        }
-    }
+    public void broadcastWifi(String ssid, boolean broadcast) {}
 
     @Override
     public String[] getNetworkIds() {

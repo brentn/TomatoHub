@@ -274,7 +274,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
             case Router.ACTIVITY_BACKGROUND_COMMAND: {
+                Log.d(TAG, "Background activity complete");
                 if (status==Router.ACTIVITY_STATUS_EXIT)
+                    Log.d(TAG, "Exiting");
                     finish();
                 break;
             }
@@ -369,7 +371,6 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
         return true;
     }
 

@@ -133,10 +133,10 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
 
     protected void runInBackground(String command, String[] flags) {
         Log.d(TAG, "executing command in background with flags: "+command+" : "+Arrays.toString(flags));
-        List<String> commandWithFlags = new ArrayList();
+        List<String> commandWithFlags = new ArrayList<>();
         commandWithFlags.add(command);
         Collections.addAll(commandWithFlags, flags);
-        new BackgroundRunner().execute(command);
+        new BackgroundRunner().execute(commandWithFlags.toArray(new String[commandWithFlags.size()]));
     }
 
     @Override
@@ -202,7 +202,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
 
         @Override
         protected Void doInBackground(String... command) {
-            flags = command.length>1?Arrays.copyOfRange(command, 1, command.length):null;
+            flags = command.length>1?Arrays.copyOfRange(command, 1, command.length):new String[0];
             String[] output =  mConnection.execute(command[0]);
             Log.v(TAG, "runInBackground command: "+command[0] + "  result: "+ Arrays.toString(output));
             try { success = mConnection.execute("echo $?")[0].equals("0"); }

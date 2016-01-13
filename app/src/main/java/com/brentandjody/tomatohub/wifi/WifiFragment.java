@@ -26,8 +26,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Wifi;
+import com.brentandjody.tomatohub.routers.RouterType;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -139,9 +141,11 @@ public class WifiFragment extends Fragment {
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(wifi.enabled());
             ((Switch) convertView.findViewById(R.id.visible_switch)).setChecked(wifi.broadcast());
             boolean allow_changes = mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false);
-            convertView.findViewById(R.id.enabled_switch).setEnabled(allow_changes);
+            boolean canDisableWifi = (((MainActivity)getActivity()).getRouterType() != RouterType.DDWRT); //dd-wrt doesn't support enable/disable, so hide it
+            convertView.findViewById(R.id.enabled_switch).setVisibility(canDisableWifi?View.VISIBLE:View.INVISIBLE);
+            convertView.findViewById(R.id.enabled_switch).setEnabled(allow_changes && canDisableWifi);
             final View view = convertView;
-            if (allow_changes) {
+            if (allow_changes && canDisableWifi) {
                 suppressAction=false;
                 ((Switch) convertView.findViewById(R.id.enabled_switch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override

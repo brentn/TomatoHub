@@ -67,13 +67,20 @@ public class DDWrtRouter extends LinuxRouter {
                 String mode = "";
                 String prefix = grep(cacheNVRam, "ssid=" + wifi.SSID())[0].split("_ssid")[0];
                 // DD-Wrt replaces the . with an X in the security_mode parameter
-                if (grep(cacheNVRam, prefix.replace(".","X") + "_security_mode=").length > 0) {
-                    mode = grep(cacheNVRam, prefix.replace(".","X")+"_security_mode=")[0].split("=")[1];
+                String[] items = grep(cacheNVRam, prefix.replace(".","X") + "_security_mode=");
+                if (items.length > 0) {
+                    mode = items[0].split("=")[1];
                 }
                 if (mode.contains("wpa")||mode.contains("psk")) {
-                    if (grep(cacheNVRam, prefix + "_wpa_psk=").length > 0)
-                        wifi.setPassword(grep(cacheNVRam, prefix + "_wpa_psk=")[0].split("=")[1]);
+                    items = grep(cacheNVRam, prefix + "_wpa_psk=");
+                    if (items.length > 0)
+                        wifi.setPassword(items[0].split("=")[1]);
                 }
+                items = grep(cacheNVRam, prefix+"_closed=");
+                if (items.length > 0) {
+                    wifi.setBroadcast(items[0].equals(prefix + "_closed=0"));
+                }
+                wifi.setEnabled(true);
                 result.add(wifi);
             } catch (Exception ex) {
                 Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
@@ -98,6 +105,20 @@ public class DDWrtRouter extends LinuxRouter {
                 }
             } else Log.w(TAG, "setWifiPassword(): Original password did not match");
         } else Log.w(TAG, "setWifiPassword(): Password not found in NVRam");
+    }
+
+    @Override
+    public void broadcastWifi(String ssid, boolean broadcast) {
+        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
+            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
+            String key = prefix+"_closed=";
+            if (grep(cacheNVRam, key).length>0) {
+                command("nvram set " + key + (broadcast?"\"0\"":"\"1\""));
+                cacheNVRam = command("nvram show");
+                runInBackground("rc start", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
+                Log.d(TAG, "broadcastWifi("+broadcast+") SUCCESS");
+            } else Log.w(TAG, "broadcastWifi(): key not found in NVRam");
+        }
     }
 
     @Override

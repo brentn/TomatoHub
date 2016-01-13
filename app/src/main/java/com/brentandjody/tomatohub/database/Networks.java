@@ -8,6 +8,7 @@ import android.util.Log;
 
 /**
  * Created by brent on 05/12/15.
+ * Class for network object
  */
 public class Networks {
 
