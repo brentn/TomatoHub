@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -362,6 +363,13 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             startActivityForResult(new Intent(MainActivity.this, SettingsActivity.class), SETTINGS_REQUEST_CODE);
             return true;
+        }
+        if (id == R.id.action_help) {
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.setData(Uri.parse(getString(R.string.wrthub_website)));
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
