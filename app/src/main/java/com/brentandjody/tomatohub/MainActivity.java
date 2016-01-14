@@ -269,7 +269,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             }
-            case Router.ACTIVITY_PASSWORD_CHANGED: {
+            case Router.ACTIVITY_WIFI_UPDATED: {
                 mWifiFragment.setWifiList(mRouter.getWifiList());
                 break;
             }

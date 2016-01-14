@@ -190,7 +190,8 @@ public class FakeRouter extends Router {
             for (Device d : mDevices.getDevicesOnNetwork(getRouterId(), networkId)) {
                 if (d.isActive()) {
                     long elapsed_time = (now - mTimestamp)/1000;
-                    long bytes = Math.round(Math.pow((rnd.nextInt(500)/1000000F),-2));
+                    long bytes = Math.round(Math.pow((rnd.nextInt(5000)/10000F),-1.7)*10240);
+                    Log.e(TAG, bytes+"");
                     long traffic = Math.round((float) bytes / elapsed_time);
                     d.setTrafficStats(traffic,traffic,now);
                     mDevices.insertOrUpdate(d);

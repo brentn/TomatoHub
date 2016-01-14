@@ -115,7 +115,8 @@ public class TomatoRouter extends LinuxRouter {
             if (grep(cacheNVRam, key).length>0) {
                 command("nvram set " + key + (enabled?"\"1\"":"\"0\""));
                 cacheNVRam = command("nvram show");
-                runInBackground("service net restart", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
+                runInBackground("service net restart");
+                mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "enableWifi("+enabled+") SUCCESS");
             } else Log.w(TAG, "enableWifi(): key not found in NVRam");
         }
@@ -129,7 +130,8 @@ public class TomatoRouter extends LinuxRouter {
             if (grep(cacheNVRam, key).length > 0) {
                 command("nvram set " + key + (broadcast ? "\"0\"" : "\"1\""));
                 cacheNVRam = command("nvram show");
-                runInBackground("service net restart", new String[]{ACTIVITY_FLAG_EXIT_ON_COMPLETION});
+                runInBackground("service net restart");
+                mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "broadcastWifi("+broadcast+") SUCCESS");
             } else Log.w(TAG, "broadcastWifi(): key not found in NVRam");
         }

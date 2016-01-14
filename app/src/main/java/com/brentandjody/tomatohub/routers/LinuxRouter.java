@@ -222,7 +222,7 @@ public class LinuxRouter extends Router {
                         command("nvram set " + key + "\"" + newPassword + "\"; nvram commit");
                         cacheNVRam = command("nvram show");
                         runInBackground("service wireless restart");
-                        mListener.onRouterActivityComplete(Router.ACTIVITY_PASSWORD_CHANGED, ACTIVITY_STATUS_SUCCESS);
+                        mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                         Log.d(TAG, "setWifiPassword() SUCCESS");
                     }
                 } else Log.w(TAG, "setWifiPassword(): Original password did not match");

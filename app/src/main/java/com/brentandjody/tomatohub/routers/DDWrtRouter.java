@@ -100,7 +100,7 @@ public class DDWrtRouter extends LinuxRouter {
                     command("nvram set " + key + "=\""+newPassword+"\"; nvram commit");
                     cacheNVRam = command("nvram show");
                     runInBackground("rc start");
-                    mListener.onRouterActivityComplete(Router.ACTIVITY_PASSWORD_CHANGED, ACTIVITY_STATUS_SUCCESS);
+                    mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                     Log.d(TAG, "setWifiPassword() SUCCESS");
                 }
             } else Log.w(TAG, "setWifiPassword(): Original password did not match");
@@ -115,7 +115,8 @@ public class DDWrtRouter extends LinuxRouter {
             if (grep(cacheNVRam, key).length>0) {
                 command("nvram set " + key + (broadcast?"\"0\"":"\"1\""));
                 cacheNVRam = command("nvram show");
-                runInBackground("rc start", new String[] {ACTIVITY_FLAG_EXIT_ON_COMPLETION});
+                runInBackground("rc start");
+                mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "broadcastWifi("+broadcast+") SUCCESS");
             } else Log.w(TAG, "broadcastWifi(): key not found in NVRam");
         }

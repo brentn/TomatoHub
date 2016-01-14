@@ -153,7 +153,7 @@ public class WifiFragment extends Fragment {
                         if (! suppressAction) {
                             new AlertDialog.Builder(mContext)
                                     .setTitle((isChecked ? mContext.getString(R.string.enable) : mContext.getString(R.string.disable)) + " " + wifi.SSID() + "?")
-                                    .setMessage(mContext.getString(R.string.wifi_disconnect_warning))
+                                    .setMessage(mContext.getString(R.string.confirm_enable_wifi)+" "+(isChecked?mContext.getString(R.string.on):mContext.getString(R.string.off)))
                                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
@@ -182,7 +182,7 @@ public class WifiFragment extends Fragment {
                         if (! suppressAction) {
                             new AlertDialog.Builder(mContext)
                                     .setTitle((isChecked ? mContext.getString(R.string.broadcast) : mContext.getString(R.string.hide)) + " " + wifi.SSID() + "?")
-                                    .setMessage(mContext.getString(R.string.wifi_disconnect_warning))
+                                    .setMessage(isChecked?mContext.getString(R.string.confirm_show_wifi):mContext.getString(R.string.confirm_hide_wifi))
                                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
