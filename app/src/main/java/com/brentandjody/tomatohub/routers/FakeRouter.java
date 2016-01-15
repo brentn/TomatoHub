@@ -93,10 +93,20 @@ public class FakeRouter extends Router {
     public boolean isQOSEnabled() { return true; }
 
     @Override
-    public void enableWifi(String ssid, boolean enabled) {}
+    public void enableWifi(String ssid, boolean enabled) {
+        for (Wifi w : mWifis) {
+            if (w.SSID().equals(ssid)) w.setEnabled(enabled);
+        }
+        mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED,ACTIVITY_STATUS_SUCCESS);
+    }
 
     @Override
-    public void broadcastWifi(String ssid, boolean broadcast) { }
+    public void broadcastWifi(String ssid, boolean broadcast) {
+        for (Wifi w : mWifis) {
+            if (w.SSID().equals(ssid)) w.setBroadcast(broadcast);
+        }
+        mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED,ACTIVITY_STATUS_SUCCESS);
+    }
 
     @Override
     public String getMacForIp(String ip) { return "00:00:00:00:00:00"; }
@@ -120,6 +130,7 @@ public class FakeRouter extends Router {
     public void setWifiPassword(Wifi wifi, String newPassword) {
         if (! newPassword.isEmpty()) {
             wifi.setPassword(newPassword);
+            mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
         }
     }
 
@@ -134,7 +145,6 @@ public class FakeRouter extends Router {
             }
             mNetworkIds = result;
         }
-        Log.d(TAG, "Number of networks:"+mNetworkIds.length);
         return mNetworkIds;
     }
 
@@ -191,7 +201,6 @@ public class FakeRouter extends Router {
                 if (d.isActive()) {
                     long elapsed_time = (now - mTimestamp)/1000;
                     long bytes = Math.round(Math.pow((rnd.nextInt(5000)/10000F),-1.7)*10240);
-                    Log.e(TAG, bytes+"");
                     long traffic = Math.round((float) bytes / elapsed_time);
                     d.setTrafficStats(traffic,traffic,now);
                     mDevices.insertOrUpdate(d);
@@ -216,7 +225,7 @@ public class FakeRouter extends Router {
         }, 7000);
     }
     @Override
-    public void wifiSpeedTest(int port) {
+        public void wifiSpeedTest(int port) {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {

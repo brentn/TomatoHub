@@ -141,11 +141,9 @@ public class WifiFragment extends Fragment {
             ((Switch) convertView.findViewById(R.id.enabled_switch)).setChecked(wifi.enabled());
             ((Switch) convertView.findViewById(R.id.visible_switch)).setChecked(wifi.broadcast());
             boolean allow_changes = mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false);
-            boolean canDisableWifi = (((MainActivity)getActivity()).getRouterType() != RouterType.DDWRT); //dd-wrt doesn't support enable/disable, so hide it
-            convertView.findViewById(R.id.enabled_switch).setVisibility(canDisableWifi?View.VISIBLE:View.INVISIBLE);
-            convertView.findViewById(R.id.enabled_switch).setEnabled(allow_changes && canDisableWifi);
+            convertView.findViewById(R.id.enabled_switch).setEnabled(allow_changes);
             final View view = convertView;
-            if (allow_changes && canDisableWifi) {
+            if (allow_changes) {
                 suppressAction=false;
                 ((Switch) convertView.findViewById(R.id.enabled_switch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override

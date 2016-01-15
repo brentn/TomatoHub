@@ -113,9 +113,11 @@ public class TomatoRouter extends LinuxRouter {
             String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
             String key = prefix+"_radio=";
             if (grep(cacheNVRam, key).length>0) {
-                command("nvram set " + key + (enabled?"\"1\"":"\"0\""));
-                cacheNVRam = command("nvram show");
-                runInBackground("service net restart");
+                String value = (enabled?"\"1\"":"\"0\"");
+                command("nvram set " + key + value);
+                setCacheNVRam(key, value);
+                command("ifconfig "+prefix+(enabled?"up":"down"));
+                runInBackground("nvram commit; service net restart");
                 mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "enableWifi("+enabled+") SUCCESS");
             } else Log.w(TAG, "enableWifi(): key not found in NVRam");
@@ -128,9 +130,10 @@ public class TomatoRouter extends LinuxRouter {
             String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
             String key = prefix + "_closed=";
             if (grep(cacheNVRam, key).length > 0) {
-                command("nvram set " + key + (broadcast ? "\"0\"" : "\"1\""));
-                cacheNVRam = command("nvram show");
-                runInBackground("service net restart");
+                String value = (broadcast ? "\"0\"" : "\"1\"");
+                command("nvram set " + key + value);
+                setCacheNVRam(key, value);
+                runInBackground("nvram commit; service net restart");
                 mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "broadcastWifi("+broadcast+") SUCCESS");
             } else Log.w(TAG, "broadcastWifi(): key not found in NVRam");
@@ -208,7 +211,7 @@ public class TomatoRouter extends LinuxRouter {
             String[] result = command("nvram set qos_orules=\"`nvram get qos_orules`>"+incomingRule(ip)+">"+outgoingRule(ip)+"\"; echo $?");
             if (result[result.length - 1].equals("0")) {
                 cacheCrond = command("cru l");
-                cacheNVRam = command("nvram show");
+                refreshNVRamCache();
                 runInBackground("service qos restart; echo $?");
                 Log.i(TAG, "nvram successfully updated with new rules");
                 return true;
@@ -254,7 +257,6 @@ public class TomatoRouter extends LinuxRouter {
         String key = PREFIX+"_qos_orules";
         if (! Arrays.asList(cacheNVRam).contains(key)) {
             command("nvram set "+key+"=\"`nvram get qos_orules`\"");
-            cacheNVRam = command("nvram show");
             Log.d(TAG, "Backed up unmodified QOS");
         }
     }
@@ -264,7 +266,7 @@ public class TomatoRouter extends LinuxRouter {
         if (Arrays.asList(cacheNVRam).contains(key)) {
             command("nvram set qos_orules=\"`nvram get "+key+"`\"");
             command("nvram unset "+key);
-            cacheNVRam = command("nvram show");
+            refreshNVRamCache();
             Log.d(TAG, "Restoring unmodified QOS");
         }
     }

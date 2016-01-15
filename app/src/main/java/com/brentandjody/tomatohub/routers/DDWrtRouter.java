@@ -3,9 +3,7 @@ package com.brentandjody.tomatohub.routers;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Devices;
 import com.brentandjody.tomatohub.database.Networks;
@@ -76,11 +74,18 @@ public class DDWrtRouter extends LinuxRouter {
                     if (items.length > 0)
                         wifi.setPassword(items[0].split("=")[1]);
                 }
+                wifi.setBroadcast(true);
                 items = grep(cacheNVRam, prefix+"_closed=");
                 if (items.length > 0) {
                     wifi.setBroadcast(items[0].equals(prefix + "_closed=0"));
                 }
                 wifi.setEnabled(true);
+                items = grep(cacheNVRam, prefix+"_ifname=");
+                if (items.length>0) {
+                    String iface = items[0].split("=")[1];
+                    String[] lines = grep(cacheIfconfig, iface+" ");
+                    wifi.setEnabled(lines.length>0 && lines[0].substring(0, iface.length()+1).equals(iface+" "));
+                }
                 result.add(wifi);
             } catch (Exception ex) {
                 Log.e(TAG, "Could not determine wifi password: "+ex.getMessage());
@@ -97,9 +102,9 @@ public class DDWrtRouter extends LinuxRouter {
             if (grep(cacheNVRam, key + "=")[0].split("=")[1].equals(wifi.password())) {
                 if (!newPassword.isEmpty()) {
                     wifi.setPassword(newPassword);
-                    command("nvram set " + key + "=\""+newPassword+"\"; nvram commit");
-                    cacheNVRam = command("nvram show");
-                    runInBackground("rc start");
+                    command("nvram set " + key + "=\""+newPassword+"\"");
+                    setCacheNVRam(key, newPassword);
+                    runInBackground("nvram commit; rc start");
                     mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                     Log.d(TAG, "setWifiPassword() SUCCESS");
                 }
@@ -113,12 +118,28 @@ public class DDWrtRouter extends LinuxRouter {
             String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
             String key = prefix+"_closed=";
             if (grep(cacheNVRam, key).length>0) {
-                command("nvram set " + key + (broadcast?"\"0\"":"\"1\""));
-                cacheNVRam = command("nvram show");
+                String value = (broadcast?"\"0\"":"\"1\"");
+                command("nvram set " + key + value);
+                setCacheNVRam(key, value);
                 runInBackground("rc start");
                 mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "broadcastWifi("+broadcast+") SUCCESS");
             } else Log.w(TAG, "broadcastWifi(): key not found in NVRam");
+        }
+    }
+
+    @Override
+    public void enableWifi(String ssid, boolean enabled) {
+        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
+            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
+            String[] items = grep(cacheNVRam, prefix+"_ifname=");
+            if (items.length>0) {
+                String ifname = items[0].split("=")[1];
+                command("ifconfig "+ifname+(enabled?" up":" down"));
+                cacheIfconfig = command("ifconfig");
+            } else { Log.w(TAG, "key "+prefix+"_ifname not found"); }
+            mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
+            Log.d(TAG, "enableWifi("+enabled+") SUCCESS");
         }
     }
 
@@ -183,9 +204,9 @@ public class DDWrtRouter extends LinuxRouter {
                     String modified = original + " " + ip + "/32 10 |";
                     ensure_backup_exists();
                     result = command("nvram set svqos_ips=\"" + modified + "\"; echo $?");
+                    setCacheNVRam("svqos_ips", modified);
                     if (result[result.length - 1].equals("0")) {
                         refreshCronCache();
-                        cacheNVRam = command("nvram show");
                         runInBackground("stopservice wshaper && startservice wshaper");
                         Log.i(TAG, "nvram successfully updated with new rules");
                         return true;
@@ -255,7 +276,6 @@ public class DDWrtRouter extends LinuxRouter {
         }
         if (changed)
             Log.d(TAG, "Backed up unmodified QOS");
-            cacheNVRam = command("nvram show");
     }
 
     private void restore_from_backup() {
@@ -268,6 +288,6 @@ public class DDWrtRouter extends LinuxRouter {
         if (Arrays.asList(cacheNVRam).contains(key2)) {
             command("nvram set cron_jobs=\"`nvram get "+key2+"`\"; nvram unset "+key2);
         }
-        cacheNVRam = command("nvram show");
+        refreshNVRamCache();
     }
 }

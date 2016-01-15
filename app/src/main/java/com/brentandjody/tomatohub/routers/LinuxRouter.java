@@ -49,6 +49,7 @@ public class LinuxRouter extends Router {
     private String[] mNetworkIds;
     protected String[] mWifiIds;
     protected String[] cacheNVRam;
+    protected String[] cacheIfconfig;
     private String[] cacheArp;
     private String[] cacheBrctl;
     private String[] cacheMotd;
@@ -88,6 +89,7 @@ public class LinuxRouter extends Router {
         mNetworkIds=null;
         mWifiIds=null;
         cacheArp=null;
+        cacheIfconfig=null;
         cacheNVRam=null;
         cacheBrctl=null;
         cacheMotd=null;
@@ -219,9 +221,9 @@ public class LinuxRouter extends Router {
                 if (grep(cacheNVRam, key)[0].split("=")[1].equals(wifi.password())) {
                     if (!newPassword.isEmpty()) {
                         wifi.setPassword(newPassword);
-                        command("nvram set " + key + "\"" + newPassword + "\"; nvram commit");
-                        cacheNVRam = command("nvram show");
-                        runInBackground("service wireless restart");
+                        command("nvram set " + key + "\"" + newPassword + "\"");
+                        setCacheNVRam(key, newPassword);
+                        runInBackground("nvram commit; service wireless restart");
                         mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                         Log.d(TAG, "setWifiPassword() SUCCESS");
                     }
@@ -355,8 +357,9 @@ public class LinuxRouter extends Router {
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                cacheNVRam = command("nvram show");
+                refreshNVRamCache();
                 cacheArp = command("arp");
+                cacheIfconfig = command("ifconfig");
                 cacheBrctl = command("brctl show");
                 cacheMotd = command("cat /etc/motd");
                 cacheIptables = command("iptables -t filter -nL");
@@ -539,6 +542,21 @@ public class LinuxRouter extends Router {
         } catch (Exception ex) {
             Log.w(TAG, "refreshLoadAverages():"+ex.getMessage());
             mCPUUsage = new int[] {0,0,0};
+        }
+    }
+
+    protected void refreshNVRamCache() {
+        cacheNVRam = command("nvram show|grep -v "+PREFIX);
+    }
+
+    protected void setCacheNVRam(String key, String value) {
+        if (cacheNVRam != null) {
+            key = key.replace("=","");
+            for (String pair : cacheNVRam) {
+                if (pair.contains("=") && pair.split("=")[0].equals(key)) {
+                    pair = key+"="+value;
+                }
+            }
         }
     }
 

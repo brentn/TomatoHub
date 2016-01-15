@@ -202,17 +202,7 @@ public class MainActivity extends AppCompatActivity
                             mOverviewFragment.setStatusMessage(getString(R.string.everything_looks_good));
                             mOverviewFragment.setDevicesMessage(mRouter.getTotalDevices() + " " + getString(R.string.devices), getString(R.string.are_connected));
                         }
-                        String wifiMessage = "";
-                        for (Wifi w : mRouter.getWifiList()) {
-                            wifiMessage += "'"+w.SSID()+"'"
-                                    + getString(w.enabled()?R.string.is_on:R.string.is_off)
-                                    + ", ";
-                        }
-                        wifiMessage = wifiMessage.replaceAll(", $", "");
-                        if (wifiMessage.isEmpty()) {
-                            wifiMessage=getString(R.string.wifi_not_enabled);
-                        }
-                        mOverviewFragment.setWifiMessage(wifiMessage);
+                        mOverviewFragment.setWifiMessage(buildWifiMessage());
                         mOverviewFragment.setupRouterClickListener(
                                 mRouter.getRouterType(),
                                 mRouter.getInternalIP(),
@@ -271,13 +261,15 @@ public class MainActivity extends AppCompatActivity
             }
             case Router.ACTIVITY_WIFI_UPDATED: {
                 mWifiFragment.setWifiList(mRouter.getWifiList());
+                mOverviewFragment.setWifiMessage(buildWifiMessage());
                 break;
             }
             case Router.ACTIVITY_BACKGROUND_COMMAND: {
                 Log.d(TAG, "Background activity complete");
-                if (status==Router.ACTIVITY_STATUS_EXIT)
+                if (status==Router.ACTIVITY_STATUS_EXIT) {
                     Log.d(TAG, "Exiting");
                     finish();
+                }
                 break;
             }
         }
@@ -365,6 +357,20 @@ public class MainActivity extends AppCompatActivity
                     })
                     .show();
         }
+    }
+
+    private String buildWifiMessage() {
+        String wifiMessage = "";
+        for (Wifi w : mRouter.getWifiList()) {
+            wifiMessage += "'"+w.SSID()+"'"
+                    + getString(w.enabled()?R.string.is_on:R.string.is_off)
+                    + ", ";
+        }
+        wifiMessage = wifiMessage.replaceAll(", $", "");
+        if (wifiMessage.isEmpty()) {
+            wifiMessage=getString(R.string.wifi_not_enabled);
+        }
+        return wifiMessage;
     }
 
     @Override
