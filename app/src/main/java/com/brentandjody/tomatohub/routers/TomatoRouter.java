@@ -117,7 +117,7 @@ public class TomatoRouter extends LinuxRouter {
                 String value = (enabled?"1":"0");
                 String hiddenValue = (enabled?"0":"1");
                 command("nvram set " + key + value);
-                command("nvram set " + hiddenKey + value);
+                command("nvram set " + hiddenKey + hiddenValue);
                 setCacheNVRam(key, value);
                 setCacheNVRam(hiddenKey, hiddenValue);
                 command("ifconfig "+prefix+(enabled?"up":"down"));
