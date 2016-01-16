@@ -100,6 +100,8 @@
     <string name="title_wifi_access">WI-FI ACCESS</string>
     <string name="is_on">" is ON"</string>
     <string name="is_off">" is OFF"</string>
+    <string name="but_hidden">" and HIDDEN"</string>
+    <string name="empty_string"></string>
     <string name="devices_on">"Devices on "</string>
     <string name="searching_for_router">searching for router...</string>
     <string name="rescannng_network">Re-scanning network...</string>
@@ -165,7 +167,8 @@
     <string name="gateway_address">Gateway Address:</string>
     <string name="password_change_not_supported">Password change not supported on this router type</string>
     <string name="password_change_failed">Password change failed</string>
-    <string name="wifi_disconnect_warning">All WiFi devices will be temporarily disconnected as the WiFi service is restarted.\n\nThe app now exit.\n\nPlease wait until your WiFi connection has been re-established before re-starting the app.</string>
+    <string name="wifi_disconnect_warning_with_exit">All WiFi devices will be temporarily disconnected as the WiFi service is restarted.\n\nThe app now exit.\n\nPlease wait until your WiFi connection has been re-established before re-starting the app.</string>
+    <string name="wifi_disconnect_warning">All WiFi devices will be temporarily disconnected as the WiFi service is restarted.</string>
     <string name="warning">Warning</string>
     <string name="new_password">Enter a new password</string>
     <string name="password_cannot_be_empty">Password cannot be empty</string>

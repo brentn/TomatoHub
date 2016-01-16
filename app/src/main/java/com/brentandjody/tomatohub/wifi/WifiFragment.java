@@ -26,10 +26,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.brentandjody.tomatohub.MainActivity;
 import com.brentandjody.tomatohub.R;
 import com.brentandjody.tomatohub.database.Wifi;
-import com.brentandjody.tomatohub.routers.RouterType;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -112,7 +110,6 @@ public class WifiFragment extends Fragment {
 
     public class WifiListAdapter extends ArrayAdapter<Wifi> {
 
-        private Context mContext;
         private final List<Wifi> mWifiList;
         private final OnSignalListener mListener;
         private SharedPreferences mPrefs;
@@ -120,7 +117,6 @@ public class WifiFragment extends Fragment {
 
         public WifiListAdapter(Context context, List<Wifi> items, OnSignalListener listener) {
             super(context, 0, items);
-            mContext = context;
             mWifiList = items;
             mListener = listener;
             mPrefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
@@ -130,7 +126,7 @@ public class WifiFragment extends Fragment {
         public View getView(int position, View convertView, ViewGroup parent) {
             final Wifi wifi = getItem(position);
             if (convertView == null) {
-                convertView = LayoutInflater.from(mContext).inflate(R.layout.item_wifi_list, parent, false);
+                convertView = LayoutInflater.from(getActivity()).inflate(R.layout.item_wifi_list, parent, false);
             }
             ImageView background = (ImageView) convertView.findViewById(R.id.wifi_background);
             float[] hsv = new float[] {0, 0.6F, 0.6F};
@@ -149,9 +145,9 @@ public class WifiFragment extends Fragment {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
                         if (! suppressAction) {
-                            new AlertDialog.Builder(mContext)
-                                    .setTitle((isChecked ? mContext.getString(R.string.enable) : mContext.getString(R.string.disable)) + " " + wifi.SSID() + "?")
-                                    .setMessage(mContext.getString(R.string.confirm_enable_wifi)+" "+(isChecked?mContext.getString(R.string.on):mContext.getString(R.string.off)))
+                            new AlertDialog.Builder(getActivity())
+                                    .setTitle((isChecked ? getActivity().getString(R.string.enable) : getActivity().getString(R.string.disable)) + " " + wifi.SSID() + "?")
+                                    .setMessage(getActivity().getString(R.string.wifi_disconnect_warning))
                                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
@@ -178,9 +174,9 @@ public class WifiFragment extends Fragment {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
                         if (! suppressAction) {
-                            new AlertDialog.Builder(mContext)
-                                    .setTitle((isChecked ? mContext.getString(R.string.broadcast) : mContext.getString(R.string.hide)) + " " + wifi.SSID() + "?")
-                                    .setMessage(isChecked?mContext.getString(R.string.confirm_show_wifi):mContext.getString(R.string.confirm_hide_wifi))
+                            new AlertDialog.Builder(getActivity())
+                                    .setTitle((isChecked ? getActivity().getString(R.string.broadcast) : getActivity().getString(R.string.hide)) + " " + wifi.SSID() + "?")
+                                    .setMessage(getString(R.string.wifi_disconnect_warning))
                                     .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
@@ -206,8 +202,8 @@ public class WifiFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                        alert.setTitle(mContext.getString(R.string.wifi_password));
-                        TextView message = new TextView(mContext);
+                        alert.setTitle(getActivity().getString(R.string.wifi_password));
+                        TextView message = new TextView(getActivity());
                         message.setText(wifi.password());
                         message.setTextColor(getResources().getColor(R.color.colorAccent));
                         message.setTextSize(24);
@@ -215,21 +211,21 @@ public class WifiFragment extends Fragment {
                         message.setPadding(0, 20, 0, 0);
                         message.setGravity(Gravity.CENTER);
                         alert.setView(message);
-                        alert.setPositiveButton(mContext.getString(R.string.share), new DialogInterface.OnClickListener() {
+                        alert.setPositiveButton(getActivity().getString(R.string.share), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
                                 sharingIntent.setType("text/plain");
-                                String body = mContext.getString(R.string.share_body).replace("[SSID]", wifi.SSID()).replace("[PASSWORD]", wifi.password());
-                                sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, mContext.getString(R.string.share_subject));
+                                String body = getActivity().getString(R.string.share_body).replace("[SSID]", wifi.SSID()).replace("[PASSWORD]", wifi.password());
+                                sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getActivity().getString(R.string.share_subject));
                                 sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, body);
-                                startActivity(Intent.createChooser(sharingIntent, mContext.getString(R.string.how_do_you_want_to_share)));
+                                startActivity(Intent.createChooser(sharingIntent, getActivity().getString(R.string.how_do_you_want_to_share)));
                             }
                         });
                         alert.setNeutralButton(R.string.change_password, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                final EditText newPassword = new EditText(mContext);
+                                final EditText newPassword = new EditText(getActivity());
                                 newPassword.setTextColor(getResources().getColor(R.color.colorAccent));
                                 newPassword.setTextSize(24);
                                 newPassword.setTypeface(null, Typeface.BOLD);
@@ -245,7 +241,7 @@ public class WifiFragment extends Fragment {
                                                 if (newPassword.getText().toString().length() >= 8) {
                                                     new AlertDialog.Builder(getActivity())
                                                             .setTitle(R.string.warning)
-                                                            .setMessage(R.string.wifi_disconnect_warning)
+                                                            .setMessage(R.string.wifi_disconnect_warning_with_exit)
                                                             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                                                 @Override
                                                                 public void onClick(DialogInterface dialog, int which) {

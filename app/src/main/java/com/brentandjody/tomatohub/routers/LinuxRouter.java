@@ -552,9 +552,11 @@ public class LinuxRouter extends Router {
     protected void setCacheNVRam(String key, String value) {
         if (cacheNVRam != null) {
             key = key.replace("=","");
-            for (String pair : cacheNVRam) {
+            for (int i=0; i< cacheNVRam.length; i++) {
+                String pair = cacheNVRam[i];
                 if (pair.contains("=") && pair.split("=")[0].equals(key)) {
-                    pair = key+"="+value;
+                    Log.d(TAG, "setCacheNVRam("+key+")="+value);
+                    cacheNVRam[i] = key+"="+value;
                 }
             }
         }

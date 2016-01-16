@@ -112,10 +112,14 @@ public class TomatoRouter extends LinuxRouter {
         if (grep(cacheNVRam, "ssid="+ssid).length>0) {
             String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
             String key = prefix+"_radio=";
+            String hiddenKey = prefix + "_closed=";
             if (grep(cacheNVRam, key).length>0) {
-                String value = (enabled?"\"1\"":"\"0\"");
+                String value = (enabled?"1":"0");
+                String hiddenValue = (enabled?"0":"1");
                 command("nvram set " + key + value);
+                command("nvram set " + hiddenKey + value);
                 setCacheNVRam(key, value);
+                setCacheNVRam(hiddenKey, hiddenValue);
                 command("ifconfig "+prefix+(enabled?"up":"down"));
                 runInBackground("nvram commit; service net restart");
                 mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
@@ -130,7 +134,7 @@ public class TomatoRouter extends LinuxRouter {
             String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
             String key = prefix + "_closed=";
             if (grep(cacheNVRam, key).length > 0) {
-                String value = (broadcast ? "\"0\"" : "\"1\"");
+                String value = (broadcast ? "0" : "1");
                 command("nvram set " + key + value);
                 setCacheNVRam(key, value);
                 runInBackground("nvram commit; service net restart");

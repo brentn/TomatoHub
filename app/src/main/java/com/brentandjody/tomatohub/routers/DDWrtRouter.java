@@ -113,33 +113,39 @@ public class DDWrtRouter extends LinuxRouter {
     }
 
     @Override
+    public void enableWifi(String ssid, boolean enabled) {
+        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
+            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
+            String hiddenKey = prefix+"_closed=";
+            String hiddenValue = (enabled?"0":"1");
+            String[] items = grep(cacheNVRam, prefix+"_ifname=");
+            if (items.length>0) {
+                String ifname = items[0].split("=")[1];
+                //run ifconfig here for the sake of re-reading the cache.  It will need to be run again after rc start
+                command("ifconfig "+ifname+(enabled?" up":" down"));
+                cacheIfconfig = command("ifconfig");
+                command("nvram set " + hiddenKey + hiddenValue);
+                setCacheNVRam(hiddenKey, hiddenValue);
+                runInBackground("rc start; ifconfig "+ifname+(enabled?" up":" down")); // don't commit NVRam because enabled state will not persist through a reboot
+                mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
+                Log.d(TAG, "enableWifi("+enabled+") SUCCESS");
+            } else { Log.w(TAG, "key "+prefix+"_ifname not found"); }
+        }
+    }
+
+    @Override
     public void broadcastWifi(String ssid, boolean broadcast) {
         if (grep(cacheNVRam, "ssid="+ssid).length>0) {
             String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
             String key = prefix+"_closed=";
             if (grep(cacheNVRam, key).length>0) {
-                String value = (broadcast?"\"0\"":"\"1\"");
+                String value = (broadcast?"0":"1");
                 command("nvram set " + key + value);
                 setCacheNVRam(key, value);
-                runInBackground("rc start");
+                runInBackground("nvram commit; rc start");
                 mListener.onRouterActivityComplete(Router.ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
                 Log.d(TAG, "broadcastWifi("+broadcast+") SUCCESS");
             } else Log.w(TAG, "broadcastWifi(): key not found in NVRam");
-        }
-    }
-
-    @Override
-    public void enableWifi(String ssid, boolean enabled) {
-        if (grep(cacheNVRam, "ssid="+ssid).length>0) {
-            String prefix = grep(cacheNVRam, "ssid=" + ssid)[0].split("_ssid")[0];
-            String[] items = grep(cacheNVRam, prefix+"_ifname=");
-            if (items.length>0) {
-                String ifname = items[0].split("=")[1];
-                command("ifconfig "+ifname+(enabled?" up":" down"));
-                cacheIfconfig = command("ifconfig");
-            } else { Log.w(TAG, "key "+prefix+"_ifname not found"); }
-            mListener.onRouterActivityComplete(ACTIVITY_WIFI_UPDATED, ACTIVITY_STATUS_SUCCESS);
-            Log.d(TAG, "enableWifi("+enabled+") SUCCESS");
         }
     }
 
