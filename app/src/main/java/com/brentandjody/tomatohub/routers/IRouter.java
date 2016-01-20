@@ -37,7 +37,7 @@ interface IRouter {
     float getConnectionSpeed();
     void internetSpeedTest();
 
-    //WiFi
+    //wifi
     List<Wifi> getWifiList();
     void setWifiPassword(Wifi wifi, String newPassword);
     void enableWifi(String ssid, boolean enabled);

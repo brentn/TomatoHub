@@ -310,7 +310,7 @@ public class FakeRouter extends Router {
 
     String randomWifiName() {
         String[] wifis = new String[] {"Wifi", "Guest Network", "guest", "ddwrt", "tomato26", "tomato5", "Downstairs", "Backyard wifi", "insecure", "Police Surviellance Van #4",
-        "42", "My WiFi", "My Neighbor's Wifi", "Telus2095", "Dickie's Wifi"};
+        "42", "My wifi", "My Neighbor's Wifi", "Telus2095", "Dickie's Wifi"};
         return wifis[rnd.nextInt(wifis.length)];
     }
 

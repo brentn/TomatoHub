@@ -1,0 +1,57 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/firstrun"
+    tools:context="com.brentandjody.tomatohub.FirstRun_Activity"
+    android:id="@+id/background">
+
+    <!-- The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc. -->
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="130dp"
+        android:id="@+id/pager_container">
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:id="@+id/buttons"
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="50dp"
+        android:layout_marginBottom="30dp">
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:text="@string/get_started"
+            android:id="@+id/btnGetStarted"
+            android:background="#ffd600"
+            android:clickable="true"
+            android:focusable="false"
+            android:elevation="4dp" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:text="@string/demo_mode"
+            android:id="@+id/btnDemoMode"
+            android:background="@drawable/rectangle_yellow"
+            android:clickable="true"
+            android:focusable="false"
+            android:textColor="#ffd600"
+            android:layout_marginTop="10dp" />
+    </LinearLayout>
+
+</FrameLayout>

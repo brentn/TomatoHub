@@ -186,4 +186,11 @@
     <string name="enable">Enable</string>
     <string name="broadcast">Broadcast</string>
     <string name="hide">Hide</string>
+
+    <string name="title_activity_first_run_">Welcome to wrtHub</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="get_started">Get Started</string>
+    <string name="demo_mode">Demo mode</string>
+    <string name="firstrun_page1_line1">Simple and Secure</string>
 </resources>
