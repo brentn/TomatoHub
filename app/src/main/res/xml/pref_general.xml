@@ -1,53 +1,64 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <ListPreference
-        android:key="@string/pref_key_router_type"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
-        android:title="@string/pref_title_router_type" />
+    <Preference
+        android:key="@string/pref_key_rating"
+        android:icon="@drawable/star"
+        android:title="@string/rate_this_app"
+        android:summary="We will never interrupt you to ask you to rate us"/>
 
-    <ListPreference
-        android:defaultValue="ssh"
-        android:entries="@array/pref_router_protocol"
-        android:entryValues="@array/pref_router_protocol"
-        android:key="@string/pref_key_protocol"
-        android:negativeButtonText="@null"
-        android:positiveButtonText="@null"
-        android:title="@string/pref_title_protocol" />
-    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
-    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
-    <EditTextPreference
-        android:defaultValue="0.0.0.0"
-        android:inputType="phone"
-        android:key="@string/pref_key_ip_address"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_ip_address" />
+    <PreferenceCategory
+        android:key="@string/pref_key_category_general"
+        android:title="@string/pref_category_general">
 
-    <EditTextPreference
-        android:defaultValue="@string/pref_default_username"
-        android:inputType="textAutoComplete"
-        android:key="@string/pref_key_username"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_username" />
+        <ListPreference
+            android:key="@string/pref_key_router_type"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_title_router_type" />
 
-    <EditTextPreference
-        android:defaultValue="@null"
-        android:inputType="textPassword"
-        android:key="@string/pref_key_password"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/change_password" />
+        <ListPreference
+            android:defaultValue="ssh"
+            android:entries="@array/pref_router_protocol"
+            android:entryValues="@array/pref_router_protocol"
+            android:key="@string/pref_key_protocol"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_title_protocol" />
+        <!-- NOTE: EditTextPreference accepts EditText attributes. -->
+        <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
+        <EditTextPreference
+            android:defaultValue="0.0.0.0"
+            android:inputType="phone"
+            android:key="@string/pref_key_ip_address"
+            android:maxLines="1"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_ip_address" />
 
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="@string/pref_key_allow_changes"
-        android:summary="@string/pref_allow_changes"
-        android:title="@string/pref_title_allow_changes" />
+        <EditTextPreference
+            android:defaultValue="@string/pref_default_username"
+            android:inputType="textAutoComplete"
+            android:key="@string/pref_key_username"
+            android:maxLines="1"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_title_username" />
+
+        <EditTextPreference
+            android:defaultValue="@null"
+            android:inputType="textPassword"
+            android:key="@string/pref_key_password"
+            android:maxLines="1"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/change_password" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="@string/pref_key_allow_changes"
+            android:summary="@string/pref_allow_changes"
+            android:title="@string/pref_title_allow_changes" />
+    </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/pref_category_advanced"

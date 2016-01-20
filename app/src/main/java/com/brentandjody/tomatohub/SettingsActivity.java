@@ -3,6 +3,7 @@ package com.brentandjody.tomatohub;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -129,10 +130,31 @@ public class SettingsActivity extends Activity {
 
             addPreferencesFromResource(R.xml.pref_general);
 
+            Preference rate = findPreference(getString(R.string.pref_key_rating));
+            rate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    Uri uri = Uri.parse("market://details?id=" + getActivity().getPackageName());
+                    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                    // To count with Play market backstack, After pressing back button,
+                    // to taken back to our application, we need to add following flags to intent.
+                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                            Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET |
+                            Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                    try {
+                        startActivity(goToMarket);
+                    } catch (ActivityNotFoundException e) {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
+                    }                    return false;
+                }
+            });
+
             ListPreference routerType = (ListPreference)findPreference(getString(R.string.pref_key_router_type));
             routerType.setEntries(RouterType.getEntries());
             routerType.setEntryValues(RouterType.getEntryValues());
             routerType.setDefaultValue(RouterType.defaultValue);
+
             Preference firstRun = findPreference(getString(R.string.pref_key_first_run));
             firstRun.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
