@@ -193,4 +193,6 @@
     <string name="get_started">Get Started</string>
     <string name="demo_mode">Demo mode</string>
     <string name="firstrun_page1_line1">Simple and Secure</string>
+    <string name="pref_key_first_run">firstrun</string>
+    <string name="pref_first_run">Run first-run wizard at next launch</string>
 </resources>

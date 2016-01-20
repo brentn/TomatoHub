@@ -12,6 +12,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -66,6 +67,7 @@ public class SettingsActivity extends Activity {
                 // simple string representation.
                 preference.setSummary(stringValue);
             }
+
             return true;
         }
     };
@@ -99,10 +101,6 @@ public class SettingsActivity extends Activity {
         // Display the fragment as the main content.
         getFragmentManager().beginTransaction().replace(android.R.id.content,
                 new GeneralPreferenceFragment()).commit();
-//        ActionBar actionBar = getSupportActionBar();
-//        if (actionBar != null) {
-//            actionBar.setDisplayHomeAsUpEnabled(false);
-//        }
     }
 
 
@@ -126,6 +124,17 @@ public class SettingsActivity extends Activity {
             routerType.setEntries(RouterType.getEntries());
             routerType.setEntryValues(RouterType.getEntryValues());
             routerType.setDefaultValue(RouterType.defaultValue);
+            Preference firstRun = findPreference(getString(R.string.pref_key_first_run));
+            firstRun.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    if (((CheckBoxPreference)preference).isChecked()) {
+                        // remove the router type setting to trigger firstrun wizard
+                        findPreference(getString(R.string.pref_key_router_type)).getEditor().clear().commit();
+                    }
+                    return false;
+                }
+            });
             setHasOptionsMenu(true);
 
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_router_type)));

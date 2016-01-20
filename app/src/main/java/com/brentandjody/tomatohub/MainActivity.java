@@ -83,7 +83,13 @@ public class MainActivity extends AppCompatActivity
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        startActivity(new Intent(MainActivity.this, FirstRun_Activity.class));
+
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
+
+        String MISSING_VALUE = "missing";
+        if (prefs.getString(getString(R.string.pref_key_router_type), MISSING_VALUE).equals(MISSING_VALUE)) {
+            startActivity(new Intent(MainActivity.this, FirstRun_Activity.class));
+        }
     }
 
     @Override
