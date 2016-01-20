@@ -196,10 +196,12 @@ public class OverviewFragment extends Fragment {
     @TargetApi(16)
     public void setNetworkTrafficColor(int index, float percent) {
         if (Build.VERSION.SDK_INT >= 16) {
-            Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
-            if (circle!= null) {
-                circle.setColorFilter(new PorterDuffColorFilter(Color.HSVToColor(new float[] {0, percent, 1F}), PorterDuff.Mode.MULTIPLY));
-                mNetworkIcons[index].setBackground(circle);
+            if (getActivity()!=null) {
+                Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
+                if (circle != null) {
+                    circle.setColorFilter(new PorterDuffColorFilter(Color.HSVToColor(new float[]{0, percent, 1F}), PorterDuff.Mode.MULTIPLY));
+                    mNetworkIcons[index].setBackground(circle);
+                }
             }
         }
     }
