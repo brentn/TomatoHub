@@ -102,7 +102,7 @@ public class WifiFragment extends Fragment {
         char[] CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789".toCharArray();
         StringBuilder result = new StringBuilder();
         for (int i=0; i < length; i++) {
-            if (i>1 && i%4==0) result.append(" "); //add spaces for readability
+            if (i>1 && i%4==0) result.append("."); //add dots for readability
             result.append(CHARS[secureRandom.nextInt(CHARS.length)]);
         }
         return result.toString();
