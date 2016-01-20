@@ -26,6 +26,7 @@ import com.brentandjody.tomatohub.database.Wifi;
 import com.brentandjody.tomatohub.overview.OverviewFragment;
 import com.brentandjody.tomatohub.routers.DDWrtRouter;
 import com.brentandjody.tomatohub.routers.FakeRouter;
+import com.brentandjody.tomatohub.routers.LinuxRouter;
 import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.RouterType;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
@@ -321,7 +322,7 @@ public class MainActivity extends AppCompatActivity
             case RouterType.FAKE: mRouter = new FakeRouter(this);
                 Toast.makeText(this, R.string.running_in_demo_mode, Toast.LENGTH_LONG).show();
                 break;
-            default: mRouter = new FakeRouter(this);
+            default: mRouter = new LinuxRouter(this, mDevices, mNetworks);
         }
         Log.d(TAG, "Connecting...");
         mRouter.connect();
@@ -430,12 +431,17 @@ public class MainActivity extends AppCompatActivity
                 mOverviewFragment.setStatusMessage(getString(R.string.rescannng_network));
             }
             mRouter.connect();
+            if (resultCode == RESULT_OK) {
+                if (data != null && data.hasExtra(SettingsActivity.REBOOT_AFTER_SETTINGS)) {
+                    finish();
+                }
+            }
         }
     }
 
     public int getRouterType() {
         SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-        return RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), RouterType.defaultValue));
+        return RouterType.value(prefs.getString(getString(R.string.pref_key_router_type), null));
     }
 
 

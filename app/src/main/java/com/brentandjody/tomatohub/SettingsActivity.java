@@ -24,6 +24,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.widget.Toast;
 
 import com.brentandjody.tomatohub.routers.RouterType;
 
@@ -41,6 +42,9 @@ import java.util.List;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends Activity {
+
+    public static final String REBOOT_AFTER_SETTINGS="reboot";
+    private static Intent result;
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
@@ -103,6 +107,11 @@ public class SettingsActivity extends Activity {
                 new GeneralPreferenceFragment()).commit();
     }
 
+    @Override
+    public void finish() {
+        setResult(RESULT_OK, result);
+        super.finish();
+    }
 
     /**
      * This fragment shows general preferences only. It is used when the
@@ -125,13 +134,15 @@ public class SettingsActivity extends Activity {
             routerType.setEntryValues(RouterType.getEntryValues());
             routerType.setDefaultValue(RouterType.defaultValue);
             Preference firstRun = findPreference(getString(R.string.pref_key_first_run));
-            firstRun.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            firstRun.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    if (((CheckBoxPreference)preference).isChecked()) {
-                        // remove the router type setting to trigger firstrun wizard
-                        findPreference(getString(R.string.pref_key_router_type)).getEditor().clear().commit();
-                    }
+                public boolean onPreferenceClick(Preference preference) {
+                    // remove the router type setting to trigger firstrun wizard
+                    findPreference(getString(R.string.pref_key_router_type)).getEditor().clear().commit();
+                    Toast.makeText(getActivity(), R.string.first_run_reset, Toast.LENGTH_SHORT).show();
+                    result = new Intent();
+                    result.putExtra(REBOOT_AFTER_SETTINGS, true);
+                    getActivity().finish();
                     return false;
                 }
             });

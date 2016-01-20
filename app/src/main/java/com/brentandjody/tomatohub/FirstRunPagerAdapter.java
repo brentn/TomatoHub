@@ -107,7 +107,7 @@ public class FirstRunPagerAdapter extends PagerAdapter {
     }
 
     public void moveIcons(int position, int offset) {
-        final float TEXT_SPEED=4.5f;
+        final float TEXT_SPEED=7.5f;
         final float ICON_SPEED=1.3f;
         final float ICON2_SPEED=.5f;
         View leftText = null;

@@ -49,12 +49,12 @@
         android:summary="@string/pref_allow_changes"
         android:title="@string/pref_title_allow_changes" />
 
-    <PreferenceCategory>
-        <CheckBoxPreference
+    <PreferenceCategory
+        android:title="@string/pref_category_advanced"
+        android:key="@string/pref_key_category_advanced">
+        <Preference
             android:key="@string/pref_key_first_run"
-            android:text="@string/pref_first_run"
-            android:defaultValue="false"
-            android:checked="false" />
+            android:title="@string/pref_first_run" />
     </PreferenceCategory>
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
