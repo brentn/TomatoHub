@@ -12,7 +12,18 @@
         android:id="@+id/pg2line1"
         android:gravity="center_horizontal"
         android:textColor="#ffffff"
-        android:layout_marginTop="87dp" />
+        android:layout_marginTop="50dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Change it when they leave"
+        android:id="@+id/pg2line2"
+        android:gravity="center_horizontal"
+        android:textColor="#ffffff"
+        android:layout_marginBottom="27dp"
+        android:layout_marginTop="10dp" />
 
     <FrameLayout
         android:layout_width="match_parent"

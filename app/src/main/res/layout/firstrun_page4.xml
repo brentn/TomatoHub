@@ -8,15 +8,53 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Discover where your bandwidth is going"
+        android:text="@string/discover_where_your_bandwidth_is_going"
         android:id="@+id/pg4line1"
         android:gravity="center_horizontal"
         android:textColor="#ffffff"
-        android:layout_marginTop="87dp" />
+        android:layout_marginTop="50dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Prioritize individual devices"
+        android:id="@+id/pg4line2"
+        android:gravity="center_horizontal"
+        android:textColor="#ffffff"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="27dp" />
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:id="@+id/guest2"
+            android:src="@drawable/woman"
+            android:layout_gravity="center"
+            android:layout_marginBottom="30dp"
+            android:layout_marginLeft="110dp" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:id="@+id/guest4"
+            android:src="@drawable/man"
+            android:layout_gravity="center"
+            android:layout_marginRight="120dp"
+            android:layout_marginBottom="40dp" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:id="@+id/guest5"
+            android:src="@drawable/man"
+            android:layout_gravity="center"
+            android:layout_marginBottom="100dp"
+            android:layout_marginRight="40dp" />
 
         <ImageView
             android:layout_width="match_parent"
@@ -37,29 +75,11 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="150dp"
-            android:id="@+id/guest2"
-            android:src="@drawable/woman"
-            android:layout_gravity="center"
-            android:layout_marginBottom="30dp"
-            android:layout_marginLeft="110dp" />
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
             android:id="@+id/guest3"
             android:src="@drawable/woman"
             android:layout_gravity="center"
             android:layout_marginTop="80dp"
             android:layout_marginLeft="60dp" />
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:id="@+id/guest4"
-            android:src="@drawable/man"
-            android:layout_gravity="center"
-            android:layout_marginRight="120dp"
-            android:layout_marginBottom="40dp" />
 
     </FrameLayout>
 

@@ -202,4 +202,10 @@
     <string name="pref_key_rating">rating</string>
     <string name="pref_key_category_general">general</string>
     <string name="pref_category_general">General Settings</string>
+    <string name="change_it_when_they_leave">Change it when they leave</string>
+    <string name="share_your_password_with_friends">Share your password with friends</string>
+    <string name="block_unfamiliar_devices">BLOCK unfamiliar devices</string>
+    <string name="see_who_is_on_your_network">See who is on your network</string>
+    <string name="prioritize_individual_devices">Prioritize individual devices</string>
+    <string name="discover_where_your_bandwidth_is_going">Discover where your bandwidth is going</string>
 </resources>

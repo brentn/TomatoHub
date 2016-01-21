@@ -8,11 +8,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="See who is on your network"
+        android:text="@string/see_who_is_on_your_network"
         android:id="@+id/pg3line1"
         android:gravity="center_horizontal"
         android:textColor="#ffffff"
-        android:layout_marginTop="87dp" />
+        android:layout_marginTop="50dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="BLOCK unfamiliar devices"
+        android:id="@+id/pg3line2"
+        android:gravity="center_horizontal"
+        android:textColor="#ffffff"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="27dp" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -50,6 +61,15 @@
             android:src="@drawable/spy"
             android:layout_gravity="center"
             android:id="@+id/spy"
+            android:layout_marginLeft="100dp"
+            android:layout_marginBottom="140dp" />
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/no"
+            android:layout_gravity="center"
+            android:id="@+id/no_spy"
             android:layout_marginLeft="100dp"
             android:layout_marginBottom="140dp" />
 
