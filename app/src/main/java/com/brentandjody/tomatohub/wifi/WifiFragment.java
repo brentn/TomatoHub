@@ -138,6 +138,7 @@ public class WifiFragment extends Fragment {
             ((Switch) convertView.findViewById(R.id.visible_switch)).setChecked(wifi.broadcast());
             boolean allow_changes = mPrefs.getBoolean(getString(R.string.pref_key_allow_changes),false);
             convertView.findViewById(R.id.enabled_switch).setEnabled(allow_changes);
+            convertView.findViewById(R.id.enabled_switch).setVisibility(allow_changes?View.VISIBLE:View.INVISIBLE);
             final View view = convertView;
             if (allow_changes) {
                 suppressAction=false;
@@ -168,6 +169,7 @@ public class WifiFragment extends Fragment {
                 });
             }
             convertView.findViewById(R.id.visible_switch).setEnabled(allow_changes);
+            convertView.findViewById(R.id.visible_switch).setVisibility(allow_changes?View.VISIBLE:View.INVISIBLE);
             if (allow_changes) {
                 suppressAction=false;
                 ((Switch) convertView.findViewById(R.id.visible_switch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
