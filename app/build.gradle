@@ -7,8 +7,8 @@ android {
         applicationId "com.brentandjody.tomatohub"
         minSdkVersion 14
         targetSdkVersion 22
-        versionCode 18
-        versionName '1.2'
+        versionCode 19
+        versionName '1.3'
     }
     buildTypes {
         release {
