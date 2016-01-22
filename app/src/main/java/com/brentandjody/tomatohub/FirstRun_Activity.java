@@ -33,17 +33,21 @@ import android.widget.TextView;
 import com.brentandjody.tomatohub.routers.RouterType;
 import com.brentandjody.tomatohub.routers.connection.TelnetConnection;
 import com.brentandjody.tomatohub.routers.connection.TelnetSession;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.viewpagerindicator.CirclePageIndicator;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 
 public class FirstRun_Activity extends AppCompatActivity implements PageTurnListener{
@@ -62,7 +66,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
     private CirclePageIndicator mPagerIndicator;
     private FirstRunPagerAdapter mAdapter;
     private String mIpAddress;
-    private int mRouterType;
+    private int mRouterType=-1;
     private String mProtocol;
     private String mPassword;
     private String mUsername;
@@ -161,7 +165,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         mProgressPoints.setOrientation(LinearLayout.VERTICAL);
         mFrame.addView(mProgressPoints);
         if (mIpAddress ==null || mIpAddress.equals("0.0.0.0")) {
-            addButton("Connect to your WiFi network and try again.","Tap to continue");
+            addButton("Connect to your WiFi network and try again.", "Tap to continue");
         } else {
             progressPoint("Router found", mIpAddress);
             if (mProtocol==null) {
@@ -184,59 +188,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
                                 mPassword = tvPassword.getText().toString();
                                 progressPoint("Password set", "************");
                                 mUsername=null;
-                                for (String user : new String[] {"root", "admin", "Admin"}) {
-                                    if (attemptLogin(user, mPassword)) {
-                                        mUsername=user;
-                                        progressPoint("User identified", user);
-                                        Log.d(TAG, "User Identified as: " + user);
-                                        break;
-                                    }
-                                }
-                                if (mUsername==null) {
-                                    Log.d(TAG, "User not auto-identified");
-                                    final EditText tvUsername = new EditText(FirstRun_Activity.this);
-                                    tvUsername.setTextColor(getResources().getColor(R.color.colorAccent));
-                                    tvUsername.setTextSize(24);
-                                    tvUsername.setTypeface(null, Typeface.BOLD);
-                                    tvUsername.setPadding(50, 20, 50, 20);
-                                    AlertDialog usernameDialog = new AlertDialog.Builder(FirstRun_Activity.this)
-                                            .setTitle("Enter your "+mProtocol+" username")
-                                            .setView(tvUsername)
-                                            .setCancelable(false)
-                                            .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    mUsername=tvUsername.getText().toString();
-                                                    SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-                                                    SharedPreferences.Editor editor = prefs.edit();
-                                                    editor.putString(getString(R.string.pref_key_ip_address), mIpAddress);
-                                                    editor.putString(getString(R.string.pref_key_port), mProtocol.equals("ssh")?"22":"23");
-                                                    editor.putString(getString(R.string.pref_key_protocol), mProtocol);
-                                                    editor.putString(getString(R.string.pref_key_username), mUsername);
-                                                    editor.putString(getString(R.string.pref_key_password), mPassword);
-                                                    editor.putBoolean(getString(R.string.pref_key_allow_changes), false);
-                                                    editor.commit();
-                                                    if (attemptLogin(mUsername, mPassword)) {
-                                                        progressPoint("Username confirmed", mUsername);
-                                                        finish();
-                                                    } else {
-                                                        new AlertDialog.Builder(FirstRun_Activity.this)
-                                                                .setTitle("Unable to connect to your router")
-                                                                .setMessage("Opening the Settings dialog...")
-                                                                .setCancelable(false)
-                                                                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                                                                    @Override
-                                                                    public void onClick(DialogInterface dialog, int which) {
-                                                                        FirstRun_Activity.this.startActivity(new Intent(FirstRun_Activity.this, SettingsActivity.class));
-                                                                        finish();
-                                                                    }
-                                                                })
-                                                                .show();
-                                                    }
-                                                }
-                                            }).create();
-                                    addToDisplaySequence(usernameDialog);
-                                }
+                                new AttemptConnection().execute(new String[] {"root", "admin", "Admin"});
                             }
                         }).create();
                 addToDisplaySequence(passwordDialog);
@@ -244,7 +196,68 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         }
     }
 
+    private void connectionFailed() {
+        if (mUsername==null) {
+            Log.d(TAG, "User not auto-identified");
+            final EditText tvUsername = new EditText(FirstRun_Activity.this);
+            tvUsername.setTextColor(getResources().getColor(R.color.colorAccent));
+            tvUsername.setTextSize(24);
+            tvUsername.setTypeface(null, Typeface.BOLD);
+            tvUsername.setPadding(50, 20, 50, 20);
+            AlertDialog usernameDialog = new AlertDialog.Builder(FirstRun_Activity.this)
+                    .setTitle("Enter your " + mProtocol + " username")
+                    .setView(tvUsername)
+                    .setCancelable(false)
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mUsername = tvUsername.getText().toString();
+                            progressPoint("Username set", mUsername);
+                            savePreferences();
+                            new AttemptConnection().execute(mUsername);
+                        }
+                    }).create();
+            addToDisplaySequence(usernameDialog);
+        } else {
+            new AlertDialog.Builder(FirstRun_Activity.this)
+                    .setTitle("Unable to connect to your router")
+                    .setMessage("Opening the Settings dialog...")
+                    .setCancelable(false)
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            FirstRun_Activity.this.startActivity(new Intent(FirstRun_Activity.this, SettingsActivity.class));
+                            finish();
+                        }
+                    })
+                    .show();
+        }
+    }
+
+    private void connectionSucceeded() {
+        progressPoint("User identified", mUsername);
+        Log.d(TAG, "User Identified as: " + mUsername);
+        savePreferences();
+        finish();
+    }
+
+    private void savePreferences() {
+        SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(getString(R.string.pref_key_ip_address), mIpAddress);
+        editor.putString(getString(R.string.pref_key_port), mProtocol.equals("ssh") ? "22" : "23");
+        editor.putString(getString(R.string.pref_key_protocol), mProtocol);
+        editor.putString(getString(R.string.pref_key_username), mUsername);
+        editor.putString(getString(R.string.pref_key_password), mPassword);
+        editor.putBoolean(getString(R.string.pref_key_allow_changes), false);
+        if (mRouterType>=0)
+            editor.putString(getString(R.string.pref_key_router_type), Integer.toString(mRouterType));
+        editor.commit();
+        progressPoint("Settings updated", "");
+    }
+
     private boolean attemptLogin(String user, String pass) {
+        boolean result = false;
         if (mProtocol.equals("ssh")) {
             try {
                 JSch ssh = new JSch();
@@ -255,20 +268,37 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
                 session.setPassword(pass);
                 session.setServerAliveInterval(3000);
                 session.connect(5000);
-                return true;
+                result=true;
+                if (mRouterType==-1) {
+                    Channel channel = session.openChannel("exec");
+                    ((ChannelExec) channel).setCommand("cat /etc/motd");
+                    ByteArrayOutputStream sb = new ByteArrayOutputStream();
+                    channel.setOutputStream(sb);
+                    channel.connect();
+                    sb.flush();
+                    while (!channel.isClosed()) {
+                        Thread.sleep(10);
+                    }
+                    channel.disconnect();
+                    if (sb.toString().contains("Tomato")) mRouterType = RouterType.TOMATO;
+                    else if (sb.toString().contains("DD-WRT")) mRouterType = RouterType.DDWRT;
+                }
             } catch (Exception ex) {
                 Log.d(TAG, ""+ex.getMessage());
             }
         }
         if (mProtocol.equals("telnet")) {
             try {
-                new TelnetSession(mIpAddress, user, pass);
-                return true;
+                TelnetSession session = new TelnetSession(mIpAddress, user, pass);
+                result = true;
+                String output = Arrays.toString(session.sendCommand("cat /etc/motd"));
+                if (output.contains("Tomato")) mRouterType = RouterType.TOMATO;
+                else if (output.contains("DD-WRT")) mRouterType = RouterType.DDWRT;
             } catch (Exception ex) {
                 Log.d(TAG, ""+ex.getMessage());
             }
         }
-        return false;
+        return result;
     }
 
     private void reDiscover() {
@@ -320,6 +350,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         (view.findViewById(R.id.progress_text)).setId(0);
         (view.findViewById(R.id.progress_details)).setId(0);
         addToDisplaySequence(point);
+        Log.d(TAG, "Progress: "+text + " : "+details);
     }
 
     private void addToDisplaySequence(final View view) {
@@ -398,6 +429,29 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             if (autoStart) setupPreferences();
+        }
+    }
+
+    private class AttemptConnection extends AsyncTask<String, Void, Void> {
+        boolean mSuccess;
+        @Override
+        protected Void doInBackground(String... params) {
+            mSuccess=false;
+            for (String user : params) {
+                if (attemptLogin(user, mPassword)) {
+                    mUsername=user;
+                    mSuccess=true;
+                    break;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            if (mSuccess) connectionSucceeded();
+            else connectionFailed();
         }
     }
 
