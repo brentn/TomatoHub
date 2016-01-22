@@ -41,7 +41,7 @@
             android:configChanges="screenSize"
             android:screenOrientation="portrait"
             android:label="@string/title_activity_first_run_"
-            android:theme="@style/FullscreenTheme"/>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
     </application>
 
 </manifest>

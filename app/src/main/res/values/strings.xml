@@ -208,4 +208,5 @@
     <string name="see_who_is_on_your_network">See who is on your network</string>
     <string name="prioritize_individual_devices">Prioritize individual devices</string>
     <string name="discover_where_your_bandwidth_is_going">Discover where your bandwidth is going</string>
+    <string name="firstrun_bypass">firstrun_bypass</string>
 </resources>

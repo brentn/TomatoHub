@@ -160,6 +160,7 @@ public class SettingsActivity extends Activity {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     // remove the router type setting to trigger firstrun wizard
+                    //TODO: this appears to clear all settings!!  just clear router_type
                     findPreference(getString(R.string.pref_key_router_type)).getEditor().clear().commit();
                     Toast.makeText(getActivity(), R.string.first_run_reset, Toast.LENGTH_SHORT).show();
                     result = new Intent();

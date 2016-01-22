@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,7 +69,7 @@ public class FirstRunPagerAdapter extends PagerAdapter {
             delayedReveal(view.findViewById(R.id.imgLogo), 1000);
             delayedReveal(view.findViewById(R.id.pg1line1), 2000);
             delayedReveal(view.findViewById(R.id.imgWifi), 3000, 2000);
-            mPg1Drawn=false;
+            mPg1Drawn=true;
         }
 
         collection.addView(view, 0);
