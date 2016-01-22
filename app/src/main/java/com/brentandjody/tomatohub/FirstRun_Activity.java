@@ -165,28 +165,27 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         mProgressPoints.setOrientation(LinearLayout.VERTICAL);
         mFrame.addView(mProgressPoints);
         if (mIpAddress ==null || mIpAddress.equals("0.0.0.0")) {
-            addButton("Connect to your WiFi network and try again.", "Tap to continue");
+            addButton(getString(R.string.connect_to_wifi), getString(R.string.tap_to_continue));
         } else {
-            progressPoint("Router found", mIpAddress);
+            progressPoint(getString(R.string.router_found), mIpAddress);
             if (mProtocol==null) {
-                addButton("Enable ssh (or telnet) on your router.", "Tap to continue");
+                addButton(getString(R.string.enable_ssh), getString(R.string.tap_to_continue));
             } else {
-                progressPoint("Console identified", mProtocol);
+                progressPoint(getString(R.string.console_found), mProtocol);
                 final EditText tvPassword = new EditText(this);
-                tvPassword.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                tvPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 tvPassword.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
                 tvPassword.setTextSize(24);
-                tvPassword.setTypeface(null, Typeface.BOLD);
                 tvPassword.setPadding(50, 20, 50, 20);
                 AlertDialog passwordDialog = new AlertDialog.Builder(this)
-                        .setTitle("Enter your "+mProtocol+" password")
+                        .setTitle(getString(R.string.enter_your)+mProtocol+getString(R.string.password))
                         .setView(tvPassword)
                         .setCancelable(false)
                         .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 mPassword = tvPassword.getText().toString();
-                                progressPoint("Password set", "************");
+                                progressPoint(getString(R.string.password_set), "************");
                                 mUsername=null;
                                 new AttemptConnection().execute(new String[] {"root", "admin", "Admin"});
                             }
@@ -198,21 +197,20 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
 
     private void connectionFailed() {
         if (mUsername==null) {
-            Log.d(TAG, "User not auto-identified");
+            Log.d(TAG, getString(R.string.user_not_identified));
             final EditText tvUsername = new EditText(FirstRun_Activity.this);
-            tvUsername.setTextColor(getResources().getColor(R.color.colorAccent));
+            tvUsername.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
             tvUsername.setTextSize(24);
-            tvUsername.setTypeface(null, Typeface.BOLD);
             tvUsername.setPadding(50, 20, 50, 20);
             AlertDialog usernameDialog = new AlertDialog.Builder(FirstRun_Activity.this)
-                    .setTitle("Enter your " + mProtocol + " username")
+                    .setTitle(getString(R.string.enter_your) + mProtocol + " " + getString(R.string.username))
                     .setView(tvUsername)
                     .setCancelable(false)
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             mUsername = tvUsername.getText().toString();
-                            progressPoint("Username set", mUsername);
+                            progressPoint(getString(R.string.username_set), mUsername);
                             savePreferences();
                             new AttemptConnection().execute(mUsername);
                         }
@@ -220,8 +218,8 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
             addToDisplaySequence(usernameDialog);
         } else {
             new AlertDialog.Builder(FirstRun_Activity.this)
-                    .setTitle("Unable to connect to your router")
-                    .setMessage("Opening the Settings dialog...")
+                    .setTitle(R.string.unable_to_connect)
+                    .setMessage(R.string.redirect_to_settings)
                     .setCancelable(false)
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                         @Override
@@ -235,7 +233,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
     }
 
     private void connectionSucceeded() {
-        progressPoint("User identified", mUsername);
+        progressPoint(getString(R.string.user_identified), mUsername);
         Log.d(TAG, "User Identified as: " + mUsername);
         savePreferences();
         finish();

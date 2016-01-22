@@ -209,4 +209,17 @@
     <string name="prioritize_individual_devices">Prioritize individual devices</string>
     <string name="discover_where_your_bandwidth_is_going">Discover where your bandwidth is going</string>
     <string name="firstrun_bypass">firstrun_bypass</string>
+    <string name="connect_to_wifi">Connect to your WiFi network</string>
+    <string name="tap_to_continue">Tap to continue</string>
+    <string name="enable_ssh">Please enable ssh (or telnet) on your router.</string>
+    <string name="router_found">Router found</string>
+    <string name="console_found">Console identified</string>
+    <string name="enter_your">"Enter your "</string>
+    <string name="password">" password"</string>
+    <string name="password_set">Password set</string>
+    <string name="user_not_identified">User not auto-identified</string>
+    <string name="username_set">Username set</string>
+    <string name="unable_to_connect">Unable to connect to your router</string>
+    <string name="redirect_to_settings">Opening the Settings dialog...</string>
+    <string name="user_identified">User identified</string>
 </resources>
