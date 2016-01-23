@@ -130,7 +130,16 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         }
     }
 
-
+    @Override
+    protected void onStart() {
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        super.onStart();
+    }
 
     public void onPageTurning(int position, int offset) {
         mAdapter.moveIcons(position, offset);
