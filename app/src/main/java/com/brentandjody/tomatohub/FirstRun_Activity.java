@@ -188,7 +188,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
                                 mPassword = tvPassword.getText().toString();
                                 progressPoint(getString(R.string.password_set), "************");
                                 mUsername=null;
-                                new AttemptConnection().execute(new String[] {"root", "admin", "Admin"});
+                                new AttemptConnection().execute("root", "admin", "Admin");
                             }
                         }).create();
                 addToDisplaySequence(passwordDialog);

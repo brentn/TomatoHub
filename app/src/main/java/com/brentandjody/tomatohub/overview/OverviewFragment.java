@@ -73,6 +73,7 @@ public class OverviewFragment extends Fragment {
     private ArrayList<View> mNetworkLabels;
     private List<Device>[] mDevicesList;
     private String myMacAddress;
+    private String mLastNetworkId;
 
     public OverviewFragment() {
     }
@@ -299,7 +300,8 @@ public class OverviewFragment extends Fragment {
             icon.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hideDetailView();
+                    if (! network_id.equals(mLastNetworkId)) hideDetailView();
+                    mLastNetworkId = network_id;
                     final Network network = mNetworks.get(mRouterId, network_id);
                     mDetailView.findViewById(R.id.network_name).setOnClickListener(new View.OnClickListener() {
                         @Override

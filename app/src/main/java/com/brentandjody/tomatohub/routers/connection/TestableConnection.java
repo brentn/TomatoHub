@@ -32,7 +32,7 @@ public abstract class TestableConnection implements IConnection {
     public void stopListening() {
         Log.d(TAG, "Stop listening");
         if (mByteListener !=null) mByteListener.cancel(true);
-    };
+    }
 
     @Override
     public void disconnect() {
@@ -44,10 +44,10 @@ public abstract class TestableConnection implements IConnection {
 
         @Override
         protected Void doInBackground(Integer... ports) {
-            ServerSocket serverSocket = null;
-            Socket socket = null;
-            InputStream in = null;
-            NullOutputStream out = null;
+            ServerSocket serverSocket;
+            Socket socket;
+            InputStream in;
+            NullOutputStream out;
             try {
                 serverSocket = new ServerSocket(ports[0]);
                 socket = serverSocket.accept();
@@ -69,10 +69,12 @@ public abstract class TestableConnection implements IConnection {
                     mSpeed = Mbits/seconds;
                     success=true;
                 } finally {
-                    if (out!=null) out.close();
-                    if (in!=null) in.close();
-                    if (socket!=null) socket.close();
-                    if (serverSocket != null) serverSocket.close();
+                    out.close();
+                    if (in!=null) {
+                        in.close();
+                    }
+                    socket.close();
+                    serverSocket.close();
                 }
             } catch (Exception ex) {
                 success=false;

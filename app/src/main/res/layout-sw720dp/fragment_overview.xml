@@ -1,0 +1,345 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".overview.OverviewFragment"
+    android:background="#5744a2"
+    android:id="@+id/overview_layout">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/message_area"
+        android:background="@color/colorPrimary"
+        android:paddingTop="30dp"
+        android:padding="20dp"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/wifi_message"
+            android:background="@color/colorPrimary"
+            android:textColor="@color/primary_material_light"
+            android:visibility="visible" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/status_message"
+            android:textColor="@color/primary_material_light"
+            android:paddingTop="8dp"
+            android:visibility="visible"
+            android:text="@string/searching_for_router" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/devices"
+                android:paddingTop="8dp"
+                android:textColor="#4dd0e1"
+                android:visibility="visible" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/are_connected"
+                android:paddingTop="8dp"
+                android:textColor="@color/primary_material_light"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:id="@+id/router_l"
+        android:src="@drawable/line_90"
+        android:layout_alignLeft="@+id/router"
+        android:visibility="invisible"
+        android:layout_above="@+id/router"
+        android:layout_marginLeft="5dp"
+        android:layout_marginBottom="-60dp" />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/lan_0_l"
+        android:src="@drawable/line_130"
+        android:layout_alignTop="@+id/lan_0"
+        android:layout_marginTop="-47dp"
+        android:layout_alignRight="@+id/lan_0"
+        android:layout_marginRight="-40dp"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/lan_1_l"
+        android:src="@drawable/line_45"
+        android:layout_alignTop="@+id/lan_1"
+        android:layout_marginTop="-47dp"
+        android:layout_alignLeft="@+id/lan_1"
+        android:layout_marginLeft="-40dp"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/lan_2_l"
+        android:src="@drawable/line_90"
+        android:visibility="invisible"
+        android:layout_alignRight="@+id/lan_2"
+        android:layout_above="@+id/lan_2"
+        android:layout_marginBottom="-132dp"
+        android:layout_marginRight="-6dp" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="60dp"
+        android:id="@+id/lan_3_l"
+        android:src="@drawable/line_5"
+        android:layout_marginLeft="-35dp"
+        android:layout_alignTop="@+id/lan_3"
+        android:visibility="invisible"
+        android:layout_marginRight="-43dp"
+        android:layout_toLeftOf="@+id/lan_3" />
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="60dp"
+        android:id="@+id/lan_4_l"
+        android:src="@drawable/line_175"
+        android:visibility="invisible"
+        android:layout_toRightOf="@+id/lan_4"
+        android:layout_alignTop="@+id/lan_4"
+        android:layout_marginLeft="-43dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/internet"
+        android:id="@+id/internet"
+        android:focusable="false"
+        android:src="@drawable/internet"
+        android:adjustViewBounds="false"
+        android:cropToPadding="false"
+        android:layout_marginLeft="130dp"
+        android:clickable="false"
+        android:focusableInTouchMode="false"
+        android:visibility="visible"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="300dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/router"
+        android:id="@+id/router"
+        android:src="@drawable/router"
+        android:visibility="invisible"
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_alignLeft="@+id/internet"
+        android:layout_below="@+id/internet"
+        android:layout_marginTop="60dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/router"
+        android:id="@+id/router_label"
+        android:layout_alignTop="@+id/router"
+        android:layout_toRightOf="@+id/router"
+        android:textColor="@android:color/white"
+        android:clickable="true"
+        android:visibility="invisible" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_0"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_toLeftOf="@+id/router"
+        android:layout_marginTop="90dp"
+        android:visibility="invisible"
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_alignTop="@+id/router"
+        android:layout_marginRight="22dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_1"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_toRightOf="@+id/router"
+        android:layout_marginTop="90dp"
+        android:visibility="invisible"
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_alignTop="@+id/router"
+        android:layout_marginLeft="22dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_2"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_marginTop="130dp"
+        android:layout_alignLeft="@+id/router"
+        android:visibility="invisible"
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_alignTop="@+id/router" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_3"
+
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_alignTop="@+id/router"
+        android:layout_toRightOf="@+id/router"
+        android:layout_marginLeft="50dp"
+        android:visibility="invisible"
+        android:clickable="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_marginTop="-10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_client"
+        android:id="@+id/lan_4"
+        android:background="@drawable/circle"
+        android:textColor="#ffffff"
+        android:textSize="20pt"
+        android:textIsSelectable="true"
+        android:gravity="center|center_vertical"
+        android:maxLines="1"
+        android:layout_alignTop="@+id/router"
+        android:layout_marginTop="-10dp"
+        android:visibility="invisible"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_marginRight="50dp"
+        android:layout_toLeftOf="@+id/router" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/internet"
+        android:id="@+id/internet_label"
+        android:layout_alignTop="@+id/internet"
+        android:layout_toRightOf="@+id/internet"
+        android:textColor="@android:color/white"
+        android:clickable="true"
+        android:visibility="visible" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@mipmap/ic_speedtest"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        app:elevation="10dp"
+        android:focusable="false"
+        android:layout_marginBottom="72dp"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:adjustViewBounds="true" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/detail_layout"
+        android:visibility="invisible"
+        android:elevation="16dp"
+        android:layout_marginLeft="-8dp"
+        android:background="#e0444444"
+        android:layout_below="@+id/message_area"
+        android:layout_alignRight="@+id/message_area"
+        android:layout_marginTop="8dp"
+        android:layout_toRightOf="@+id/lan_3"
+        android:layout_marginRight="8dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Network Devices"
+            android:id="@+id/network_name"
+            android:padding="16dp"
+            android:textColor="#ffffff"
+            android:singleLine="true"
+            android:textSize="12pt"
+            android:textIsSelectable="false"
+            android:textStyle="italic"
+            android:background="@drawable/texture"
+            android:backgroundTint="#5744a2"
+            android:backgroundTintMode="multiply" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/network_device_list"
+            android:layout_below="@+id/message_area"
+            android:paddingBottom="50dp"
+            android:paddingLeft="1dp"
+            android:paddingTop="1dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
