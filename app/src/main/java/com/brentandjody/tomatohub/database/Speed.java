@@ -7,10 +7,10 @@ package com.brentandjody.tomatohub.database;
 public class Speed {
     private String mRouterId;
     private long mTimestamp;
-    private float mLanSpeed;
-    private float mWanSpeed;
+    private double mLanSpeed;
+    private double mWanSpeed;
 
-    public Speed(String routerId, long timestamp, float lanSpeed, float wanSpeed) {
+    public Speed(String routerId, long timestamp, double lanSpeed, double wanSpeed) {
         mRouterId = routerId;
         mTimestamp = timestamp;
         mLanSpeed = lanSpeed;
@@ -19,6 +19,6 @@ public class Speed {
 
     public String routerId() { return mRouterId; }
     public long timestamp() { return mTimestamp; }
-    public float lanSpeed() { return mLanSpeed; }
-    public float wanSpeed() { return mWanSpeed; }
+    public double lanSpeed() { return mLanSpeed; }
+    public double wanSpeed() { return mWanSpeed; }
 }

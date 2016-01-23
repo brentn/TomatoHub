@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,8 +60,8 @@ public class Speeds extends DatabaseHelper {
                 result.add(new Speed(
                         c.getString(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_ROUTER_ID)),
                         c.getLong(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_TIMESTAMP)),
-                        c.getFloat(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED)),
-                        c.getFloat(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED))
+                        c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED)),
+                        c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED))
                 ));
             }
             c.close();
@@ -69,4 +70,75 @@ public class Speeds extends DatabaseHelper {
         }
         return result;
     }
+
+    public double lanSpeedStdDev(String router_id) {
+        double result = -1;
+        SQLiteDatabase db = getReadableDatabase();
+        try {
+            Cursor c = db.query(
+                    DBContract.SpeedEntry.TABLE_NAME,
+                    PROJECTION,
+                    DBContract.SpeedEntry.COLUMN_ROUTER_ID + "=? AND " + DBContract.SpeedEntry.COLUMN_LAN_SPEED + ">0",
+                    new String[]{router_id}, null, null, null
+            );
+            int count=0;
+            double total=0;
+                while (c.moveToNext()) {
+                count++;
+                total+=c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED));
+            }
+            if (count >= 5) { //require at least 5 values
+                double mean = total / count;
+                c.moveToFirst();
+                double squared_difference = Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED)), 2);
+                while (c.moveToNext()) {
+                    squared_difference += Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED)), 2);
+                }
+                double variance = squared_difference / (count - 1); // Sample data requires (count-1)
+                result = Math.sqrt(variance);
+            } else {
+                Log.d(TAG, "Too few samples to calculate stddev");
+            }
+            c.close();
+        } finally {
+            db.close();
+        }
+        Log.d(TAG, "LAN StdDev: "+result);
+        return result;
+    }
+
+    public double wanSpeedStdDev(String router_id) {
+        double result = -1;
+        SQLiteDatabase db = getReadableDatabase();
+        try {
+            Cursor c = db.query(
+                    DBContract.SpeedEntry.TABLE_NAME,
+                    PROJECTION,
+                    DBContract.SpeedEntry.COLUMN_ROUTER_ID + "=? AND " + DBContract.SpeedEntry.COLUMN_WAN_SPEED + ">0",
+                    new String[]{router_id}, null, null, null
+            );
+            int count=0;
+            double total=0;
+            while (c.moveToNext()) {
+                count++;
+                total+=c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED));
+            }
+            if (count >= 5) { //require at least 5 values
+                double mean = total / count;
+                c.moveToFirst();
+                double squared_difference = Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED)), 2);
+                while (c.moveToNext()) {
+                    squared_difference += Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED)), 2);
+                }
+                double variance = squared_difference / (count - 1); // Sample data requires (count-1)
+                result = Math.sqrt(variance);
+            }
+            c.close();
+        } finally {
+            db.close();
+        }
+        Log.d(TAG, "WAN StdDev: "+result);
+        return result;
+    }
+
 }

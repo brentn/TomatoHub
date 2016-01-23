@@ -26,6 +26,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
     ProgressBar mWifiTesting;
     long mStartTime;
     float mLanSpeed=-1;
+    String mRouterId;
     Speeds speeds = new Speeds(this);
 
     @Override
@@ -92,6 +93,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         float wanSpeed;
         switch(activity_id) {
             case Router.ACTIVITY_CONNECTED:
+                mRouterId = mRouter.command("nvram get wan_hwaddr")[0];
                 runWifiTest();
                 break;
             case Router.ACTIVITY_WIFI_SPEED_TEST:
@@ -117,10 +119,11 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                     wanSpeed=-1;
                     mInternetSpeed.setText(R.string.test_failed);
                 }
-                if (mLanSpeed>0 || wanSpeed>0) {
-                    speeds.insert(new Speed(mRouter.getRouterId(), System.currentTimeMillis(), mLanSpeed, wanSpeed));
+                if (mLanSpeed > 0 || wanSpeed > 0) {
+                    speeds.insert(new Speed(mRouterId, System.currentTimeMillis(), mLanSpeed, wanSpeed));
                 }
                 break;
         }
     }
+
 }
