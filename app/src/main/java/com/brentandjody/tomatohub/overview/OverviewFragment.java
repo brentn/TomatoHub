@@ -109,6 +109,12 @@ public class OverviewFragment extends Fragment {
         mDevicesList = new List[5];
 
         mView= inflater.inflate(R.layout.fragment_overview, container, false);
+        mView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideDetailView();
+            }
+        });
         mSpeedTestFab = (FloatingActionButton) mView.findViewById(R.id.fab);
         mSpeedTestFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -229,6 +235,7 @@ public class OverviewFragment extends Fragment {
             mView.findViewById(R.id.internet).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    hideDetailView();
                     if (external_ip.isEmpty()) {
                         mListener.onSignal(SIGNAL_REFRESH, null);
                     } else {
@@ -256,6 +263,7 @@ public class OverviewFragment extends Fragment {
 
                 @Override
                 public void onClick(View v) {
+                    hideDetailView();
                     SharedPreferences prefs = getActivity().getSharedPreferences(getActivity().getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
                     View routerView = getLayoutInflater(null).inflate(R.layout.dialog_router_details, null);
                     ((TextView) routerView.findViewById(R.id.router_type)).setText(router_type);
@@ -291,6 +299,7 @@ public class OverviewFragment extends Fragment {
             icon.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    hideDetailView();
                     final Network network = mNetworks.get(mRouterId, network_id);
                     mDetailView.findViewById(R.id.network_name).setOnClickListener(new View.OnClickListener() {
                         @Override
