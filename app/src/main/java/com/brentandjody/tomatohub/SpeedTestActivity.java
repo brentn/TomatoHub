@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.brentandjody.tomatohub.database.Network;
 import com.brentandjody.tomatohub.database.Speed;
 import com.brentandjody.tomatohub.database.Speeds;
 import com.brentandjody.tomatohub.routers.DDWrtRouter;
@@ -102,6 +103,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                     mLanSpeed = mRouter.getConnectionSpeed();
                     String speed = String.format("%.2f", mLanSpeed);
                     mWifiSpeed.setText(speed + " Mbps");
+speeds.isExtreme(mRouterId, Network.LAN, mLanSpeed);
                 } else {
                     mLanSpeed=-1;
                     mWifiSpeed.setText(R.string.test_failed);
@@ -115,6 +117,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                     fileSize = (10485760 * 8) / 1000000; //adjust size to megabits
                     wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
                     mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
+speeds.isExtreme(mRouterId, Network.WAN, wanSpeed);
                 } else {
                     wanSpeed=-1;
                     mInternetSpeed.setText(R.string.test_failed);

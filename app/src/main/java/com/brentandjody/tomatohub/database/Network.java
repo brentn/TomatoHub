@@ -7,6 +7,8 @@ package com.brentandjody.tomatohub.database;
  */
 public class Network {
     private static final long SPEED_THRESHOLD=300;
+    public static final int WAN=2;
+    public static final int LAN=1;
 
     private String _routerId;
     private String _networkId;

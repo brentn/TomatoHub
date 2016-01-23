@@ -112,7 +112,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
                 @Override
                 public void onClick(View v) {
                     SharedPreferences prefs = getSharedPreferences(getString(R.string.sharedPreferences_name), MODE_PRIVATE);
-                    prefs.edit().putBoolean(getString(R.string.pref_key_allow_changes), true);
+                    prefs.edit().putBoolean(getString(R.string.pref_key_allow_changes), true).commit();
                     prefs.edit().putString(getString(R.string.pref_key_router_type), Integer.toString(RouterType.FAKE)).commit();
                     finish();
                 }

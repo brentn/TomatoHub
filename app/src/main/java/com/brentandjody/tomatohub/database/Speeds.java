@@ -71,30 +71,50 @@ public class Speeds extends DatabaseHelper {
         return result;
     }
 
-    public double lanSpeedStdDev(String router_id) {
+    public int isExtreme(String router_id, int wan_or_lan, double speed) {
+        double avg = avgSpeed(router_id, wan_or_lan);
+        double dev = stdDev(router_id, wan_or_lan, avg);
+        Log.d(TAG, "isExtreme: "+(int)((speed-avg)/dev));
+        return (int) ((speed-avg)/dev);
+    }
+
+    private double avgSpeed(String router_id, int wan_or_lan) {
         double result = -1;
+        String column = wan_or_lan==Network.LAN?DBContract.SpeedEntry.COLUMN_LAN_SPEED
+                :wan_or_lan==Network.WAN?DBContract.SpeedEntry.COLUMN_WAN_SPEED:"";
+        SQLiteDatabase db = getReadableDatabase();
+        try {
+            Cursor c = db.rawQuery("SELECT AVG(" + column + ")"
+                    + " FROM " + DBContract.SpeedEntry.TABLE_NAME
+                    + " WHERE " + DBContract.SpeedEntry.COLUMN_ROUTER_ID + "=? AND " + column + ">0"
+                    , new String[]{router_id});
+            if (c.moveToFirst()) result = c.getDouble(0);
+            c.close();
+        } finally {
+            db.close();
+        }
+        Log.d(TAG, "Avg Speed: "+result);
+        return result;
+    }
+
+    private double stdDev(String router_id, int wan_or_lan, double average_speed) {
+        double result = -1;
+        String column = wan_or_lan==Network.LAN?DBContract.SpeedEntry.COLUMN_LAN_SPEED
+                :wan_or_lan==Network.WAN?DBContract.SpeedEntry.COLUMN_WAN_SPEED:"";
         SQLiteDatabase db = getReadableDatabase();
         try {
             Cursor c = db.query(
                     DBContract.SpeedEntry.TABLE_NAME,
                     PROJECTION,
-                    DBContract.SpeedEntry.COLUMN_ROUTER_ID + "=? AND " + DBContract.SpeedEntry.COLUMN_LAN_SPEED + ">0",
+                    DBContract.SpeedEntry.COLUMN_ROUTER_ID + "=? AND " + column + ">0",
                     new String[]{router_id}, null, null, null
             );
-            int count=0;
-            double total=0;
+            if (c.getCount() >= 5) { //require at least 5 values
+                double squared_difference=0;
                 while (c.moveToNext()) {
-                count++;
-                total+=c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED));
-            }
-            if (count >= 5) { //require at least 5 values
-                double mean = total / count;
-                c.moveToFirst();
-                double squared_difference = Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED)), 2);
-                while (c.moveToNext()) {
-                    squared_difference += Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_LAN_SPEED)), 2);
+                    squared_difference += Math.pow(average_speed - c.getDouble(c.getColumnIndex(column)), 2);
                 }
-                double variance = squared_difference / (count - 1); // Sample data requires (count-1)
+                double variance = squared_difference / (c.getCount() - 1); // Sample data requires (count-1)
                 result = Math.sqrt(variance);
             } else {
                 Log.d(TAG, "Too few samples to calculate stddev");
@@ -103,41 +123,7 @@ public class Speeds extends DatabaseHelper {
         } finally {
             db.close();
         }
-        Log.d(TAG, "LAN StdDev: "+result);
-        return result;
-    }
-
-    public double wanSpeedStdDev(String router_id) {
-        double result = -1;
-        SQLiteDatabase db = getReadableDatabase();
-        try {
-            Cursor c = db.query(
-                    DBContract.SpeedEntry.TABLE_NAME,
-                    PROJECTION,
-                    DBContract.SpeedEntry.COLUMN_ROUTER_ID + "=? AND " + DBContract.SpeedEntry.COLUMN_WAN_SPEED + ">0",
-                    new String[]{router_id}, null, null, null
-            );
-            int count=0;
-            double total=0;
-            while (c.moveToNext()) {
-                count++;
-                total+=c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED));
-            }
-            if (count >= 5) { //require at least 5 values
-                double mean = total / count;
-                c.moveToFirst();
-                double squared_difference = Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED)), 2);
-                while (c.moveToNext()) {
-                    squared_difference += Math.pow(mean - c.getDouble(c.getColumnIndex(DBContract.SpeedEntry.COLUMN_WAN_SPEED)), 2);
-                }
-                double variance = squared_difference / (count - 1); // Sample data requires (count-1)
-                result = Math.sqrt(variance);
-            }
-            c.close();
-        } finally {
-            db.close();
-        }
-        Log.d(TAG, "WAN StdDev: "+result);
+        Log.d(TAG, "StdDev: "+result);
         return result;
     }
 
