@@ -10,7 +10,7 @@ import com.brentandjody.tomatohub.database.DBContract.*;
  * Manages database creation and upgrades
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "tomatohub.db";
 
     private static final String CREATE_DEVICES_TABLE =
@@ -43,17 +43,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     " UNIQUE ("+NetworkEntry.COLUMN_ROUTER_ID+","+
                     NetworkEntry.COLUMN_NETWORK_ID+") ON CONFLICT REPLACE)";
 
+    private static final String CREATE_SPEED_TABLE =
+            "CREATE TABLE " + SpeedEntry.TABLE_NAME + " (" +
+                    SpeedEntry._ID + " INTEGER PRIMARY KEY," +
+                    SpeedEntry.COLUMN_ROUTER_ID + " TEXT," +
+                    SpeedEntry.COLUMN_TIMESTAMP + " INTEGER," +
+                    SpeedEntry.COLUMN_LAN_SPEED + " REAL," +
+                    SpeedEntry.COLUMN_WAN_SPEED + " REAL)";
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_DEVICES_TABLE);
         db.execSQL(CREATE_NETWORKS_TABLE);
+        db.execSQL(CREATE_SPEED_TABLE);
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         switch (oldVersion) {
             case 1: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_BLOCKED + " INTEGER DEFAULT 0");
             case 2: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_PRIORITIZED + " INTEGER DEFAULT 0");
+            case 3: db.execSQL(CREATE_SPEED_TABLE);
         }
     }
 }

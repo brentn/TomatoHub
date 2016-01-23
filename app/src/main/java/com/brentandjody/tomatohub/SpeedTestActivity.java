@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.brentandjody.tomatohub.database.Speed;
+import com.brentandjody.tomatohub.database.Speeds;
 import com.brentandjody.tomatohub.routers.DDWrtRouter;
 import com.brentandjody.tomatohub.routers.FakeRouter;
 import com.brentandjody.tomatohub.routers.Router;
@@ -23,6 +25,8 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
     ProgressBar mInternetTesting;
     ProgressBar mWifiTesting;
     long mStartTime;
+    float mLanSpeed=-1;
+    Speeds speeds = new Speeds(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +89,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
     public void onRouterActivityComplete(int activity_id, int status) {
         long elapsedTime;
         float fileSize;
-        float Mbps;
+        float wanSpeed;
         switch(activity_id) {
             case Router.ACTIVITY_CONNECTED:
                 runWifiTest();
@@ -93,9 +97,11 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
             case Router.ACTIVITY_WIFI_SPEED_TEST:
                 mWifiTesting.setVisibility(View.INVISIBLE);
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    String speed = String.format("%.2f", mRouter.getConnectionSpeed());
+                    mLanSpeed = mRouter.getConnectionSpeed();
+                    String speed = String.format("%.2f", mLanSpeed);
                     mWifiSpeed.setText(speed + " Mbps");
                 } else {
+                    mLanSpeed=-1;
                     mWifiSpeed.setText(R.string.test_failed);
                 }
                 runDownloadTest();
@@ -105,10 +111,14 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     elapsedTime = System.currentTimeMillis() - mStartTime;
                     fileSize = (10485760 * 8) / 1000000; //adjust size to megabits
-                    Mbps = fileSize / (elapsedTime / 1000F); //adjust time to seconds
-                    mInternetSpeed.setText(String.format("%.2f", Mbps) + " Mbps");
+                    wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
+                    mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
                 } else {
+                    wanSpeed=-1;
                     mInternetSpeed.setText(R.string.test_failed);
+                }
+                if (mLanSpeed>0 || wanSpeed>0) {
+                    speeds.insert(new Speed(mRouter.getRouterId(), System.currentTimeMillis(), mLanSpeed, wanSpeed));
                 }
                 break;
         }

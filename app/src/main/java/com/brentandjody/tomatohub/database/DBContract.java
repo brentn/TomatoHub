@@ -43,4 +43,12 @@ public final class DBContract {
         public static final String COLUMN_PRIORITIZED = "prioritized";
     }
 
+    public static abstract class SpeedEntry implements BaseColumns {
+        public static final String TABLE_NAME = "speed_tests";
+        public static final String COLUMN_ROUTER_ID = "router_id";
+        public static final String COLUMN_TIMESTAMP = "timestamp";
+        public static final String COLUMN_LAN_SPEED = "lan_speed";
+        public static final String COLUMN_WAN_SPEED = "wan_speed";
+    }
+
 }
