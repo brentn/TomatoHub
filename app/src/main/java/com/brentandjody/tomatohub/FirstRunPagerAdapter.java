@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,7 @@ public class FirstRunPagerAdapter extends PagerAdapter {
                 break;
             case 1:
                 view = inflater.inflate(R.layout.firstrun_page2, null);
+                hideItem(view.findViewById(R.id.hint));
                 if (!mPg2Drawn) hideItem(view.findViewById(R.id.pg2line2));
                 break;
             case 2:
@@ -126,8 +128,8 @@ public class FirstRunPagerAdapter extends PagerAdapter {
                 leftIcon2 = null;
                 rightIcon = mActivePages.findViewById(R.id.woman);
                 rightIcon2 = mActivePages.findViewById(R.id.man);
+
                 if (offset==0 && !mPg2Drawn) {
-                    mActivePages.findViewById(R.id.hint).setAlpha(0);
                     delayedAnimation(mActivePages.findViewById(R.id.pg2line2), R.anim.slide_in_from_right, 1800, 300);
                     mPg2Drawn=true;
                 }
