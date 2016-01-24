@@ -66,6 +66,9 @@
         <Preference
             android:key="@string/pref_key_first_run"
             android:title="@string/pref_first_run" />
+        <Preference
+            android:key="@string/pref_key_reset_speed"
+            android:title="@string/reset_speed_test_history" />
     </PreferenceCategory>
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to

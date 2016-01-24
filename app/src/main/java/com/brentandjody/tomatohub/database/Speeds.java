@@ -71,9 +71,20 @@ public class Speeds extends DatabaseHelper {
         return result;
     }
 
+    public void deleteAllHistory() {
+        SQLiteDatabase db = getWritableDatabase();
+        Log.d(TAG, "Erasing all speed test history data");
+        try {
+            db.delete(DBContract.SpeedEntry.TABLE_NAME, null, null);
+        } finally {
+            db.close();
+        }
+    }
+
     public int isExtreme(String router_id, int wan_or_lan, double speed) {
         double avg = avgSpeed(router_id, wan_or_lan);
         double dev = stdDev(router_id, wan_or_lan, avg);
+        if (dev<0) return 0; //not enough samples
         Log.d(TAG, "isExtreme: "+(int)((speed-avg)/dev));
         return (int) ((speed-avg)/dev);
     }

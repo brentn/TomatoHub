@@ -222,4 +222,11 @@
     <string name="unable_to_connect">Unable to connect to your router</string>
     <string name="redirect_to_settings">Opening the Settings dialog...</string>
     <string name="user_identified">User identified</string>
+    <string name="unusually_fast">unusually fast</string>
+    <string name="unusually_slow">unusually slow</string>
+    <string name="pref_key_reset_speed">reset_speed_history</string>
+    <string name="reset_speed_test_history">Reset speed test history</string>
+    <string name="reset_speed_history">Reset speed history?</string>
+    <string name="reset_speed_history_explanation">This will erase your speed test history for the app.  Speed test history is what determines whether the current measurement is unusually fast or slow.</string>
+    <string name="cancel">cancel</string>
 </resources>

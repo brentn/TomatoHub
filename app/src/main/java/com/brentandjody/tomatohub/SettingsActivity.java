@@ -3,8 +3,10 @@ package com.brentandjody.tomatohub;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -27,6 +29,7 @@ import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.widget.Toast;
 
+import com.brentandjody.tomatohub.database.Speeds;
 import com.brentandjody.tomatohub.routers.RouterType;
 
 import java.util.List;
@@ -147,6 +150,24 @@ public class SettingsActivity extends Activity {
                         startActivity(new Intent(Intent.ACTION_VIEW,
                                 Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
                     }                    return false;
+                }
+            });
+            Preference reset_speed_history = findPreference(getString(R.string.pref_key_reset_speed));
+            reset_speed_history.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle(R.string.reset_speed_history)
+                            .setMessage(R.string.reset_speed_history_explanation)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    new Speeds(getActivity()).deleteAllHistory();
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, null)
+                            .show();
+                    return false;
                 }
             });
 

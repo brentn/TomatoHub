@@ -69,6 +69,8 @@ public class FirstRunPagerAdapter extends PagerAdapter {
             delayedReveal(view.findViewById(R.id.imgLogo), 1000);
             delayedReveal(view.findViewById(R.id.pg1line1), 2000);
             delayedReveal(view.findViewById(R.id.imgWifi), 3000, 2000);
+            delayedReveal(view.findViewById(R.id.hint), 5500);
+            delayedAnimation(view.findViewById(R.id.hint), R.anim.pulse, 5500, 1000);
             mPg1Drawn=true;
         }
 
@@ -125,6 +127,7 @@ public class FirstRunPagerAdapter extends PagerAdapter {
                 rightIcon = mActivePages.findViewById(R.id.woman);
                 rightIcon2 = mActivePages.findViewById(R.id.man);
                 if (offset==0 && !mPg2Drawn) {
+                    mActivePages.findViewById(R.id.hint).setAlpha(0);
                     delayedAnimation(mActivePages.findViewById(R.id.pg2line2), R.anim.slide_in_from_right, 1800, 300);
                     mPg2Drawn=true;
                 }

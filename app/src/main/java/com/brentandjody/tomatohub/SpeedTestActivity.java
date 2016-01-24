@@ -1,6 +1,7 @@
 package com.brentandjody.tomatohub;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -43,7 +44,8 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
         mInternetTesting.setVisibility(View.INVISIBLE);
         mWifiSpeed.setText("");
         mWifiTesting.setVisibility(View.VISIBLE);
-
+        findViewById(R.id.wifi_fastslow).setVisibility(View.INVISIBLE);
+        findViewById(R.id.internet_fastslow).setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -103,7 +105,7 @@ public class SpeedTestActivity extends AppCompatActivity implements Router.OnRou
                     mLanSpeed = mRouter.getConnectionSpeed();
                     String speed = String.format("%.2f", mLanSpeed);
                     mWifiSpeed.setText(speed + " Mbps");
-speeds.isExtreme(mRouterId, Network.LAN, mLanSpeed);
+                    notifyExtreme(speeds.isExtreme(mRouterId, Network.LAN, mLanSpeed), findViewById(R.id.wifi_fastslow));
                 } else {
                     mLanSpeed=-1;
                     mWifiSpeed.setText(R.string.test_failed);
@@ -117,7 +119,7 @@ speeds.isExtreme(mRouterId, Network.LAN, mLanSpeed);
                     fileSize = (10485760 * 8) / 1000000; //adjust size to megabits
                     wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
                     mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
-speeds.isExtreme(mRouterId, Network.WAN, wanSpeed);
+                    notifyExtreme(speeds.isExtreme(mRouterId, Network.WAN, wanSpeed), findViewById(R.id.internet_fastslow));
                 } else {
                     wanSpeed=-1;
                     mInternetSpeed.setText(R.string.test_failed);
@@ -126,6 +128,20 @@ speeds.isExtreme(mRouterId, Network.WAN, wanSpeed);
                     speeds.insert(new Speed(mRouterId, System.currentTimeMillis(), mLanSpeed, wanSpeed));
                 }
                 break;
+        }
+    }
+
+    private void notifyExtreme(int isExtreme, View view) {
+        if (isExtreme==0) {
+            view.setVisibility(View.INVISIBLE);
+        } else if (isExtreme>0) {
+            view.setVisibility(View.VISIBLE);
+            ((TextView) view).setText(R.string.unusually_fast);
+            ((TextView) view).setTextColor(Color.GREEN);
+        } else if (isExtreme < 0) {
+            view.setVisibility(View.VISIBLE);
+            ((TextView) view).setText(R.string.unusually_slow);
+            ((TextView) view).setTextColor(Color.RED);
         }
     }
 

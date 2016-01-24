@@ -1,33 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/transparent">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="77dp"
-        android:id="@+id/imgLogo"
-        android:src="@drawable/logo"
-        android:layout_gravity="right|top"
-        android:scaleType="fitEnd"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="10dp" />
-
-    <TextView
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/firstrun_page1_line1"
-        android:id="@+id/pg1line1"
-        android:gravity="center_horizontal"
-        android:textColor="#ffffff" />
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="77dp"
+            android:id="@+id/imgLogo"
+            android:src="@drawable/logo"
+            android:layout_gravity="right|top"
+            android:scaleType="fitEnd"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/firstrun_page1_line1"
+            android:id="@+id/pg1line1"
+            android:gravity="center_horizontal"
+            android:textColor="#ffffff" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgWifi"
+            android:src="@drawable/wifi"
+            android:layout_marginTop="50dp" />
+
+    </LinearLayout>
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/imgWifi"
-        android:src="@drawable/wifi"
-        android:layout_marginTop="50dp" />
+        android:layout_height="match_parent"
+        android:id="@+id/hint"
+        android:src="@drawable/swipe_hint"
+        android:paddingLeft="75dp"
+        android:layout_marginTop="200dp"
+        android:alpha="0.3" />
 
-</LinearLayout>
+</FrameLayout>
