@@ -442,6 +442,15 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
 
     private class AttemptConnection extends AsyncTask<String, Void, Void> {
         boolean mSuccess;
+        ProgressBar mProgressBar;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressBar = new ProgressBar(FirstRun_Activity.this);
+            mFrame.addView(mProgressBar, new FrameLayout.LayoutParams(64, 64, Gravity.CENTER));
+        }
+
         @Override
         protected Void doInBackground(String... params) {
             mSuccess=false;
@@ -458,6 +467,7 @@ public class FirstRun_Activity extends AppCompatActivity implements PageTurnList
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            mFrame.removeView(mProgressBar);
             if (mSuccess) connectionSucceeded();
             else connectionFailed();
         }
