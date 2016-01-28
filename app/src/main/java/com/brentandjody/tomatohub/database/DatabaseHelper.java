@@ -4,13 +4,15 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.brentandjody.tomatohub.database.DBContract.*;
+import com.brentandjody.tomatohub.database.DBContract.DeviceEntry;
+import com.brentandjody.tomatohub.database.DBContract.NetworkEntry;
+import com.brentandjody.tomatohub.database.DBContract.SpeedEntry;
 /**
  * Created by brent on 28/11/15.
  * Manages database creation and upgrades
  */
 public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "tomatohub.db";
 
     private static final String CREATE_DEVICES_TABLE =
@@ -19,7 +21,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DeviceEntry.COLUMN_ROUTER_ID + " TEXT," +
                     DeviceEntry.COLUMN_NAME + " TEXT," +
                     DeviceEntry.COLUMN_CUSTOM_NAME + " TEXT," +
-                    DeviceEntry.COLUMN_MAC + " TEXT UNIQUE," +
+                    DeviceEntry.COLUMN_MAC + " TEXT," +
                     DeviceEntry.COLUMN_NETWORK_ID + " TEXT," +
                     DeviceEntry.COLUMN_LAST_IP + " TEXT," +
                     DeviceEntry.COLUMN_ACTIVE + " INTEGER," +
@@ -28,7 +30,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     DeviceEntry.COLUMN_RX_BYTES + " INTEGER," +
                     DeviceEntry.COLUMN_LAST_SPEED + " REAL," +
                     DeviceEntry.COLUMN_BLOCKED + " INTEGER," +
-                    DeviceEntry.COLUMN_PRIORITIZED + " INTEGER)";
+                    DeviceEntry.COLUMN_PRIORITIZED + " INTEGER,"+
+                    " UNIQUE ("+DeviceEntry.COLUMN_ROUTER_ID+","+
+                    DeviceEntry.COLUMN_MAC+") ON CONFLICT REPLACE)";
 
     private static final String CREATE_NETWORKS_TABLE =
             "CREATE TABLE " + NetworkEntry.TABLE_NAME + " (" +
@@ -64,6 +68,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             case 1: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_BLOCKED + " INTEGER DEFAULT 0");
             case 2: db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" ADD COLUMN " + DeviceEntry.COLUMN_PRIORITIZED + " INTEGER DEFAULT 0");
             case 3: db.execSQL(CREATE_SPEED_TABLE);
+            case 4:
+            case 5:
+                db.execSQL("ALTER TABLE "+DeviceEntry.TABLE_NAME+" RENAME TO Temp");
+                db.execSQL(CREATE_DEVICES_TABLE);
+                db.execSQL("INSERT INTO "+DeviceEntry.TABLE_NAME+" SELECT * FROM Temp");
+                db.execSQL("DROP TABLE Temp");
         }
     }
 }

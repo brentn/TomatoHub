@@ -1,8 +1,8 @@
 package com.brentandjody.tomatohub;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -17,7 +17,7 @@ import com.brentandjody.tomatohub.routers.Router;
 import com.brentandjody.tomatohub.routers.RouterType;
 import com.brentandjody.tomatohub.routers.TomatoRouter;
 
-public class SpeedTestActivity extends AppCompatActivity implements Router.OnRouterActivityCompleteListener {
+public class SpeedTestActivity extends Activity implements Router.OnRouterActivityCompleteListener {
 
     private static final int TEST_PORT = 4343;
 

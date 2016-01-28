@@ -10,12 +10,11 @@ import android.util.Log;
  * Created by brent on 05/12/15.
  * Class for network object
  */
-public class Networks {
+public class Networks extends DatabaseHelper {
 
     private static final String TAG = Networks.class.getName();
 
-    private DatabaseHelper mDatabaseHelper;
-    private static final String[] PROJECTION = {
+    protected static final String[] PROJECTION = {
             DBContract.NetworkEntry._ID,
             DBContract.NetworkEntry.COLUMN_ROUTER_ID,
             DBContract.NetworkEntry.COLUMN_NETWORK_ID,
@@ -27,11 +26,11 @@ public class Networks {
     };
 
     public Networks(Context context){
-        mDatabaseHelper = new DatabaseHelper(context);
+        super(context);
     }
 
     public Network get(String router_id, String network_id) {
-        SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         Network result = new Network(router_id, network_id);
         try {
             String[] args = {router_id, network_id};
@@ -56,7 +55,7 @@ public class Networks {
     }
 
     public long insertOrUpdate(Network network) {
-        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         long result = -1;
         try {
             ContentValues values = new ContentValues();

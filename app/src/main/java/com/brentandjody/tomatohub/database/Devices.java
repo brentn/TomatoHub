@@ -6,8 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-
-import com.brentandjody.tomatohub.database.DBContract.*;
+import com.brentandjody.tomatohub.database.DBContract.DeviceEntry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +15,11 @@ import java.util.List;
  * Created by brent on 02/12/15.
  * Class to manage all SQL operations on the devices table
  */
-public class Devices {
+public class Devices extends DatabaseHelper {
 
     private static final String TAG = Devices.class.getName();
 
-    private DatabaseHelper mDatabaseHelper;
-    private static final String[] PROJECTION = {
+    protected static final String[] PROJECTION = {
             DeviceEntry._ID,
             DeviceEntry.COLUMN_ROUTER_ID,
             DeviceEntry.COLUMN_MAC,
@@ -39,11 +37,11 @@ public class Devices {
     };
 
     public Devices(Context context){
-        mDatabaseHelper = new DatabaseHelper(context);
+        super(context);
     }
 
     public void resetAll() {
-        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         try {
             ContentValues values = new ContentValues();
             values.put(DeviceEntry.COLUMN_ACTIVE, 0);
@@ -57,7 +55,7 @@ public class Devices {
 
     public Device get(String router_id, String mac) {
         // return device from DB, or if not, new device object
-        SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         Device result = new Device(router_id, mac, "unknown");
         try {
             String[] args = {router_id, mac};
@@ -81,7 +79,7 @@ public class Devices {
     }
 
     public List<Device> getDevicesOnNetwork(String router_id, String network_id) {
-        SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         List<Device> result = new ArrayList<>();
         try {
             Cursor c = db.query(
@@ -104,7 +102,7 @@ public class Devices {
     }
 
     public long insertOrUpdate(Device device) {
-        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         long result = -1;
         try {
             ContentValues values = new ContentValues();
@@ -130,7 +128,7 @@ public class Devices {
     }
 
     public void updateName(String mac, String custom_name) {
-        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         try {
             Cursor c = db.rawQuery("UPDATE " + DeviceEntry.TABLE_NAME + " SET " + DeviceEntry.COLUMN_CUSTOM_NAME + "=?"
                     + " WHERE " + DeviceEntry.COLUMN_MAC + "=?", new String[]{custom_name, mac});
@@ -144,7 +142,7 @@ public class Devices {
     }
 
     public void removeFakeDevices(String fakeRouterId) {
-        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         try {
             Cursor c = db.rawQuery("DELETE FROM "+DeviceEntry.TABLE_NAME + " WHERE "+DeviceEntry.COLUMN_ROUTER_ID + "=?",
                     new String[] {fakeRouterId});

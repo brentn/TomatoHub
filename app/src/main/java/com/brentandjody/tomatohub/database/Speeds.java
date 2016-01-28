@@ -81,6 +81,7 @@ public class Speeds extends DatabaseHelper {
         }
     }
 
+
     public int isExtreme(String router_id, int wan_or_lan, double speed) {
         double avg = avgSpeed(router_id, wan_or_lan);
         double dev = stdDev(router_id, wan_or_lan, avg);
@@ -89,7 +90,7 @@ public class Speeds extends DatabaseHelper {
         return (int) ((speed-avg)/dev);
     }
 
-    private double avgSpeed(String router_id, int wan_or_lan) {
+    protected double avgSpeed(String router_id, int wan_or_lan) {
         double result = -1;
         String column = wan_or_lan==Network.LAN?DBContract.SpeedEntry.COLUMN_LAN_SPEED
                 :wan_or_lan==Network.WAN?DBContract.SpeedEntry.COLUMN_WAN_SPEED:"";
@@ -108,7 +109,7 @@ public class Speeds extends DatabaseHelper {
         return result;
     }
 
-    private double stdDev(String router_id, int wan_or_lan, double average_speed) {
+    protected double stdDev(String router_id, int wan_or_lan, double average_speed) {
         double result = -1;
         String column = wan_or_lan==Network.LAN?DBContract.SpeedEntry.COLUMN_LAN_SPEED
                 :wan_or_lan==Network.WAN?DBContract.SpeedEntry.COLUMN_WAN_SPEED:"";

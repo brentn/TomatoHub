@@ -2,6 +2,7 @@ package com.brentandjody.tomatohub;
 
 import com.brentandjody.tomatohub.database.Device;
 import com.brentandjody.tomatohub.database.Network;
+import com.brentandjody.tomatohub.database.Speed;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import org.junit.Test;
@@ -182,5 +183,19 @@ public class ObjectIntegrityTest {
         wifi.setPassword(PASSWORD);
         assertEquals(PASSWORD, wifi.password());
     }
+
+    @Test
+    public void speed_setters_and_getters_work() {
+        String routerId="RouterId29003";
+        long timestamp = System.currentTimeMillis();
+        long lanSpeed = 983909;
+        long wanSpeed = 3939029;
+        Speed speed = new Speed(routerId, timestamp, lanSpeed, wanSpeed);
+        assertEquals(routerId, speed.routerId());
+        assertEquals(timestamp, speed.timestamp());
+        assertEquals(lanSpeed, speed.lanSpeed());
+        assertEquals(wanSpeed, speed.wanSpeed());
+    }
+
 }
 
