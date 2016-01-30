@@ -494,14 +494,14 @@ public class LinuxRouter extends Router {
         protected void onPreExecute() {
             super.onPreExecute();
             mRunningTasks.add(this);
+            command("rm /tmp/10mb.test");
         }
 
         @Override
         protected Void doInBackground(Void... params) {
             try {
                 finished=false;
-                command("rm /tmp/10mb.test");
-                command("wget -qO /tmp/10mb.test http://cachefly.cachefly.net/10mb.test?id=" + System.currentTimeMillis() + " &");
+                command("wget -qO /tmp/10mb.test http://cachefly.cachefly.net/10mb.test &");
                 Runnable progress = new Runnable() {
                     @Override
                     public void run() {

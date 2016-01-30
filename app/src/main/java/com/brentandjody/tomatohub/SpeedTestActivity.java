@@ -115,6 +115,12 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
                 mInternetTesting.setVisibility(View.INVISIBLE);
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
+                    if (mInternetSpeed.getText().toString().length()==0) {
+                        elapsedTime = System.currentTimeMillis() - mStartTime;
+                        fileSize = (10485760 * 8) / 1000000; //adjust size to megabits
+                        wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
+                        mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
+                    }
                     notifyExtreme(speeds.isExtreme(mRouterId, Network.WAN, wanSpeed), findViewById(R.id.internet_fastslow));
                 } else {
                     wanSpeed=-1;
