@@ -92,8 +92,8 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
     @Override
     public void onRouterActivityComplete(int activity_id, int status) {
         long elapsedTime;
-        float fileSize;
-        float wanSpeed;
+        double fileSize;
+        double wanSpeed=0;
         switch(activity_id) {
             case Router.ACTIVITY_CONNECTED:
                 mRouterId = mRouter.command("nvram get wan_hwaddr")[0];
@@ -115,10 +115,6 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
                 mInternetTesting.setVisibility(View.INVISIBLE);
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
-                    elapsedTime = System.currentTimeMillis() - mStartTime;
-                    fileSize = (10485760 * 8) / 1000000; //adjust size to megabits
-                    wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
-                    mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
                     notifyExtreme(speeds.isExtreme(mRouterId, Network.WAN, wanSpeed), findViewById(R.id.internet_fastslow));
                 } else {
                     wanSpeed=-1;
@@ -133,7 +129,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                 if (status > 0) {
                     elapsedTime = System.currentTimeMillis() - mStartTime;
                     fileSize = (status * 8) / 1000000; //adjust size to megabits
-                    wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
+                    wanSpeed = fileSize / (elapsedTime / 1000d); //adjust time to seconds
                     mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
                 }
                 break;

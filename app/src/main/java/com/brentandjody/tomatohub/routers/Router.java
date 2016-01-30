@@ -148,7 +148,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
             WifiManager wifi = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
             String myIp = intToIp(wifi.getConnectionInfo().getIpAddress());
             mConnection.listen(port);
-            String[] output = (mConnection.execute("dd if=/dev/zero bs=1K count=1K | nc "+myIp+" "+port +"; echo $?"));
+            String[] output = (mConnection.execute("dd if=/dev/zero bs=1K count=2K | nc "+myIp+" "+port +"; echo $?"));
             mTestFileSent = output[output.length-1].equals("0"); //grab the last line of the output only
         } catch (Exception ex) {
             Log.e(TAG, "wifiSpeedTest: "+ex.getMessage());
