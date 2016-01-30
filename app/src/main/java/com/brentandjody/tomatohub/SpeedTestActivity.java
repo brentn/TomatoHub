@@ -128,6 +128,15 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                     speeds.insert(new Speed(mRouterId, System.currentTimeMillis(), mLanSpeed, wanSpeed));
                 }
                 break;
+            case Router.ACTIVITY_10MDOWNLOAD_PROGRESS:
+                // status is used for size of file in bytes
+                if (status > 0) {
+                    elapsedTime = System.currentTimeMillis() - mStartTime;
+                    fileSize = (status * 8) / 1000000; //adjust size to megabits
+                    wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
+                    mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
+                }
+                break;
         }
     }
 

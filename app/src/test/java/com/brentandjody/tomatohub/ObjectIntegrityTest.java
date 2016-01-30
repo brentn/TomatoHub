@@ -8,6 +8,7 @@ import com.brentandjody.tomatohub.database.Wifi;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -130,6 +131,11 @@ public class ObjectIntegrityTest {
     }
 
     @Test
+    public void network_static_values_exist() {
+        assertNotNull(Network.LAN);
+        assertNotNull(Network.WAN);
+    }
+    @Test
     public void network_constructor_sets_proper_fields() {
         String ROUTERID = "lskdfj";
         String NETWORKID = "29hhfhla;l";
@@ -193,8 +199,8 @@ public class ObjectIntegrityTest {
         Speed speed = new Speed(routerId, timestamp, lanSpeed, wanSpeed);
         assertEquals(routerId, speed.routerId());
         assertEquals(timestamp, speed.timestamp());
-        assertEquals(lanSpeed, speed.lanSpeed());
-        assertEquals(wanSpeed, speed.wanSpeed());
+        assertEquals(lanSpeed, speed.lanSpeed(), 0);
+        assertEquals(wanSpeed, speed.wanSpeed(), 0);
     }
 
 }

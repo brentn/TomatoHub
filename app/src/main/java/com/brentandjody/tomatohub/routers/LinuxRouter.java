@@ -1,15 +1,8 @@
 package com.brentandjody.tomatohub.routers;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.support.annotation.UiThread;
-import android.test.UiThreadTest;
-import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -21,14 +14,12 @@ import com.brentandjody.tomatohub.database.Networks;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by brent on 28/11/15.
@@ -493,8 +484,11 @@ public class LinuxRouter extends Router {
         }
     }
 
-    private class InternetDownloader extends AsyncTask<Void, Void, Void> {
+    private class InternetDownloader extends AsyncTask<Void, Integer, Void> {
+        boolean finished=false;
         boolean success=false;
+        int size=0;
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
         @Override
         protected void onPreExecute() {
@@ -505,7 +499,32 @@ public class LinuxRouter extends Router {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                command("wget -qO /dev/null http://cachefly.cachefly.net/10mb.test?id="+System.currentTimeMillis());
+                finished=false;
+                command("rm /tmp/10mb.test");
+                command("wget -qO /tmp/10mb.test http://cachefly.cachefly.net/10mb.test?id=" + System.currentTimeMillis() + " &");
+                Runnable progress = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            int oldSize = size;
+                            size = Integer.parseInt(command("wc -c /tmp/10mb.test|cut -d' ' -f1")[0]);
+                            Log.d(TAG, size + " bytes downloaded...");
+                            if (oldSize == size) {
+                                Log.d(TAG, "Stopping downloader progress");
+                                executor.shutdown();
+                                finished=true;
+                            }
+                            publishProgress(size);
+                        } catch (Exception ex) {
+                            Log.e(TAG, ex.getMessage());
+                            executor.shutdown();
+                            finished=true;
+                        }
+                    }
+                };
+
+                executor.scheduleAtFixedRate(progress, 2000, 500, TimeUnit.MILLISECONDS);
+                while (!finished) Thread.sleep(10);
                 success=true;
             } catch (Exception ex) {
                 success=false;
@@ -515,11 +534,19 @@ public class LinuxRouter extends Router {
         }
 
         @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            mListener.onRouterActivityComplete(ACTIVITY_10MDOWNLOAD_PROGRESS, values[0]);
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
+            Log.d(TAG, "Download complete");
             super.onPostExecute(aVoid);
             mRunningTasks.remove(this);
             if (!isCancelled())
                 mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+            command("rm /tmp/10mb.test");
         }
     }
 

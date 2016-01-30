@@ -1,7 +1,6 @@
 package com.brentandjody.tomatohub.overview;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -56,21 +55,22 @@ public class OverviewFragment extends Fragment {
     
     private static final String TAG = OverviewFragment.class.getName();
     private OnSignalListener mListener;
+    private MainActivity mActivity;
 
     private Networks mNetworks;
     private Devices mDevices;
-    private boolean mQOSEnabled;
-    private boolean mDetailViewVisible;
+    protected boolean mQOSEnabled;
+    protected boolean mDetailViewVisible;
     private String mRouterId;
     private View mView;
-    private FloatingActionButton mSpeedTestFab;
-    private LinearLayout mDetailView;
-    private TextView mWifiMessage;
-    private TextView mStatusMessage;
-    private TextView[] mDevicesMessage;
-    private TextView[] mNetworkIcons;
-    private View[] mNetworkLines;
-    private ArrayList<View> mNetworkLabels;
+    protected FloatingActionButton mSpeedTestFab;
+    protected LinearLayout mDetailView;
+    protected TextView mWifiMessage;
+    protected TextView mStatusMessage;
+    protected TextView[] mDevicesMessage;
+    protected TextView[] mNetworkIcons;
+    protected View[] mNetworkLines;
+    protected ArrayList<View> mNetworkLabels;
     private List<Device>[] mDevicesList;
     private String myMacAddress;
     private String mLastNetworkId;
@@ -79,13 +79,18 @@ public class OverviewFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
         try {
             this.mListener = (OnSignalListener)activity;
         }
         catch (final ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnSignalListener");
+        }
+        try {
+            this.mActivity = (MainActivity) activity;
+        } catch (final ClassCastException ex) {
+            throw new ClassCastException(activity.toString() + " must extend MainActivity");
         }
     }
 
@@ -103,8 +108,8 @@ public class OverviewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mDevices = ((MainActivity)getActivity()).getDevices();
-        mNetworks = ((MainActivity)getActivity()).getNetworks();
+        mDevices = mActivity.getDevices();
+        mNetworks = mActivity.getNetworks();
         mDetailViewVisible=false;
         mNetworkLabels = new ArrayList<>();
         mDevicesList = new List[5];
@@ -121,7 +126,7 @@ public class OverviewFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), SpeedTestActivity.class);
-                getActivity().startActivityForResult(intent, 0);
+                mActivity.startActivityForResult(intent, 0);
             }
         });
         mSpeedTestFab.setVisibility(View.INVISIBLE);
@@ -203,8 +208,8 @@ public class OverviewFragment extends Fragment {
     @TargetApi(16)
     public void setNetworkTrafficColor(int index, float percent) {
         if (Build.VERSION.SDK_INT >= 16) {
-            if (getActivity()!=null) {
-                Drawable circle = ContextCompat.getDrawable(getActivity(), R.drawable.circle);
+            if (mActivity!=null) {
+                Drawable circle = ContextCompat.getDrawable(mActivity, R.drawable.circle);
                 if (circle != null) {
                     circle.setColorFilter(new PorterDuffColorFilter(Color.HSVToColor(new float[]{0, percent, 1F}), PorterDuff.Mode.MULTIPLY));
                     mNetworkIcons[index].setBackground(circle);
@@ -212,10 +217,10 @@ public class OverviewFragment extends Fragment {
             }
         }
     }
-
+//TODO:Test
     private void addNetworkLabel(View icon, String label) {
         try {
-            TextView tvLabel = new TextView(getActivity());
+            TextView tvLabel = new TextView(mActivity);
             mNetworkLabels.add(tvLabel);
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                     RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -240,7 +245,7 @@ public class OverviewFragment extends Fragment {
                     if (external_ip.isEmpty()) {
                         mListener.onSignal(SIGNAL_REFRESH, null);
                     } else {
-                        new AlertDialog.Builder(getActivity())
+                        new AlertDialog.Builder(mActivity)
                                 .setTitle("Internet")
                                 .setMessage("External IP Address: " + external_ip)
                                 .setPositiveButton(getString(R.string.refresh), new DialogInterface.OnClickListener() {
@@ -265,7 +270,7 @@ public class OverviewFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     hideDetailView();
-                    SharedPreferences prefs = getActivity().getSharedPreferences(getActivity().getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
+                    SharedPreferences prefs = mActivity.getSharedPreferences(mActivity.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
                     View routerView = getLayoutInflater(null).inflate(R.layout.dialog_router_details, null);
                     ((TextView) routerView.findViewById(R.id.router_type)).setText(router_type);
                     ((TextView) routerView.findViewById(R.id.internal_ip)).setText(internal_ip);
@@ -273,7 +278,7 @@ public class OverviewFragment extends Fragment {
                     ((ProgressBar) routerView.findViewById(R.id.memory_usage)).setProgress(memory);
                     ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
                     ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
-                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity())
+                    AlertDialog.Builder alert = new AlertDialog.Builder(mActivity)
                         .setTitle(getString(R.string.router_details))
                         .setView(routerView);
                     if (prefs.getBoolean(getString(R.string.pref_key_allow_changes), false)) {
@@ -306,8 +311,8 @@ public class OverviewFragment extends Fragment {
                     mDetailView.findViewById(R.id.network_name).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                            final EditText editText = new EditText(getActivity());
+                            AlertDialog.Builder alert = new AlertDialog.Builder(mActivity);
+                            final EditText editText = new EditText(mActivity);
                             editText.setHint(network.networkId());
                             editText.setText(network.customName());
                             editText.setSingleLine();
@@ -334,29 +339,27 @@ public class OverviewFragment extends Fragment {
 
     private void setupDeviceClickListeners(final int device_list_index) {
         try {
-            DeviceListAdapter adapter = new DeviceListAdapter(getActivity(), mDevicesList[device_list_index]);
+            DeviceListAdapter adapter = new DeviceListAdapter(mActivity, mDevicesList[device_list_index]);
             ListView detailList = (ListView) mDetailView.findViewById(R.id.network_device_list);
             detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Context context = getActivity();
                     final Device device = mDevicesList[device_list_index].get(position);
                     View deviceView = getLayoutInflater(null).inflate(R.layout.dialog_device_details, null);
                     final EditText deviceName = (EditText) deviceView.findViewById(R.id.device_name);
                     deviceName.setHint(device.originalName());
                     deviceName.setText(device.customName());
-                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                    alert.setTitle(getActivity().getString(R.string.manage_device));
+                    AlertDialog.Builder alert = new AlertDialog.Builder(mActivity);
+                    alert.setTitle(mActivity.getString(R.string.manage_device));
                     alert.setView(deviceView);
-                    SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
-                    if (prefs.getBoolean(context.getString(R.string.pref_key_allow_changes), false)) {
+                    SharedPreferences prefs = mActivity.getSharedPreferences(mActivity.getString(R.string.sharedPreferences_name), Context.MODE_PRIVATE);
+                    if (prefs.getBoolean(mActivity.getString(R.string.pref_key_allow_changes), false)) {
                         if (mQOSEnabled) {
-                            alert.setPositiveButton(context.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
+                            alert.setPositiveButton(mActivity.getString(R.string.prioritize), new DialogInterface.OnClickListener() {
                                 AlertDialog popup;
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    final Context context = getActivity();
-                                    View view = LayoutInflater.from(context).inflate(R.layout.dialog_time_selector, null, false);
+                                    View view = LayoutInflater.from(mActivity).inflate(R.layout.dialog_time_selector, null, false);
                                     RadioGroup timePicker = (RadioGroup)view.findViewById(R.id.time_choice);
                                     for (int i=0; i<timePicker.getChildCount(); i++) {
                                         final int index = i;
@@ -365,10 +368,10 @@ public class OverviewFragment extends Fragment {
                                             public void onClick(View v) {
                                                 // give feedback
                                                 popup.dismiss();
-                                                String time = context.getResources().getStringArray(R.array.prioritize_times)[index];
-                                                Toast.makeText(getActivity(), "Prioritizing "+device.lastIP()+" for "+time, Toast.LENGTH_LONG).show();
+                                                String time = mActivity.getResources().getStringArray(R.array.prioritize_times)[index];
+                                                Toast.makeText(mActivity, "Prioritizing "+device.lastIP()+" for "+time, Toast.LENGTH_LONG).show();
                                                 //
-                                                String milliseconds = context.getResources().getStringArray(R.array.prioritize_times_values)[index];
+                                                String milliseconds = mActivity.getResources().getStringArray(R.array.prioritize_times_values)[index];
                                                 long ms = 0; try { ms = Long.parseLong(milliseconds); }
                                                 catch(Exception ex) {Log.e(TAG, "Could not parse milliseconds");}
                                                 device.setPrioritizedUntil(System.currentTimeMillis()+ms);
@@ -378,31 +381,31 @@ public class OverviewFragment extends Fragment {
                                             }
                                         });
                                     }
-                                    popup = new  AlertDialog.Builder(context)
-                                            .setTitle(context.getString(R.string.prioritize_device))
-                                            .setMessage(context.getString(R.string.prioritize_device_time))
+                                    popup = new  AlertDialog.Builder(mActivity)
+                                            .setTitle(mActivity.getString(R.string.prioritize_device))
+                                            .setMessage(mActivity.getString(R.string.prioritize_device_time))
                                             .setView(view)
                                             .show();
                                 }
                             });
                         }
                         if (device.isBlocked()) {
-                            alert.setNegativeButton(context.getString(R.string.unblock), new DialogInterface.OnClickListener() {
+                            alert.setNegativeButton(mActivity.getString(R.string.unblock), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     device.setBlocked(false);
                                     mDevices.insertOrUpdate(device);
                                     ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
                                     mListener.onSignal(SIGNAL_UNBLOCK, device.mac());
-                                    Toast.makeText(getActivity(), getActivity().getString(R.string.unblocking) + " " + device.mac(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(mActivity, mActivity.getString(R.string.unblocking) + " " + device.mac(), Toast.LENGTH_LONG).show();
                                 }
                             });
 
                         } else if (!device.mac().toUpperCase().equals(myMacAddress)) { //prevent blocking own device
-                            alert.setNegativeButton(context.getString(R.string.block), new DialogInterface.OnClickListener() {
+                            alert.setNegativeButton(mActivity.getString(R.string.block), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Context context = getActivity();
+                                    Context context = mActivity;
                                     new AlertDialog.Builder(context)
                                             .setMessage(context.getString(R.string.block_confirm))
                                             .setCancelable(false)
@@ -412,7 +415,7 @@ public class OverviewFragment extends Fragment {
                                                     mDevices.insertOrUpdate(device);
                                                     ((DeviceListAdapter) ((ListView) mDetailView.findViewById(R.id.network_device_list)).getAdapter()).notifyDataSetChanged();
                                                     mListener.onSignal(SIGNAL_BLOCK, device.mac());
-                                                    Toast.makeText(getActivity(), getActivity().getString(R.string.blocking) + " " + device.mac(), Toast.LENGTH_LONG).show();
+                                                    Toast.makeText(mActivity, mActivity.getString(R.string.blocking) + " " + device.mac(), Toast.LENGTH_LONG).show();
                                                 }
                                             })
                                             .setNegativeButton(context.getString(R.string.no), null)
@@ -455,11 +458,11 @@ public class OverviewFragment extends Fragment {
     }
 
     public boolean isDetailViewVisible() {return mDetailViewVisible;}
-    private void showDetailView(String network_name) {
+    protected void showDetailView(String network_name) {
         if (! isDetailViewVisible()) {
             TextView detailTitle = (TextView)mDetailView.findViewById(R.id.network_name);
             detailTitle.setText(getString(R.string.devices_on)+network_name);
-            Animation bottomUp = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_up);
+            Animation bottomUp = AnimationUtils.loadAnimation(mActivity, R.anim.bottom_up);
             mDetailView.startAnimation(bottomUp);
             mDetailView.setVisibility(View.VISIBLE);
             mDetailViewVisible = true;
@@ -467,7 +470,7 @@ public class OverviewFragment extends Fragment {
     }
     public void hideDetailView() {
         if (mDetailViewVisible) {
-            Animation bottomDown = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_down);
+            Animation bottomDown = AnimationUtils.loadAnimation(mActivity, R.anim.bottom_down);
             mDetailView.startAnimation(bottomDown);
             mDetailView.setVisibility(View.INVISIBLE);
             mDetailViewVisible = false;

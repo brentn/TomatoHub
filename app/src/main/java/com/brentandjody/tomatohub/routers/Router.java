@@ -29,8 +29,9 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public static final int ACTIVITY_DEVICES_UPDATED = 3;
     public static final int ACTIVITY_TRAFFIC_UPDATED = 4;
     public static final int ACTIVITY_INTERNET_10MDOWNLOAD = 5;
-    public static final int ACTIVITY_WIFI_SPEED_TEST = 6;
-    public static final int ACTIVITY_WIFI_UPDATED = 7;
+    public static final int ACTIVITY_10MDOWNLOAD_PROGRESS = 6;
+    public static final int ACTIVITY_WIFI_SPEED_TEST = 7;
+    public static final int ACTIVITY_WIFI_UPDATED = 8;
     public static final int ACTIVITY_BACKGROUND_COMMAND = 10;
 
     public static final String ACTIVITY_FLAG_EXIT_ON_COMPLETION = "EXIT";

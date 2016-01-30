@@ -33,12 +33,12 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="@string/internet_speed"
         android:id="@+id/textView5"
-        android:layout_above="@+id/pb_internet"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_toRightOf="@+id/internet"
         android:layout_marginLeft="10dp"
         android:textColor="#ffffff"
+        android:layout_below="@+id/internet"
         android:layout_marginBottom="-10dp" />
 
     <TextView
@@ -46,12 +46,12 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/internet_speed"
-        android:layout_below="@+id/internet"
-        android:layout_toRightOf="@+id/internet"
+        android:layout_below="@+id/textView5"
         android:layout_toEndOf="@+id/internet"
         android:textColor="#ffffff"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="10dp" />
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_alignLeft="@+id/textView5" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -60,7 +60,7 @@
         android:text="unusually fast"
         android:id="@+id/internet_fastslow"
         android:layout_below="@+id/internet_speed"
-        android:layout_alignLeft="@+id/internet_speed"
+        android:layout_alignLeft="@+id/textView5"
         android:textColor="#ffffff"
         android:textStyle="italic"
         android:visibility="invisible" />
@@ -70,11 +70,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/pb_internet"
-        android:layout_alignBottom="@+id/internet_speed"
-        android:layout_toRightOf="@+id/router"
         android:layout_toEndOf="@+id/router"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="30dp" />
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="30dp"
+        android:layout_below="@+id/internet_speed"
+        android:layout_alignLeft="@+id/internet_speed" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -98,22 +98,22 @@
         android:text="@string/wifi_speed"
         android:id="@+id/textView6"
         android:textColor="#ffffff"
-        android:layout_above="@+id/pb_wifi"
         android:layout_toRightOf="@+id/router"
         android:layout_marginLeft="10dp"
-        android:layout_marginBottom="-10dp" />
+        android:layout_marginBottom="-10dp"
+        android:layout_below="@+id/router" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/wifi_speed"
-        android:layout_below="@+id/router"
-        android:layout_toRightOf="@+id/router"
+        android:layout_below="@+id/textView6"
         android:layout_toEndOf="@+id/router"
         android:textColor="#ffffff"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="10dp" />
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_alignLeft="@+id/textView6" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -122,7 +122,7 @@
         android:text="unusually fast"
         android:id="@+id/wifi_fastslow"
         android:layout_below="@+id/wifi_speed"
-        android:layout_alignLeft="@+id/wifi_speed"
+        android:layout_alignLeft="@+id/textView6"
         android:textColor="#ffffff"
         android:textStyle="italic"
         android:visibility="invisible" />
@@ -133,7 +133,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/pb_wifi"
         android:layout_alignBottom="@+id/wifi_speed"
-        android:layout_toRightOf="@+id/internet"
+        android:layout_toRightOf="@+id/router"
         android:layout_toEndOf="@+id/internet"
         android:layout_marginLeft="30dp"
         android:layout_marginTop="30dp" />
