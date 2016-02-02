@@ -484,7 +484,7 @@ public class LinuxRouter extends Router {
         }
     }
 
-    private class InternetDownloader extends AsyncTask<Void, Integer, Void> {
+    private class InternetDownloader extends AsyncTask<Void, Integer, Integer> {
         boolean finished=false;
         boolean success=false;
         int size=0;
@@ -498,7 +498,7 @@ public class LinuxRouter extends Router {
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Integer doInBackground(Void... params) {
             try {
                 finished=false;
                 command("wget -qO /tmp/10mb.test http://cachefly.cachefly.net/10mb.test &");
@@ -530,7 +530,7 @@ public class LinuxRouter extends Router {
                 success=false;
                 Log.e(TAG, "InternetDownloader:"+ex.getMessage());
             }
-            return null;
+            return size;
         }
 
         @Override
@@ -540,12 +540,12 @@ public class LinuxRouter extends Router {
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
+        protected void onPostExecute(Integer size) {
             Log.d(TAG, "Download complete");
-            super.onPostExecute(aVoid);
+            super.onPostExecute(size);
             mRunningTasks.remove(this);
             if (!isCancelled())
-                mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?ACTIVITY_STATUS_SUCCESS:ACTIVITY_STATUS_FAILURE);
+                mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?size:ACTIVITY_STATUS_FAILURE);
             command("rm /tmp/10mb.test");
         }
     }
