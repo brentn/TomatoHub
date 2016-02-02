@@ -485,8 +485,12 @@ public class LinuxRouter extends Router {
     }
 
     private class InternetDownloader extends AsyncTask<Void, Integer, Integer> {
+        private String DOWNLOADURL = "http://cachefly.cachefly.net/100mb.test";
+        private String FILENAME = "/tmp/download.test";
+        private long TIMELIMIT = 20000; //20 seconds
         boolean finished=false;
         boolean success=false;
+        long runUntil;
         int size=0;
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
@@ -494,30 +498,38 @@ public class LinuxRouter extends Router {
         protected void onPreExecute() {
             super.onPreExecute();
             mRunningTasks.add(this);
-            command("rm /tmp/10mb.test");
+            command("rm "+FILENAME);
+            runUntil = System.currentTimeMillis()+TIMELIMIT;
         }
 
         @Override
         protected Integer doInBackground(Void... params) {
             try {
                 finished=false;
-                command("wget -qO /tmp/10mb.test http://cachefly.cachefly.net/10mb.test &");
+                command("wget -bqO "+FILENAME+" "+ DOWNLOADURL);
                 Runnable progress = new Runnable() {
                     @Override
                     public void run() {
+                        if (System.currentTimeMillis() > runUntil) {
+                            Log.d(TAG, "Finishing speed test due to time limit");
+                            success=true;
+                            finished=true;
+                        }
                         try {
                             int oldSize = size;
-                            size = Integer.parseInt(command("wc -c /tmp/10mb.test|cut -d' ' -f1")[0]);
+                            size = Integer.parseInt(command("wc -c "+FILENAME+"|cut -d' ' -f1")[0]);
                             Log.d(TAG, size + " bytes downloaded...");
                             if (oldSize == size) {
                                 Log.d(TAG, "Stopping downloader progress");
                                 executor.shutdown();
+                                success=true;
                                 finished=true;
                             }
                             publishProgress(size);
                         } catch (Exception ex) {
                             Log.e(TAG, ex.getMessage());
                             executor.shutdown();
+                            success=false;
                             finished=true;
                         }
                     }
@@ -525,7 +537,6 @@ public class LinuxRouter extends Router {
 
                 executor.scheduleAtFixedRate(progress, 2000, 500, TimeUnit.MILLISECONDS);
                 while (!finished) Thread.sleep(10);
-                success=true;
             } catch (Exception ex) {
                 success=false;
                 Log.e(TAG, "InternetDownloader:"+ex.getMessage());
@@ -546,7 +557,7 @@ public class LinuxRouter extends Router {
             mRunningTasks.remove(this);
             if (!isCancelled())
                 mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?size:ACTIVITY_STATUS_FAILURE);
-            command("rm /tmp/10mb.test");
+            command("rm "+FILENAME);
         }
     }
 
