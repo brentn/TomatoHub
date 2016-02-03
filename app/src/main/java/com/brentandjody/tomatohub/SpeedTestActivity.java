@@ -138,7 +138,9 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                     elapsedBytes = status - mLastSize;
                     fileSize = (elapsedBytes * 8) / 1000000; //adjust size to megabits
                     wanSpeed = fileSize / (elapsedTime / 1000d); //adjust time to seconds
-                    mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
+                    if (wanSpeed > 0) {
+                        mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
+                    }
                     mLastTime = timeSinceStart;
                     mLastSize = status;
                 }

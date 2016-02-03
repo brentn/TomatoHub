@@ -506,26 +506,30 @@ public class LinuxRouter extends Router {
         protected Integer doInBackground(Void... params) {
             try {
                 finished=false;
-                command("wget -bqO "+FILENAME+" "+ DOWNLOADURL);
+                command("wget -qO "+FILENAME+" "+ DOWNLOADURL+" &");
                 Runnable progress = new Runnable() {
                     @Override
                     public void run() {
                         if (System.currentTimeMillis() > runUntil) {
                             Log.d(TAG, "Finishing speed test due to time limit");
-                            success=true;
+                            executor.shutdown();
+                            success=size>0;
                             finished=true;
                         }
                         try {
                             int oldSize = size;
-                            size = Integer.parseInt(command("wc -c "+FILENAME+"|cut -d' ' -f1")[0]);
+                            try { size = Integer.parseInt(command("wc -c "+FILENAME+"|cut -d' ' -f1")[0]); }
+                            catch (Exception ex) { size = oldSize; }
                             Log.d(TAG, size + " bytes downloaded...");
-                            if (oldSize == size) {
-                                Log.d(TAG, "Stopping downloader progress");
-                                executor.shutdown();
-                                success=true;
-                                finished=true;
+                            if (size>0) {
+                                if (oldSize == size) {
+                                    Log.d(TAG, "Stopping downloader progress");
+                                    executor.shutdown();
+                                    success = true;
+                                    finished = true;
+                                }
+                                publishProgress(size);
                             }
-                            publishProgress(size);
                         } catch (Exception ex) {
                             Log.e(TAG, ex.getMessage());
                             executor.shutdown();
@@ -557,7 +561,7 @@ public class LinuxRouter extends Router {
             mRunningTasks.remove(this);
             if (!isCancelled())
                 mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?size:ACTIVITY_STATUS_FAILURE);
-            command("rm "+FILENAME);
+            command("killall wget; rm "+FILENAME);
         }
     }
 
