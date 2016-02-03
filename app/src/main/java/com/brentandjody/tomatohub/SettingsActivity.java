@@ -9,17 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
@@ -31,8 +27,6 @@ import android.widget.Toast;
 
 import com.brentandjody.tomatohub.database.Speeds;
 import com.brentandjody.tomatohub.routers.RouterType;
-
-import java.util.List;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -75,7 +69,6 @@ public class SettingsActivity extends Activity {
                 // simple string representation.
                 preference.setSummary(stringValue);
             }
-
             return true;
         }
     };
@@ -122,12 +115,12 @@ public class SettingsActivity extends Activity {
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class GeneralPreferenceFragment extends PreferenceFragment {
+    public static class GeneralPreferenceFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
-            PreferenceManager prefMgr = getPreferenceManager();
+            final PreferenceManager prefMgr = getPreferenceManager();
             prefMgr.setSharedPreferencesName(getString(R.string.sharedPreferences_name));
             prefMgr.setSharedPreferencesMode(MODE_PRIVATE);
 
@@ -194,10 +187,32 @@ public class SettingsActivity extends Activity {
 
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_router_type)));
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_protocol)));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_port)));
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_ip_address)));
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_username)));
         }
 
+        @Override
+        public void onPause() {
+            super.onPause();
+            getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals(getString(R.string.pref_key_protocol))) {
+                String port = sharedPreferences.getString(getString(R.string.pref_key_protocol), "ssh").equals("ssh")?"22":"23";
+                EditTextPreference portPref = (EditTextPreference) findPreference(getString(R.string.pref_key_port));
+                portPref.setText(port);
+                portPref.setSummary(port);
+            }
+        }
     }
 
 }

@@ -47,6 +47,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     protected String mIpAddress;
     protected String mUser;
     protected String mPassword;
+    protected int mPort;
     private TestableConnection mConnection;
     private Boolean mTestFileSent =null;
 
@@ -64,6 +65,8 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
             mUser = mPrefs.getString(activity.getString(R.string.pref_key_username), "root");
             mPassword = mPrefs.getString(activity.getString(R.string.pref_key_password), "");
             String protocol = mPrefs.getString(mContext.getString(R.string.pref_key_protocol), "ssh");
+            try { mPort = Integer.parseInt(mPrefs.getString(activity.getString(R.string.pref_key_port), protocol.equals("ssh")?"22":"23")); }
+            catch (Exception ex) { mPort = protocol.equals("ssh")?22:23; }
             switch (protocol) {
                 case "ssh":
                     mConnection = new SshConnection(this);
@@ -86,6 +89,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public String getmIpAddress() {return mIpAddress;}
     public String getmUser() {return mUser;}
     public String getmPassword() {return mPassword;}
+    public int getPort() {return mPort;}
     public TestableConnection getmConnection() {return mConnection;}
 
     public void setmConnection(TestableConnection connection) {mConnection=connection;}
@@ -93,7 +97,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public void connect() {
         Log.d(TAG, "Attempting to connect to: "+mIpAddress+" as: "+mUser);
         try {
-            mConnection.connect(mIpAddress, mUser, mPassword);
+            mConnection.connect(mIpAddress, mUser, mPassword, mPort);
         } catch (Exception ex) {
             Log.e(TAG, "connect(): "+ex.getMessage());
         }

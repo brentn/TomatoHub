@@ -1,6 +1,5 @@
 package com.brentandjody.tomatohub.routers.connection;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -9,11 +8,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +24,7 @@ public class SshConnection extends TestableConnection  implements TestableConnec
     private String mIpAddress;
     private String mUser;
     private String mPassword;
+    private int mPort;
     private Session mSession;
     private List<AsyncTask> mRunningTasks;
 
@@ -38,12 +34,13 @@ public class SshConnection extends TestableConnection  implements TestableConnec
     }
 
     @Override
-    public void connect(String ipAddress, String username, String password){
+    public void connect(String ipAddress, String username, String password, int port){
         try {
             mRunningTasks = new ArrayList<>();
             mIpAddress = ipAddress;
             mUser = username;
             mPassword = password;
+            mPort = port;
             new BackgroundLogon().execute();
         } catch (Exception ex) {
             Log.e(TAG, "connect() "+ex.getMessage());
@@ -122,7 +119,7 @@ public class SshConnection extends TestableConnection  implements TestableConnec
                 resetSession();
                 java.util.Properties config = new java.util.Properties();
                 config.put("StrictHostKeyChecking", "no");
-                mSession = ssh.getSession(mUser, mIpAddress, 22);
+                mSession = ssh.getSession(mUser, mIpAddress, mPort);
                 mSession.setConfig(config);
                 mSession.setPassword(mPassword);
                 mSession.setServerAliveInterval(3000);
