@@ -26,6 +26,16 @@
         android:title="@string/pref_title_ip_address" />
 
     <EditTextPreference
+        android:defaultValue="22"
+        android:inputType="number"
+        android:numeric="integer"
+        android:key="@string/pref_key_port"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/port" />
+
+    <EditTextPreference
         android:defaultValue="@string/pref_default_username"
         android:inputType="textAutoComplete"
         android:key="@string/pref_key_username"

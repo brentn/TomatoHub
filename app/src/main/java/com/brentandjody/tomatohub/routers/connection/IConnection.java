@@ -8,7 +8,7 @@ public interface IConnection {
     int ACTION_LOGON = 1;
     int ACTION_SPEED_TEST = 2;
 
-    void connect(String ipAddress, String username, String password);
+    void connect(String ipAddress, String username, String password, int port);
     void disconnect();
     String[] execute(String command);
 

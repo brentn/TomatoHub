@@ -1,6 +1,5 @@
 package com.brentandjody.tomatohub.routers.connection;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -23,6 +22,7 @@ public class TelnetConnection extends TestableConnection implements TestableConn
     private String mIpAddress;
     private String mUser;
     private String mPassword;
+    private int mPort;
     private TelnetSession mSession;
     private List<AsyncTask> mRunningTasks;
 
@@ -32,12 +32,13 @@ public class TelnetConnection extends TestableConnection implements TestableConn
     }
 
     @Override
-    public void connect(String ipAddress, String username, String password) {
+    public void connect(String ipAddress, String username, String password, int port) {
         try {
             mRunningTasks = new ArrayList<>();
             mIpAddress=ipAddress;
             mUser=username;
             mPassword=password;
+            mPort = port;
             new BackgroundLogon().execute();
         } catch (Exception ex) {
             Log.e(TAG, "connect() "+ex.getMessage());
@@ -127,7 +128,7 @@ public class TelnetConnection extends TestableConnection implements TestableConn
         private String prompt = "# ";
 
         public TelnetSession(String server, String user, String password) throws Exception {
-            telnet.connect(server, 23);
+            telnet.connect(server, mPort);
             in = telnet.getInputStream();
             out = new PrintStream(telnet.getOutputStream());
 
