@@ -75,7 +75,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
                     mConnection = new TelnetConnection(this);
                     break;
                 default:
-                    Log.e(TAG, "Unrcognized protocol");
+                    Log.e(TAG, "Unrecognized protocol");
                     mConnection = null;
             }
         } catch (Exception ex) {
@@ -95,7 +95,7 @@ public abstract class Router implements IRouter, IConnection.OnConnectionActionC
     public void setmConnection(TestableConnection connection) {mConnection=connection;}
 
     public void connect() {
-        Log.d(TAG, "Attempting to connect to: "+mIpAddress+" as: "+mUser);
+        Log.d(TAG, "Attempting to connect to: "+mIpAddress+" as: "+mUser+" on port: "+mPort);
         try {
             mConnection.connect(mIpAddress, mUser, mPassword, mPort);
         } catch (Exception ex) {

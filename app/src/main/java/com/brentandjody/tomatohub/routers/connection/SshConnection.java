@@ -115,7 +115,7 @@ public class SshConnection extends TestableConnection  implements TestableConnec
         protected Void doInBackground(Void... voids) {
             try {
                 JSch ssh = new JSch();
-                Log.d(TAG, "Logging in via SSH");
+                Log.d(TAG, "Logging in via SSH on port "+mPort);
                 resetSession();
                 java.util.Properties config = new java.util.Properties();
                 config.put("StrictHostKeyChecking", "no");

@@ -26,7 +26,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
     TextView mWifiSpeed;
     ProgressBar mInternetTesting;
     ProgressBar mWifiTesting;
-    long mStartTime, mLastTime, mLastSize;
+    long mStartTime;
     float mLanSpeed=-1;
     String mRouterId;
     Speeds speeds = new Speeds(this);
@@ -79,8 +79,6 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
     private void runDownloadTest() {
         mInternetTesting.setVisibility(View.VISIBLE);
         mStartTime = System.currentTimeMillis();
-        mLastTime = mStartTime;
-        mLastSize=0;
         if (mRouter!=null)
             mRouter.internetSpeedTest();
     }
@@ -93,7 +91,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
 
     @Override
     public void onRouterActivityComplete(int activity_id, int status) {
-        long elapsedTime, elapsedBytes;
+        long elapsedTime;
         double fileSize;
         double wanSpeed=0;
         switch(activity_id) {
@@ -132,17 +130,13 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                 break;
             case Router.ACTIVITY_10MDOWNLOAD_PROGRESS:
                 // status is used for size of file in bytes
-                if (status > mLastSize) {
-                    long timeSinceStart = System.currentTimeMillis() - mStartTime;
-                    elapsedTime = timeSinceStart - mLastTime;
-                    elapsedBytes = status - mLastSize;
-                    fileSize = (elapsedBytes * 8) / 1000000; //adjust size to megabits
+                if (status > 0) {
+                    elapsedTime = System.currentTimeMillis() - mStartTime;
+                    fileSize = (status * 8) / 1000000; //adjust size to megabits
                     wanSpeed = fileSize / (elapsedTime / 1000d); //adjust time to seconds
                     if (wanSpeed > 0) {
                         mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
                     }
-                    mLastTime = timeSinceStart;
-                    mLastSize = status;
                 }
                 break;
         }

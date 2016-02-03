@@ -90,7 +90,7 @@ public class TelnetConnection extends TestableConnection implements TestableConn
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Log.d(TAG, "Logging in via telnet");
+                Log.d(TAG, "Logging in via telnet on port "+mPort);
                 resetSession();
                 mSession = new TelnetSession(mIpAddress, mUser, mPassword);
                 success = true;
