@@ -26,7 +26,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
     TextView mWifiSpeed;
     ProgressBar mInternetTesting;
     ProgressBar mWifiTesting;
-    long mStartTime;
+    long mStartTime, mStartSize;
     float mLanSpeed=-1;
     String mRouterId;
     Speeds speeds = new Speeds(this);
@@ -79,6 +79,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
     private void runDownloadTest() {
         mInternetTesting.setVisibility(View.VISIBLE);
         mStartTime = System.currentTimeMillis();
+        mStartSize = 0;
         if (mRouter!=null)
             mRouter.internetSpeedTest();
     }
@@ -115,8 +116,9 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
             case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
                 mInternetTesting.setVisibility(View.INVISIBLE);
                 if (status!=Router.ACTIVITY_STATUS_FAILURE) {
+                    int currentSize = status;
                     elapsedTime = System.currentTimeMillis() - mStartTime;
-                    fileSize = (status * 8) / 1000000; //status is bytes (if not ACTIVITY_STATUS_FAILURE) //adjust size to megabits
+                    fileSize = ((currentSize-mStartSize) * 8) / 1000000; //status is bytes (if not ACTIVITY_STATUS_FAILURE) //adjust size to megabits
                     wanSpeed = fileSize / (elapsedTime / 1000F); //adjust time to seconds
                     mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
                     notifyExtreme(speeds.isExtreme(mRouterId, Network.WAN, wanSpeed), findViewById(R.id.internet_fastslow));
@@ -124,17 +126,22 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                     wanSpeed=-1;
                     mInternetSpeed.setText(R.string.test_failed);
                 }
-                if (mLanSpeed > 0 || wanSpeed > 0) {
+                if (mLanSpeed > 0 && wanSpeed > 0) {
                     speeds.insert(new Speed(mRouterId, System.currentTimeMillis(), mLanSpeed, wanSpeed));
                 }
                 break;
             case Router.ACTIVITY_10MDOWNLOAD_PROGRESS:
                 // status is used for size of file in bytes
-                if (status > 0) {
-                    elapsedTime = System.currentTimeMillis() - mStartTime;
-                    fileSize = (status * 8) / 1000000; //adjust size to megabits
-                    wanSpeed = fileSize / (elapsedTime / 1000d); //adjust time to seconds
-                    if (wanSpeed > 0) {
+                int currentSize = status;
+                if (currentSize > 0) {
+                    if (mStartSize==0) { //first time, set initial values
+                        mStartTime = System.currentTimeMillis();
+                        mStartSize = currentSize;
+                        mInternetSpeed.setText("0.00 Mbps");
+                    } else {
+                        elapsedTime = System.currentTimeMillis() - mStartTime;
+                        fileSize = ((currentSize - mStartSize) * 8) / 1000000; //adjust size to megabits
+                        wanSpeed = fileSize / (elapsedTime / 1000d); //adjust time to seconds
                         mInternetSpeed.setText(String.format("%.2f", wanSpeed) + " Mbps");
                     }
                 }
