@@ -277,8 +277,8 @@ public class LinuxRouter extends Router {
     }
 
     @Override
-    public void internetSpeedTest() {
-        new InternetDownloader().execute();
+    public void internetSpeedTest(boolean limitedSpace) {
+        new InternetDownloader().execute(limitedSpace);
     }
 
     @Override
@@ -484,8 +484,9 @@ public class LinuxRouter extends Router {
         }
     }
 
-    private class InternetDownloader extends AsyncTask<Void, Integer, Integer> {
-        private String DOWNLOADURL = "http://cachefly.cachefly.net/100mb.test";
+    private class InternetDownloader extends AsyncTask<Boolean, Integer, Integer> {
+        private String SMALLDOWNLOAD = "http://cachefly.cachefly.net/10mb.test";
+        private String BIGDOWNLOAD = "http://cachefly.cachefly.net/100mb.test";
         private String FILENAME = "/tmp/download.test";
         private long TIMELIMIT = 20000; //20 seconds
         boolean finished=false;
@@ -503,44 +504,53 @@ public class LinuxRouter extends Router {
         }
 
         @Override
-        protected Integer doInBackground(Void... params) {
+        protected Integer doInBackground(Boolean... params) {
             try {
-                finished=false;
-                command("wget -qO "+FILENAME+" "+ DOWNLOADURL+" &");
-                Runnable progress = new Runnable() {
-                    @Override
-                    public void run() {
-                        if (System.currentTimeMillis() > runUntil) {
-                            Log.d(TAG, "Finishing speed test due to time limit");
-                            executor.shutdown();
-                            success=size>0;
-                            finished=true;
-                        }
-                        try {
-                            int oldSize = size;
-                            try { size = Integer.parseInt(command("wc -c "+FILENAME+"|cut -d' ' -f1")[0]); }
-                            catch (Exception ex) { size = oldSize; }
-                            Log.d(TAG, size + " bytes downloaded...");
-                            if (size>0) {
-                                if (oldSize == size) {
-                                    Log.d(TAG, "Stopping downloader progress");
-                                    executor.shutdown();
-                                    success = true;
-                                    finished = true;
-                                }
-                                publishProgress(size);
+                boolean limitedSpace = params[0];
+                if (limitedSpace) {
+                    // download small file, don't save anything, don't return until done
+                    Log.d(TAG, "Initiating small download, dumping to /dev/null");
+                    command("wget -qO /dev/null " + SMALLDOWNLOAD);
+                    size = 10485760;
+                    success = true;
+                } else {
+                    // download (portion of) large file for TIMELIMIT to router, in background while updating progress
+                    finished=false;
+                    command("wget -qO " + FILENAME + " " + BIGDOWNLOAD + " &");
+                    Runnable progress = new Runnable() {
+                        @Override
+                        public void run() {
+                            if (System.currentTimeMillis() > runUntil) {
+                                Log.d(TAG, "Finishing speed test due to time limit");
+                                executor.shutdown();
+                                success=size>0;
+                                finished=true;
                             }
-                        } catch (Exception ex) {
-                            Log.e(TAG, ex.getMessage());
-                            executor.shutdown();
-                            success=false;
-                            finished=true;
+                            try {
+                                int oldSize = size;
+                                try { size = Integer.parseInt(command("wc -c "+FILENAME+"|cut -d' ' -f1")[0]); }
+                                catch (Exception ex) { size = oldSize; }
+                                Log.d(TAG, size + " bytes downloaded...");
+                                if (size>0) {
+                                    if (oldSize == size) {
+                                        Log.d(TAG, "Stopping downloader progress");
+                                        executor.shutdown();
+                                        success = true;
+                                        finished = true;
+                                    }
+                                    publishProgress(size);
+                                }
+                            } catch (Exception ex) {
+                                Log.e(TAG, ex.getMessage());
+                                executor.shutdown();
+                                success=false;
+                                finished=true;
+                            }
                         }
-                    }
-                };
-
-                executor.scheduleAtFixedRate(progress, 2000, 500, TimeUnit.MILLISECONDS);
-                while (!finished) Thread.sleep(10);
+                    };
+                    executor.scheduleAtFixedRate(progress, 2000, 500, TimeUnit.MILLISECONDS);
+                    while (!finished) Thread.sleep(10);
+                }
             } catch (Exception ex) {
                 success=false;
                 Log.e(TAG, "InternetDownloader:"+ex.getMessage());
@@ -551,16 +561,16 @@ public class LinuxRouter extends Router {
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            mListener.onRouterActivityComplete(ACTIVITY_10MDOWNLOAD_PROGRESS, values[0]);
+            mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_PROGRESS, values[0]);
         }
 
         @Override
         protected void onPostExecute(Integer size) {
-            Log.d(TAG, "Download complete");
+            Log.d(TAG, "Download complete ("+size+" bytes)");
             super.onPostExecute(size);
             mRunningTasks.remove(this);
             if (!isCancelled())
-                mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, success?size:ACTIVITY_STATUS_FAILURE);
+                mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_COMPLETE, success?size:ACTIVITY_STATUS_FAILURE);
             command("killall wget; rm "+FILENAME);
         }
     }

@@ -82,10 +82,14 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
     private void runDownloadTest() {
         mInternetTesting.setVisibility(View.VISIBLE);
         mDownloading=true;
+        String availableSpace = mRouter.command("df -k /tmp|awk '$3 ~ /[0-9]+/ { print $4 }'")[0];
+        boolean limitedSpace = true;
+        try { limitedSpace = (Integer.parseInt(availableSpace) <= 1000); }
+        catch (Exception ex) { Log.w(TAG, "Available Space didn't return an integer"); }
         mStartTime = System.currentTimeMillis();
         mStartSize = 0;
         if (mRouter!=null)
-            mRouter.internetSpeedTest();
+            mRouter.internetSpeedTest(limitedSpace);
     }
 
     private void runWifiTest() {
@@ -118,7 +122,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                 }
                 runDownloadTest();
                 break;
-            case Router.ACTIVITY_10MDOWNLOAD_PROGRESS:
+            case Router.ACTIVITY_DOWNLOAD_PROGRESS:
                 // status is used for size of file in bytes
                 currentSize = status;
                 if (mDownloading) {
@@ -139,7 +143,7 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
                     }
                 }
                 break;
-            case Router.ACTIVITY_INTERNET_10MDOWNLOAD:
+            case Router.ACTIVITY_DOWNLOAD_COMPLETE:
                 mDownloading=false;
                 mInternetTesting.setVisibility(View.INVISIBLE);
                 if (status!=Router.ACTIVITY_STATUS_FAILURE) {

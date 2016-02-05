@@ -3,7 +3,6 @@ package com.brentandjody.tomatohub.routers;
 import com.brentandjody.tomatohub.database.Wifi;
 
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * Created by brentn on 15/12/15.
@@ -35,7 +34,7 @@ interface IRouter {
 
     //Speed Test
     float getConnectionSpeed();
-    void internetSpeedTest();
+    void internetSpeedTest(boolean limitedSpace);
 
     //wifi
     List<Wifi> getWifiList();

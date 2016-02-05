@@ -216,11 +216,11 @@ public class FakeRouter extends Router {
         }, 300);
     }
     @Override
-    public void internetSpeedTest() {
+    public void internetSpeedTest(boolean limitedSpace) {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mListener.onRouterActivityComplete(ACTIVITY_INTERNET_10MDOWNLOAD, ACTIVITY_STATUS_SUCCESS);
+                mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_COMPLETE, ACTIVITY_STATUS_SUCCESS);
             }
         }, 7000);
     }
