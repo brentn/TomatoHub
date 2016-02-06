@@ -276,8 +276,10 @@ public class OverviewFragment extends Fragment {
                     ((TextView) routerView.findViewById(R.id.internal_ip)).setText(internal_ip);
                     ((TextView) routerView.findViewById(R.id.uptime)).setText(uptimeSince(bootTime));
                     ((ProgressBar) routerView.findViewById(R.id.memory_usage)).setProgress(memory);
-                    ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
-                    ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
+                    if (cpu != null && cpu.length>0)
+                        ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setProgress(cpu[0]);
+                    if (cpu != null && cpu.length>1)
+                        ((ProgressBar) routerView.findViewById(R.id.cpu_usage)).setSecondaryProgress(cpu[1]);
                     AlertDialog.Builder alert = new AlertDialog.Builder(mActivity)
                         .setTitle(getString(R.string.router_details))
                         .setView(routerView);
