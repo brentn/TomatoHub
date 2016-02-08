@@ -79,6 +79,12 @@ public class SpeedTestActivity extends Activity implements Router.OnRouterActivi
         mRouter.connect();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        finish();
+    }
+
     private void runDownloadTest() {
         mInternetTesting.setVisibility(View.VISIBLE);
         mDownloading=true;
