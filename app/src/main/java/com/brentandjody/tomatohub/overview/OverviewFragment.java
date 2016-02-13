@@ -341,12 +341,12 @@ public class OverviewFragment extends Fragment {
 
     private void setupDeviceClickListeners(final int device_list_index) {
         try {
-            DeviceListAdapter adapter = new DeviceListAdapter(mActivity, mDevicesList[device_list_index]);
+            final DeviceListAdapter adapter = new DeviceListAdapter(mActivity, mDevicesList[device_list_index]);
             ListView detailList = (ListView) mDetailView.findViewById(R.id.network_device_list);
             detailList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    final Device device = mDevicesList[device_list_index].get(position);
+                    final Device device = adapter.getItem(position);
                     View deviceView = getLayoutInflater(null).inflate(R.layout.dialog_device_details, null);
                     final EditText deviceName = (EditText) deviceView.findViewById(R.id.device_name);
                     deviceName.setHint(device.originalName());
@@ -493,6 +493,8 @@ public class OverviewFragment extends Fragment {
         return days+hours+mins+secs;
     }
 
+
+// **DeviceListAdapter**
     public class DeviceListAdapter extends ArrayAdapter<Device> {
         Context mContext;
         float mTotalTraffic;
