@@ -62,6 +62,8 @@ public class FakeRouter extends Router {
 
     @Override
     public String[] command(String command) {
+        if (command.endsWith("hwaddr")) return new String[] {"00:00:00:00:00:00"};
+        if (command.startsWith("df ")) return new String[] {"2000"};
         return new String[0];
     }
 
@@ -80,7 +82,7 @@ public class FakeRouter extends Router {
     }
 
     @Override
-    public String getExternalIP() { return "8.8.8.7"; }
+    public String getExternalIP() { return "8.8.8.8"; }
     @Override
     public int getMemoryUsage() { return rnd.nextInt(100); }
     @Override
