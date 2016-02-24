@@ -180,7 +180,7 @@ public class TelnetConnection extends TestableConnection implements TestableConn
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return null;
+            return new String[0];
         }
 
         public void disconnect() {

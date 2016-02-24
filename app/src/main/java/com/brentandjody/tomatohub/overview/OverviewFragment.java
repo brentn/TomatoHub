@@ -147,6 +147,7 @@ public class OverviewFragment extends Fragment {
                 mView.findViewById(R.id.lan_4_l)};
         initialize();
         mListener.onSignal(SIGNAL_LOADED, null);
+        showDemoMode(false);
         return mView;
     }
 
@@ -168,6 +169,11 @@ public class OverviewFragment extends Fragment {
     public void setDevicesMessage(String devices, String message) {
         mDevicesMessage[0].setText(devices);
         mDevicesMessage[1].setText(message);
+    }
+    public void showDemoMode(boolean visible) {
+        View warning = mView.findViewById(R.id.demo_mode);
+        if (warning!=null)
+            warning.setVisibility(visible?View.VISIBLE:View.INVISIBLE);
     }
     public void showRouter(boolean visible) {
         mView.findViewById(R.id.router).setVisibility(visible?View.VISIBLE:View.INVISIBLE);

@@ -1,6 +1,7 @@
 package com.brentandjody.tomatohub.routers;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 
@@ -13,6 +14,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by brentn on 17/12/15.
@@ -90,7 +93,7 @@ public class FakeRouter extends Router {
     @Override
     public String getRouterId() { return "FakeRouter";  }
     @Override
-    public String getRouterType() { return "Fake Router"; }
+    public String getRouterType() { return RouterType.name(RouterType.FAKE); }
     @Override
     public boolean isQOSEnabled() { return true; }
 
@@ -219,12 +222,13 @@ public class FakeRouter extends Router {
     }
     @Override
     public void internetSpeedTest(boolean limitedSpace) {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_COMPLETE, ACTIVITY_STATUS_SUCCESS);
-            }
-        }, 7000);
+        new InternetDownloader().execute();
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_COMPLETE, ACTIVITY_STATUS_SUCCESS);
+//            }
+//        }, 7000);
     }
     @Override
         public void wifiSpeedTest(int port) {
@@ -324,4 +328,49 @@ public class FakeRouter extends Router {
             _until=until;
         }
     }
+
+    private class InternetDownloader extends AsyncTask<Void, Integer, Integer> {
+        private long TIMELIMIT = 10000; //10 seconds
+        boolean finished=false;
+        boolean success=false;
+        long runUntil;
+        int size=0;
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
+        @Override
+        protected void onPreExecute() {
+            runUntil = System.currentTimeMillis()+TIMELIMIT;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... voids) {
+            finished=false;
+            while (! finished) {
+                try {
+                    Thread.sleep(1000);
+                    size += rnd.nextInt(8000000);
+                    publishProgress(size);
+                    finished = (System.currentTimeMillis() > runUntil);
+
+                }
+                catch (InterruptedException e) { finished = true; }
+            }
+            success=true;
+            return size;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_PROGRESS, values[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Integer size) {
+            super.onPostExecute(size);
+            if (!isCancelled())
+                mListener.onRouterActivityComplete(ACTIVITY_DOWNLOAD_COMPLETE, success?size:ACTIVITY_STATUS_FAILURE);
+        }
+    }
+
 }

@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity
                 if (status==Router.ACTIVITY_STATUS_SUCCESS) {
                     if (mOverviewFragment!=null) {
                         mOverviewFragment.showRouter(true);
+                        mOverviewFragment.showDemoMode(mRouter.getRouterType().equals(RouterType.name(RouterType.FAKE)));
                         mOverviewFragment.setStatusMessage(getString((mConnecting?R.string.scanning_network:R.string.rescannng_network)));
                     }
                     mRouter.initialize();
